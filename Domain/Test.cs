@@ -1,7 +1,9 @@
-﻿using DDD.Domain.Entities;
+﻿using DDD.Domain.Aggregates;
+using DDD.Domain.Entities;
 using DDD.Domain.ValueObjects;
+using Domain.ValueObjects;
 
-namespace DDD;
+namespace DDD.Domain;
 
 public class Test
 {
@@ -21,7 +23,7 @@ public class Test
             return;
         }
 
-        var realEstateResult = RealEstate.Create(addressResult.Value, priceResult.Value, "description", "type", 100);
+        var realEstateResult = Property.Create(addressResult.Value, priceResult.Value, "description", "type", 100, "Иванов Иван Иванович", DateTime.Now, "Покупка");
         if (realEstateResult.IsFailure)
         {
             Console.WriteLine($"Ошибка при создании недвижимости: {realEstateResult.Error}");
@@ -30,5 +32,7 @@ public class Test
 
         var realEstate = realEstateResult.Value;
         Console.WriteLine(realEstate.ToString());
+
+        Console.WriteLine($"Текущий владелец: {realEstate.GetCurrentOwner().OwnerName}");
     }
 }

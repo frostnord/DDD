@@ -1,3 +1,4 @@
+using DDD.Domain.Aggregates;
 using DDD.Domain.ValueObjects;
 using Domain.Entities;
 
@@ -31,7 +32,7 @@ namespace DDD.Domain.Entities
         /// <summary>
         /// Список объектов недвижимости, принадлежащих агентству
         /// </summary>
-        public List<RealEstate> Properties { get; private set; }
+        public List<Property> Properties { get; private set; }
         
         /// <summary>
         /// Дата создания записи об агентстве
@@ -72,7 +73,7 @@ namespace DDD.Domain.Entities
             Name = name;
             ContactInfo = contactInfo;
             LicenseNumber = licenseNumber;
-            Properties = new List<RealEstate>();
+            Properties = new List<Property>();
             CreatedAt = DateTime.UtcNow;
         }
 
@@ -81,7 +82,7 @@ namespace DDD.Domain.Entities
         /// </summary>
         /// <param name="property">Объект недвижимости для добавления</param>
         /// <exception cref="ArgumentNullException">Вызывается, если объект недвижимости пуст</exception>
-        public void AddProperty(RealEstate property)
+        public void AddProperty(Property property)
         {
             if (property == null)
             {
@@ -97,7 +98,7 @@ namespace DDD.Domain.Entities
         /// </summary>
         /// <param name="property">Объект недвижимости для удаления</param>
         /// <exception cref="ArgumentNullException">Вызывается, если объект недвижимости пуст</exception>
-        public void RemoveProperty(RealEstate property)
+        public void RemoveProperty(Property property)
         {
             if (property == null)
             {

@@ -24,7 +24,7 @@ namespace DDD.Domain.Aggregates
         /// <summary>
         /// Объект недвижимости, который бронируется
         /// </summary>
-        public RealEstate Property { get; private set; }
+        public Property Property { get; private set; }
         
         /// <summary>
         /// Агентство, осуществляющее бронирование
@@ -66,7 +66,7 @@ namespace DDD.Domain.Aggregates
         /// <param name="totalPrice">Общая цена бронирования</param>
         /// <exception cref="ArgumentNullException">Вызывается, если обязательные параметры пусты</exception>
         /// <exception cref="InvalidOperationException">Вызывается, если условия бронирования некорректны</exception>
-        public Booking(Client client, RealEstate property, Agency agency, Period bookingPeriod, Price totalPrice)
+        public Booking(Client client, Property property, Agency agency, Period bookingPeriod, Price totalPrice)
         {
             if (client == null)
             {

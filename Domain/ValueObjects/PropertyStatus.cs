@@ -3,64 +3,48 @@ using System;
 namespace DDD.Domain.ValueObjects
 {
     /// <summary>
-    /// Объект значения, представляющий статус недвижимости
+    /// Перечисление, представляющее статус недвижимости
     /// </summary>
-    public class PropertyStatus
+    public enum PropertyStatus
     {
-        /// <summary>
-        /// Текущий статус недвижимости
-        /// </summary>
-        public string Status { get; private set; }
-
         /// <summary>
         /// Статус "в продаже"
         /// </summary>
-        public static readonly PropertyStatus ForSale = new PropertyStatus("в продаже");
+        ForSale,
         
         /// <summary>
         /// Статус "забронирован"
         /// </summary>
-        public static readonly PropertyStatus Reserved = new PropertyStatus("забронирован");
+        Reserved,
         
         /// <summary>
         /// Статус "продан"
         /// </summary>
-        public static readonly PropertyStatus Sold = new PropertyStatus("продан");
+        Sold
+    }
 
+    /// <summary>
+    /// Расширения для PropertyStatus
+    /// </summary>
+    public static class PropertyStatusExtensions
+    {
         /// <summary>
-        /// Создает новый экземпляр статуса недвижимости
+        /// Получает строковое представление статуса недвижимости
         /// </summary>
         /// <param name="status">Статус недвижимости</param>
-        private PropertyStatus(string status)
+        /// <returns>Строковое представление статуса</returns>
+        public static string GetDisplayName(this PropertyStatus status)
         {
-            if (string.IsNullOrWhiteSpace(status))
+            switch (status)
             {
-                throw new ArgumentException("Статус недвижимости не может быть пустым", nameof(status));
-            }
-            
-            Status = status;
-        }
-
-        public override string ToString() => Status;
-
-        /// <summary>
-        /// Создает статус недвижимости из строки
-        /// </summary>
-        /// <param name="status">Строка статуса</param>
-        /// <returns>Объект PropertyStatus</returns>
-        /// <exception cref="ArgumentException">Вызывается, если передан недопустимый статус</exception>
-        public static PropertyStatus FromString(string status)
-        {
-            switch (status?.ToLower())
-            {
-                case "в продаже":
-                    return ForSale;
-                case "забронирован":
-                    return Reserved;
-                case "продан":
-                    return Sold;
+                case PropertyStatus.ForSale:
+                    return "в продаже";
+                case PropertyStatus.Reserved:
+                    return "забронирован";
+                case PropertyStatus.Sold:
+                    return "продан";
                 default:
-                    throw new ArgumentException($"Недопустимый статус недвижимости: {status}", nameof(status));
+                    throw new ArgumentOutOfRangeException(nameof(status), status, null);
             }
         }
     }
