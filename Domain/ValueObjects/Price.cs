@@ -16,8 +16,7 @@ namespace DDD.Domain.ValueObjects
         /// Создает новый экземпляр цены
         /// </summary>
         /// <param name="value">Значение цены</param>
-        /// <exception cref="ArgumentException">Вызывается, если цена нулевая, отрицательная или отсутствует</exception>
-        public Price(decimal value)
+        private Price(decimal value)
         {
             Value = value;
         }

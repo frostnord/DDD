@@ -1,4 +1,4 @@
-using System.Net.Mail;
+using System;
 using CSharpFunctionalExtensions;
 
 namespace DDD.Domain.ValueObjects
@@ -6,25 +6,24 @@ namespace DDD.Domain.ValueObjects
     /// <summary>
     /// Объект значения, представляющий контактную информацию
     /// </summary>
-    public class ContactInfo
+    public class ContactInfo : IEquatable<ContactInfo>
     {
         /// <summary>
         /// Электронная почта
         /// </summary>
-        public string Email { get; }
+        public Email Email { get; }
         
         /// <summary>
         /// Номер телефона
         /// </summary>
-        public string PhoneNumber { get; }
+        public PhoneNumber PhoneNumber { get; }
 
         /// <summary>
         /// Создает новый экземпляр контактной информации
         /// </summary>
         /// <param name="email">Электронная почта</param>
         /// <param name="phoneNumber">Номер телефона</param>
-        /// <exception cref="ArgumentException">Вызывается, если контактная информация некорректна</exception>
-        public ContactInfo(string email, string phoneNumber)
+        private ContactInfo(Email email, PhoneNumber phoneNumber)
         {
             Email = email;
             PhoneNumber = phoneNumber;
@@ -36,16 +35,14 @@ namespace DDD.Domain.ValueObjects
         /// <param name="email">Электронная почта</param>
         /// <param name="phoneNumber">Номер телефона</param>
         /// <returns>Result с экземпляром ContactInfo при успешной валидации или ошибкой при провале валидации</returns>
-        public static Result<ContactInfo> Create(string email, string phoneNumber)
+        public static Result<ContactInfo> Create(Email email, PhoneNumber phoneNumber)
         {
             var errors = new List<string>();
 
-            if (string.IsNullOrWhiteSpace(email))
+            if (email == null)
                 errors.Add("Email не может быть пустым");
-            else if (!IsValidEmail(email))
-                errors.Add("Некорректный формат email");
 
-            if (string.IsNullOrWhiteSpace(phoneNumber))
+            if (phoneNumber == null)
                 errors.Add("Номер телефона не может быть пустым");
 
             if (errors.Count > 0)
@@ -56,17 +53,29 @@ namespace DDD.Domain.ValueObjects
             return Result.Success(new ContactInfo(email, phoneNumber));
         }
 
-        private static bool IsValidEmail(string email)
+        public override bool Equals(object obj)
         {
-            try
+            if (obj is ContactInfo other)
             {
-                var addr = new MailAddress(email);
-                return addr.Address == email;
+                return Email.Equals(other.Email) &&
+                       PhoneNumber.Equals(other.PhoneNumber);
             }
-            catch
-            {
-                return false;
-            }
+            return false;
         }
+
+        public bool Equals(ContactInfo other)
+        {
+            if (other is null) return false;
+            if (ReferenceEquals(this, other)) return true;
+            return Email.Equals(other.Email) &&
+                   PhoneNumber.Equals(other.PhoneNumber);
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(Email, PhoneNumber);
+        }
+
+        public override string ToString() => $"Email: {Email}, Phone: {PhoneNumber}";
     }
 }

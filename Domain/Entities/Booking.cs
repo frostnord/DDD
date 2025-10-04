@@ -93,12 +93,6 @@ namespace DDD.Domain.Aggregates
                 throw new ArgumentNullException(nameof(totalPrice), "Общая цена не может быть пустой");
             }
             
-            // Проверка доступности недвижимости в указанный период
-            if (!property.IsAvailable)
-            {
-                throw new InvalidOperationException("Объект недвижимости недоступен для бронирования");
-            }
-            
             // Проверка, что цена соответствует стоимости недвижимости
             if (totalPrice.Value != property.Price.Value)
             {

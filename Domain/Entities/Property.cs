@@ -1,7 +1,9 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using CSharpFunctionalExtensions;
 using DDD.Domain.ValueObjects;
 using Domain.ValueObjects;
-using static DDD.Domain.Entities.OwnershipHistory;
 
 namespace DDD.Domain.Entities
 {
@@ -10,6 +12,8 @@ namespace DDD.Domain.Entities
     /// </summary>
     public class Property
     {
+        private readonly List<OwnershipRecord> _ownershipHistory;
+        
         /// <summary>
         /// Уникальный идентификатор объекта недвижимости
         /// </summary>
@@ -31,29 +35,21 @@ namespace DDD.Domain.Entities
         public PropertyStatus Status { get; private set; }
         
         /// <summary>
-        /// История владения объектом недвижимости
+        /// История владения объектом недвижимости (только для чтения)
         /// </summary>
-        public OwnershipHistory OwnershipHistory { get; private set; }
+        public IReadOnlyList<OwnershipRecord> OwnershipHistory => _ownershipHistory.AsReadOnly();
         
         /// <summary>
         /// Описание объекта недвижимости
         /// </summary>
-        public string Description { get; private set; }
+        public Description Description { get; private set; }
+        
         
         /// <summary>
-        /// Тип недвижимости (квартира, дом, коммерческое помещение)
+        /// Детали объекта недвижимости (площадь, комнаты, этаж и т.д.)
         /// </summary>
-        public string Type { get; private set; }
+        public PropertyDetails Details { get; private set; }
         
-        /// <summary>
-        /// Площадь в квадратных метрах
-        /// </summary>
-        public int Area { get; private set; }
-        
-        /// <summary>
-        /// Доступность объекта недвижимости
-        /// </summary>
-        public bool IsAvailable { get; private set; }
         
         /// <summary>
         /// Дата создания записи об объекте недвижимости
@@ -71,62 +67,58 @@ namespace DDD.Domain.Entities
         /// <param name="address">Адрес объекта недвижимости</param>
         /// <param name="price">Цена объекта недвижимости</param>
         /// <param name="description">Описание объекта недвижимости</param>
-        /// <param name="type">Тип недвижимости</param>
-        /// <param name="area">Площадь в квадратных метрах</param>
+        /// <param name="details">Детали объекта недвижимости</param>
         /// <param name="status">Статус недвижимости</param>
-        private Property(Address address, Price price, string description, string type, int area, PropertyStatus status)
+        private Property(Address address, Price price, Description description, PropertyDetails details, PropertyStatus status)
         {
             Id = Guid.NewGuid();
             Address = address;
-            Price = price; //
-            Description = description; //
-            Type = type; // Тип
-            Area = area; //площадь помещения
-            IsAvailable = true;
+            Price = price;
+            Description = description;
+            Details = details;
             CreatedAt = DateTime.UtcNow;
             Status = status;
-            OwnershipHistory = new OwnershipHistory();
+            _ownershipHistory = new List<OwnershipRecord>();
         }
 
         /// <summary>
-        /// Фабричный метод для создания экземпляра объекта недвижимости с возвратом результата
+        /// Фабричный метод для создания экземпляра объекта недвижимости с возвратом результата (правильный подход DDD)
         /// </summary>
         /// <param name="address">Адрес объекта недвижимости</param>
         /// <param name="price">Цена объекта недвижимости</param>
         /// <param name="description">Описание объекта недвижимости</param>
-        /// <param name="type">Тип недвижимости</param>
-        /// <param name="area">Площадь в квадратных метрах</param>
-        /// <param name="ownerName">Имя владельца</param>
-        /// <param name="startDate">Дата начала владения</param>
-        /// <param name="ownershipReason">Причина владения</param>
-        /// <param name="status">Статус недвижимости</param>
+        /// <param name="details">Детали объекта недвижимости</param>
+        /// <param name="ownerRecord">Запись о первом владельце</param>
         /// <returns>Result с экземпляром Property при успешной валидации или ошибкой при провале валидации</returns>
-        public static Result<Property> Create(Address address, Price price, string description, string type, int area, string ownerName, DateTime startDate, string ownershipReason)
+        public static Result<Property> Create(
+            Address address, 
+            Price price, 
+            Description description, 
+            PropertyDetails details,
+            OwnershipRecord ownerRecord)
         {
             var validationErrors = new List<string>();
 
-            // Проверка строковых значений на пустоту
-            if (string.IsNullOrWhiteSpace(description))
+            // Валидация входных параметров
+            if (address == null)
+                validationErrors.Add("Адрес не может быть пустым");
+            
+            if (price == null)
+                validationErrors.Add("Цена не может быть пустой");
+            
+            if (description == null)
                 validationErrors.Add("Описание не может быть пустым");
-
-            if (string.IsNullOrWhiteSpace(type))
-                validationErrors.Add("Тип недвижимости не может быть пустым");
-
-            // Проверка числовых значений на корректность
-            if (area <= 0)
-                validationErrors.Add("Площадь должна быть положительной");
-
-            // Создание записи о владельце с валидацией
-            var ownerRecordResult = OwnershipRecord.Create(ownerName, startDate, ownershipReason);
-            if (ownerRecordResult.IsFailure)
-            {
-                validationErrors.Add(ownerRecordResult.Error);
-            }
+            
+            if (details == null)
+                validationErrors.Add("Детали недвижимости не могут быть пустыми");
+            
+            if (ownerRecord == null)
+                validationErrors.Add("Запись о владельце не может быть пустой");
 
             // Возврат результата валидации
             return validationErrors.Count > 0
                 ? Result.Failure<Property>(string.Join("; ", validationErrors))
-                : Result.Success(CreateWithOwner(address, price, description, type, area, ownerRecordResult.Value));
+                : Result.Success(CreateWithOwner(address, price, description, details, ownerRecord));
         }
 
         /// <summary>
@@ -135,14 +127,13 @@ namespace DDD.Domain.Entities
         /// <param name="address">Адрес объекта недвижимости</param>
         /// <param name="price">Цена объекта недвижимости</param>
         /// <param name="description">Описание объекта недвижимости</param>
-        /// <param name="type">Тип недвижимости</param>
-        /// <param name="area">Площадь в квадратных метрах</param>
+        /// <param name="details">Детали объекта недвижимости</param>
         /// <param name="ownerRecord">Запись о владельце</param>
         /// <returns>Экземпляр Property</returns>
-        private static Property CreateWithOwner(Address address, Price price, string description, string type, int area, OwnershipRecord ownerRecord)
+        private static Property CreateWithOwner(Address address, Price price, Description description, PropertyDetails details, OwnershipRecord ownerRecord)
         {
-            var property = new Property(address, price, description, type, area, PropertyStatus.ForSale);
-            property.OwnershipHistory.AddRecord(ownerRecord);
+            var property = new Property(address, price, description, details, PropertyStatus.ForSale);
+            property.AddOwnershipRecord(ownerRecord);
             return property;
         }
 
@@ -159,7 +150,9 @@ namespace DDD.Domain.Entities
                 throw new ArgumentNullException(nameof(record), "Запись истории владения не может быть пустой");
             }
 
-            OwnershipHistory.AddRecord(record);
+            _ownershipHistory.Add(record);
+            // Сортировка записей по дате начала владения
+            _ownershipHistory.Sort((r1, r2) => r1.StartDate.CompareTo(r2.StartDate));
             UpdatedAt = DateTime.UtcNow;
         }
 
@@ -169,7 +162,13 @@ namespace DDD.Domain.Entities
         /// <returns>Запись о текущем владельце или null, если нет владельцев</returns>
         public OwnershipRecord GetCurrentOwner()
         {
-            return OwnershipHistory.GetCurrentOwner();
+            if (!_ownershipHistory.Any())
+            {
+                return null;
+            }
+            
+            // Возвращаем запись с самой поздней датой начала владения (текущий владелец)
+            return _ownershipHistory.OrderByDescending(r => r.StartDate).FirstOrDefault();
         }
 
         /// <summary>
@@ -194,7 +193,6 @@ namespace DDD.Domain.Entities
         /// <param name="isAvailable">Доступность объекта</param>
         public void UpdateAvailability(bool isAvailable)
         {
-            IsAvailable = isAvailable;
             UpdatedAt = DateTime.UtcNow;
         }
 
@@ -203,11 +201,11 @@ namespace DDD.Domain.Entities
         /// </summary>
         /// <param name="newDescription">Новое описание</param>
         /// <exception cref="ArgumentException">Вызывается, если новое описание пусто</exception>
-        public void UpdateDescription(string newDescription)
+        public void UpdateDescription(Description newDescription)
         {
-            if (string.IsNullOrWhiteSpace(newDescription))
+            if (newDescription == null)
             {
-                throw new ArgumentException("Описание не может быть пустым", nameof(newDescription));
+                throw new ArgumentNullException(nameof(newDescription), "Описание не может быть пустым");
             }
             
             Description = newDescription;
@@ -215,7 +213,7 @@ namespace DDD.Domain.Entities
         }
         public override string ToString()
         {
-            return $"Недвижимость [ID: {Id}, Адрес: {Address}, Цена: {Price}, Статус: {Status.GetDisplayName()}, Тип: {Type}, Площадь: {Area} м², Доступна: {IsAvailable}]";
+            return $"Недвижимость [ID: {Id}, Адрес: {Address}, Цена: {Price}, Статус: {Status.GetDisplayName()}, Площадь: {Details.Area}, Комнат: {Details.NumberOfRooms}, Этаж: {Details.Floor}/{Details.TotalFloors}]";
         }
     }
 

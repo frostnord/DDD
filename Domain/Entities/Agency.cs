@@ -1,5 +1,6 @@
 using DDD.Domain.Aggregates;
 using DDD.Domain.ValueObjects;
+using CSharpFunctionalExtensions;
 using Domain.Entities;
 
 namespace DDD.Domain.Entities
@@ -75,6 +76,31 @@ namespace DDD.Domain.Entities
             LicenseNumber = licenseNumber;
             Properties = new List<Property>();
             CreatedAt = DateTime.UtcNow;
+        }
+
+        /// <summary>
+        /// Фабричный метод для создания экземпляра агентства с возвратом результата
+        /// </summary>
+        /// <param name="name">Название агентства</param>
+        /// <param name="contactInfo">Контактная информация агентства</param>
+        /// <param name="licenseNumber">Номер лицензии агентства</param>
+        /// <returns>Result с экземпляром Agency при успешной валидации или ошибкой при провале валидации</returns>
+        public static Result<Agency> Create(string name, ContactInfo contactInfo, string licenseNumber)
+        {
+            var validationErrors = new List<string>();
+
+            if (string.IsNullOrWhiteSpace(name))
+                validationErrors.Add("Название агентства не может быть пустым");
+
+            if (contactInfo == null)
+                validationErrors.Add("Контактная информация не может быть пустой");
+
+            if (string.IsNullOrWhiteSpace(licenseNumber))
+                validationErrors.Add("Номер лицензии не может быть пустым");
+
+            return validationErrors.Count > 0
+                ? Result.Failure<Agency>(string.Join("; ", validationErrors))
+                : Result.Success(new Agency(name, contactInfo, licenseNumber));
         }
 
         /// <summary>

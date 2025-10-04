@@ -1,4 +1,7 @@
+using System;
+using System.Collections.Generic;
 using CSharpFunctionalExtensions;
+using DDD.Domain.ValueObjects;
 
 namespace Domain.ValueObjects
 {
@@ -10,12 +13,12 @@ namespace Domain.ValueObjects
         /// <summary>
         /// Имя владельца
         /// </summary>
-        public string OwnerName { get; private set; }
+        public Name OwnerName { get; }
         
         /// <summary>
         /// Дата начала владения
         /// </summary>
-        public DateTime StartDate { get; private set; }
+        public DateTime StartDate { get; }
         
         /// <summary>
         /// Дата окончания владения
@@ -25,7 +28,7 @@ namespace Domain.ValueObjects
         /// <summary>
         /// Причина владения (покупка, наследство и т.д.)
         /// </summary>
-        public string OwnershipReason { get; private set; }
+        public string OwnershipReason { get; }
 
         /// <summary>
         /// Создает новый экземпляр записи о владельце
@@ -34,8 +37,7 @@ namespace Domain.ValueObjects
         /// <param name="startDate">Дата начала владения</param>
         /// <param name="ownershipReason">Причина владения</param>
         /// <param name="endDate">Дата окончания владения (необязательно)</param>
-        /// <exception cref="ArgumentException">Вызывается, если данные владельца некорректны</exception>
-        private OwnershipRecord(string ownerName, DateTime startDate, string ownershipReason, DateTime? endDate = null)
+        private OwnershipRecord(Name ownerName, DateTime startDate, string ownershipReason, DateTime? endDate = null)
         {
             OwnerName = ownerName;
             StartDate = startDate;
@@ -46,7 +48,7 @@ namespace Domain.ValueObjects
         /// <summary>
         /// Фабричный метод для создания экземпляра записи о владельце с возвратом результата
         /// </summary>
-        /// <param name="ownerName">Имя владельца</param>
+        /// <param name="ownerName">Имя владельца (строка)</param>
         /// <param name="startDate">Дата начала владения</param>
         /// <param name="ownershipReason">Причина владения</param>
         /// <param name="endDate">Дата окончания владения (необязательно)</param>
@@ -55,8 +57,12 @@ namespace Domain.ValueObjects
         {
             var errors = new List<string>();
 
-            if (string.IsNullOrWhiteSpace(ownerName))
-                errors.Add("Имя владельца не может быть пустым");
+            // Создание и валидация Name
+            var nameResult = Name.Create(ownerName);
+            if (nameResult.IsFailure)
+            {
+                errors.Add(nameResult.Error);
+            }
 
             if (startDate == default(DateTime))
                 errors.Add("Дата начала владения не может быть пустой");
@@ -69,7 +75,7 @@ namespace Domain.ValueObjects
 
             return errors.Count > 0
                 ? Result.Failure<OwnershipRecord>(string.Join("; ", errors))
-                : Result.Success(new OwnershipRecord(ownerName, startDate, ownershipReason, endDate));
+                : Result.Success(new OwnershipRecord(nameResult.Value, startDate, ownershipReason, endDate));
         }
 
         /// <summary>
@@ -91,5 +97,40 @@ namespace Domain.ValueObjects
         /// Проверяет, является ли владелец текущим
         /// </summary>
         public bool IsCurrentOwner => !EndDate.HasValue;
+
+        /// <summary>
+        /// Получает инициалы владельца
+        /// </summary>
+        public string GetOwnerInitials() => OwnerName.GetInitials();
+
+        /// <summary>
+        /// Получает фамилию владельца
+        /// </summary>
+        public string GetOwnerLastName() => OwnerName.GetLastName();
+
+        public override string ToString()
+        {
+            var period = EndDate.HasValue 
+                ? $"{StartDate:dd.MM.yyyy} - {EndDate.Value:dd.MM.yyyy}" 
+                : $"с {StartDate:dd.MM.yyyy}";
+            
+            return $"{OwnerName} ({OwnershipReason}, {period})";
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is OwnershipRecord other)
+            {
+                return OwnerName.Equals(other.OwnerName) 
+                    && StartDate.Equals(other.StartDate)
+                    && OwnershipReason.Equals(other.OwnershipReason);
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(OwnerName, StartDate, OwnershipReason);
+        }
     }
 }
