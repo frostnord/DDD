@@ -1,4 +1,5 @@
 using System;
+using CSharpFunctionalExtensions;
 using DDD.Domain.Entities;
 using DDD.Domain.ValueObjects;
 using Domain.Entities;
@@ -41,10 +42,6 @@ namespace DDD.Domain.Aggregates
         /// </summary>
         public Price TotalPrice { get; private set; }
         
-        /// <summary>
-        /// Статус бронирования (ожидание, подтверждено, отменено, завершено)
-        /// </summary>
-        public string Status { get; private set; }
         
         /// <summary>
         /// Дата создания бронирования
@@ -57,6 +54,49 @@ namespace DDD.Domain.Aggregates
         public DateTime? UpdatedAt { get; private set; }
 
         /// <summary>
+        /// Создает новый экземпляр бронирования через фабричный метод
+        /// </summary>
+        /// <param name="client">Клиент, совершающий бронирование</param>
+        /// <param name="property">Объект недвижимости, который бронируется</param>
+        /// <param name="agency">Агентство, осуществляющее бронирование</param>
+        /// <param name="bookingPeriod">Период бронирования</param>
+        /// <param name="totalPrice">Общая цена бронирования</param>
+        /// <returns>Результат с бронированием или ошибкой</returns>
+        public static Result<Booking> Create(Client client, Property property, Agency agency, Period bookingPeriod, Price totalPrice)
+        {
+            var validationErrors = new List<string>();
+
+            if (client == null)
+                validationErrors.Add("Клиент не может быть пустым");
+
+            if (property == null)
+                validationErrors.Add("Объект недвижимости не может быть пустым");
+
+            if (agency == null)
+                validationErrors.Add("Агентство не может быть пустым");
+
+            if (bookingPeriod == null)
+                validationErrors.Add("Период бронирования не может быть пустым");
+
+            if (totalPrice == null)
+                validationErrors.Add("Общая цена не может быть пустой");
+
+            // Проверка, что цена соответствует стоимости недвижимости
+            if (totalPrice != null && property != null && totalPrice.Value != property.Price.Value)
+            {
+                validationErrors.Add("Общая цена должна соответствовать стоимости недвижимости");
+            }
+
+            if (validationErrors.Count > 0)
+            {
+                return Result.Failure<Booking>(string.Join("; ", validationErrors));
+            }
+
+            var booking = new Booking(client, property, agency, bookingPeriod, totalPrice);
+            return Result.Success(booking);
+        }
+
+        /// <summary>
         /// Создает новый экземпляр бронирования
         /// </summary>
         /// <param name="client">Клиент, совершающий бронирование</param>
@@ -64,52 +104,15 @@ namespace DDD.Domain.Aggregates
         /// <param name="agency">Агентство, осуществляющее бронирование</param>
         /// <param name="bookingPeriod">Период бронирования</param>
         /// <param name="totalPrice">Общая цена бронирования</param>
-        /// <exception cref="ArgumentNullException">Вызывается, если обязательные параметры пусты</exception>
-        /// <exception cref="InvalidOperationException">Вызывается, если условия бронирования некорректны</exception>
-        public Booking(Client client, Property property, Agency agency, Period bookingPeriod, Price totalPrice)
+        private Booking(Client client, Property property, Agency agency, Period bookingPeriod, Price totalPrice)
         {
-            if (client == null)
-            {
-                throw new ArgumentNullException(nameof(client), "Клиент не может быть пустым");
-            }
-            
-            if (property == null)
-            {
-                throw new ArgumentNullException(nameof(property), "Объект недвижимости не может быть пустым");
-            }
-            
-            if (agency == null)
-            {
-                throw new ArgumentNullException(nameof(agency), "Агентство не может быть пустым");
-            }
-            
-            if (bookingPeriod == null)
-            {
-                throw new ArgumentNullException(nameof(bookingPeriod), "Период бронирования не может быть пустым");
-            }
-            
-            if (totalPrice == null)
-            {
-                throw new ArgumentNullException(nameof(totalPrice), "Общая цена не может быть пустой");
-            }
-            
-            // Проверка, что цена соответствует стоимости недвижимости
-            if (totalPrice.Value != property.Price.Value)
-            {
-                throw new InvalidOperationException("Общая цена должна соответствовать стоимости недвижимости");
-            }
-            
             Id = Guid.NewGuid();
             Client = client;
             Property = property;
             Agency = agency;
             BookingPeriod = bookingPeriod;
             TotalPrice = totalPrice;
-            Status = "pending"; // по умолчанию
             CreatedAt = DateTime.UtcNow;
-            
-            // Обновление статуса недвижимости
-            Property.UpdateAvailability(false);
         }
 
         /// <summary>
@@ -118,12 +121,6 @@ namespace DDD.Domain.Aggregates
         /// <exception cref="InvalidOperationException">Вызывается, если бронирование нельзя подтвердить</exception>
         public void Confirm()
         {
-            if (Status != "pending")
-            {
-                throw new InvalidOperationException($"Бронирование нельзя подтвердить, текущий статус: {Status}");
-            }
-            
-            Status = "confirmed";
             UpdatedAt = DateTime.UtcNow;
         }
 
@@ -133,16 +130,7 @@ namespace DDD.Domain.Aggregates
         /// <exception cref="InvalidOperationException">Вызывается, если бронирование нельзя отменить</exception>
         public void Cancel()
         {
-            if (Status == "completed" || Status == "cancelled")
-            {
-                throw new InvalidOperationException($"Бронирование нельзя отменить, текущий статус: {Status}");
-            }
-            
-            Status = "cancelled";
             UpdatedAt = DateTime.UtcNow;
-            
-            // Обновление статуса недвижимости
-            Property.UpdateAvailability(true);
         }
 
         /// <summary>
@@ -151,12 +139,6 @@ namespace DDD.Domain.Aggregates
         /// <exception cref="InvalidOperationException">Вызывается, если бронирование нельзя завершить</exception>
         public void Complete()
         {
-            if (Status != "confirmed")
-            {
-                throw new InvalidOperationException($"Бронирование нельзя завершить, текущий статус: {Status}");
-            }
-            
-            Status = "completed";
             UpdatedAt = DateTime.UtcNow;
         }
         

@@ -166,21 +166,6 @@ namespace Domain.Tests
                 Console.WriteLine($"Дата обновления: {client.UpdatedAt}");
             }
 
-            // Демонстрация работы с бронированиями
-            Console.WriteLine("\n=== Работа с бронированиями ===");
-            var bookingId = Guid.NewGuid();
-            client.AddBookingId(bookingId);
-            Console.WriteLine($"Добавлено бронирование: {bookingId}");
-            Console.WriteLine($"Количество бронирований: {client.BookingIds.Count}");
-
-            var bookingId2 = Guid.NewGuid();
-            client.AddBookingId(bookingId2);
-            Console.WriteLine($"Добавлено еще одно бронирование: {bookingId2}");
-            Console.WriteLine($"Количество бронирований: {client.BookingIds.Count}");
-
-            client.RemoveBookingId(bookingId);
-            Console.WriteLine($"Удалено бронирование: {bookingId}");
-            Console.WriteLine($"Количество бронирований: {client.BookingIds.Count}");
 
             // Тестирование валидации
             Console.WriteLine("\n=== Тестирование валидации ===");

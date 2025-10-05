@@ -1,7 +1,8 @@
+using CSharpFunctionalExtensions;
 using DDD.Domain.Aggregates;
 using DDD.Domain.ValueObjects;
-using CSharpFunctionalExtensions;
 using Domain.Entities;
+using Domain.ValueObjects;
 
 namespace DDD.Domain.Entities
 {
@@ -18,7 +19,7 @@ namespace DDD.Domain.Entities
         /// <summary>
         /// Название агентства
         /// </summary>
-        public string Name { get; private set; }
+        public Name Name { get; private set; }
         
         /// <summary>
         /// Контактная информация агентства
@@ -28,7 +29,7 @@ namespace DDD.Domain.Entities
         /// <summary>
         /// Номер лицензии агентства
         /// </summary>
-        public string LicenseNumber { get; private set; }
+        public LicenseNumber LicenseNumber { get; private set; }
         
         /// <summary>
         /// Список объектов недвижимости, принадлежащих агентству
@@ -53,23 +54,8 @@ namespace DDD.Domain.Entities
         /// <param name="licenseNumber">Номер лицензии агентства</param>
         /// <exception cref="ArgumentException">Вызывается, если данные агентства некорректны</exception>
         /// <exception cref="ArgumentNullException">Вызывается, если контактная информация пуста</exception>
-        public Agency(string name, ContactInfo contactInfo, string licenseNumber)
+        public Agency(Name name, ContactInfo contactInfo, LicenseNumber licenseNumber)
         {
-            if (string.IsNullOrWhiteSpace(name))
-            {
-                throw new ArgumentException("Название агентства не может быть пустым", nameof(name));
-            }
-            
-            if (contactInfo == null)
-            {
-                throw new ArgumentNullException(nameof(contactInfo), "Контактная информация не может быть пустой");
-            }
-            
-            if (string.IsNullOrWhiteSpace(licenseNumber))
-            {
-                throw new ArgumentException("Номер лицензии не может быть пустым", nameof(licenseNumber));
-            }
-            
             Id = Guid.NewGuid();
             Name = name;
             ContactInfo = contactInfo;
@@ -85,17 +71,17 @@ namespace DDD.Domain.Entities
         /// <param name="contactInfo">Контактная информация агентства</param>
         /// <param name="licenseNumber">Номер лицензии агентства</param>
         /// <returns>Result с экземпляром Agency при успешной валидации или ошибкой при провале валидации</returns>
-        public static Result<Agency> Create(string name, ContactInfo contactInfo, string licenseNumber)
+        public static Result<Agency> Create(Name name, ContactInfo contactInfo, LicenseNumber licenseNumber)
         {
             var validationErrors = new List<string>();
 
-            if (string.IsNullOrWhiteSpace(name))
+            if (name == null)
                 validationErrors.Add("Название агентства не может быть пустым");
 
             if (contactInfo == null)
                 validationErrors.Add("Контактная информация не может быть пустой");
 
-            if (string.IsNullOrWhiteSpace(licenseNumber))
+            if (licenseNumber == null)
                 validationErrors.Add("Номер лицензии не может быть пустым");
 
             return validationErrors.Count > 0

@@ -190,11 +190,6 @@ namespace DDD.Domain.Entities
         /// <summary>
         /// Обновляет доступность объекта недвижимости
         /// </summary>
-        /// <param name="isAvailable">Доступность объекта</param>
-        public void UpdateAvailability(bool isAvailable)
-        {
-            UpdatedAt = DateTime.UtcNow;
-        }
 
         /// <summary>
         /// Обновляет описание объекта недвижимости

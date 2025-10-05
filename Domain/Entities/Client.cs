@@ -11,7 +11,6 @@ namespace Domain.Entities
     /// </summary>
     public class Client
     {
-        private readonly List<Guid> _bookingIds;
 
         /// <summary>
         /// Уникальный идентификатор клиента
@@ -39,9 +38,14 @@ namespace Domain.Entities
         public ClientSearchCriteria SearchCriteria { get; private set; }
         
         /// <summary>
+        /// Список совершенных сделок клиента
+        /// </summary>
+        public IReadOnlyList<CompletedDeal> CompletedDeals { get; private set; }
+        
+        /// <summary>
         /// Список идентификаторов бронирований клиента (для связи с агрегатом Booking)
         /// </summary>
-        public IReadOnlyList<Guid> BookingIds => _bookingIds.AsReadOnly();
+        public IReadOnlyList<Guid> BookingIds { get; private set; }
         
         /// <summary>
         /// Дата создания записи о клиенте
@@ -68,7 +72,8 @@ namespace Domain.Entities
             ContactInfo = contactInfo;
             SearchCriteria = searchCriteria;
             CreatedAt = DateTime.UtcNow;
-            _bookingIds = new List<Guid>();
+            CompletedDeals = new List<CompletedDeal>().AsReadOnly();
+            BookingIds = new List<Guid>().AsReadOnly();
         }
 
         /// <summary>
@@ -124,33 +129,71 @@ namespace Domain.Entities
             SearchCriteria = newSearchCriteria;
             UpdatedAt = DateTime.UtcNow;
         }
-
+        
+        /// <summary>
+        /// Добавляет совершенную сделку клиенту
+        /// </summary>
+        /// <param name="deal">Совершенная сделка</param>
+        public void AddCompletedDeal(CompletedDeal deal)
+        {
+            if (deal == null)
+                throw new ArgumentNullException(nameof(deal), "Сделка не может быть пустой");
+                
+            var deals = CompletedDeals.ToList();
+            if (!deals.Contains(deal))
+            {
+                deals.Add(deal);
+                CompletedDeals = deals.AsReadOnly();
+                UpdatedAt = DateTime.UtcNow;
+            }
+        }
+        
+        /// <summary>
+        /// Удаляет совершенную сделку у клиента
+        /// </summary>
+        /// <param name="dealId">Идентификатор сделки</param>
+        public void RemoveCompletedDeal(Guid dealId)
+        {
+            var deals = CompletedDeals.ToList();
+            var dealToRemove = deals.FirstOrDefault(d => d.Id == dealId);
+            if (dealToRemove != null)
+            {
+                deals.Remove(dealToRemove);
+                CompletedDeals = deals.AsReadOnly();
+                UpdatedAt = DateTime.UtcNow;
+            }
+        }
+        
         /// <summary>
         /// Добавляет идентификатор бронирования к клиенту
         /// </summary>
         /// <param name="bookingId">Идентификатор бронирования</param>
         public void AddBookingId(Guid bookingId)
         {
-            if (!_bookingIds.Contains(bookingId))
+            var bookingIds = BookingIds.ToList();
+            if (!bookingIds.Contains(bookingId))
             {
-                _bookingIds.Add(bookingId);
+                bookingIds.Add(bookingId);
+                BookingIds = bookingIds.AsReadOnly();
                 UpdatedAt = DateTime.UtcNow;
             }
         }
-
+        
         /// <summary>
         /// Удаляет идентификатор бронирования у клиента
         /// </summary>
         /// <param name="bookingId">Идентификатор бронирования</param>
         public void RemoveBookingId(Guid bookingId)
         {
-            if (_bookingIds.Contains(bookingId))
+            var bookingIds = BookingIds.ToList();
+            if (bookingIds.Contains(bookingId))
             {
-                _bookingIds.Remove(bookingId);
+                bookingIds.Remove(bookingId);
+                BookingIds = bookingIds.AsReadOnly();
                 UpdatedAt = DateTime.UtcNow;
             }
         }
-
+        
         /// <summary>
         /// Возвращает полное имя клиента
         /// </summary>

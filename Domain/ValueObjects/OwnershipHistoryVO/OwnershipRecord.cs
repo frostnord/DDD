@@ -92,21 +92,7 @@ namespace Domain.ValueObjects
             
             EndDate = endDate;
         }
-
-        /// <summary>
-        /// Проверяет, является ли владелец текущим
-        /// </summary>
-        public bool IsCurrentOwner => !EndDate.HasValue;
-
-        /// <summary>
-        /// Получает инициалы владельца
-        /// </summary>
-        public string GetOwnerInitials() => OwnerName.GetInitials();
-
-        /// <summary>
-        /// Получает фамилию владельца
-        /// </summary>
-        public string GetOwnerLastName() => OwnerName.GetLastName();
+        
 
         public override string ToString()
         {
