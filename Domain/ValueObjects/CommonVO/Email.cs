@@ -30,6 +30,8 @@ namespace DDD.Domain.ValueObjects
         /// <returns>Result с экземпляром Email при успешной валидации или ошибкой при провале валидации</returns>
         public static Result<Email> Create(string value)
         {
+            // Проверяем, что значение не является null, пустой строкой или строкой с одними пробелами
+            // Это необходимо, чтобы избежать исключения при обработке регулярного выражения
             if (string.IsNullOrWhiteSpace(value))
             {
                 return Result.Failure<Email>("Email не может быть пустым");
@@ -37,6 +39,7 @@ namespace DDD.Domain.ValueObjects
 
             var trimmedValue = value.Trim();
 
+            // Проверяем формат email с помощью регулярного выражения
             if (!IsValidEmail(trimmedValue))
             {
                 return Result.Failure<Email>("Некорректный формат email");
@@ -47,15 +50,10 @@ namespace DDD.Domain.ValueObjects
 
         private static bool IsValidEmail(string email)
         {
-            try
-            {
-                var addr = new MailAddress(email);
-                return addr.Address == email;
-            }
-            catch
-            {
-                return false;
-            }
+            // Регулярное выражение для проверки формата email
+            var regex = new System.Text.RegularExpressions.Regex(
+                @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
+            return regex.IsMatch(email);
         }
 
         public override bool Equals(object obj)
