@@ -2,20 +2,17 @@ using System;
 using CSharpFunctionalExtensions;
 using DDD.Domain.Entities;
 using DDD.Domain.ValueObjects;
-using Domain.Entities;
+using DDD.Domain.ValueObjects.BookingVO;
 using Domain.ValueObjects;
 
-namespace DDD.Domain.Aggregates
+namespace DDD.Domain
 {
     /// <summary>
     /// Агрегат бронирования в системе управления недвижимостью
     /// </summary>
-    public class Booking
+    public class Booking : CSharpFunctionalExtensions.Entity<BookingId>
     {
-        /// <summary>
-        /// Уникальный идентификатор бронирования
-        /// </summary>
-        public Guid Id { get; private set; }
+        // Id уже определен в базовом классе CSharpFunctionalExtensions.Entity<TId>
         
         /// <summary>
         /// Клиент, совершающий бронирование
@@ -92,21 +89,23 @@ namespace DDD.Domain.Aggregates
                 return Result.Failure<Booking>(string.Join("; ", validationErrors));
             }
 
-            var booking = new Booking(client, property, agency, bookingPeriod, totalPrice);
+            var id = BookingId.New();
+            var booking = new Booking(id, client, property, agency, bookingPeriod, totalPrice);
             return Result.Success(booking);
         }
 
         /// <summary>
         /// Создает новый экземпляр бронирования
         /// </summary>
+        /// <param name="id">Уникальный идентификатор бронирования</param>
         /// <param name="client">Клиент, совершающий бронирование</param>
         /// <param name="property">Объект недвижимости, который бронируется</param>
         /// <param name="agency">Агентство, осуществляющее бронирование</param>
         /// <param name="bookingPeriod">Период бронирования</param>
         /// <param name="totalPrice">Общая цена бронирования</param>
-        private Booking(Client client, Property property, Agency agency, Period bookingPeriod, Price totalPrice)
+        private Booking(BookingId id, Client client, Property property, Agency agency, Period bookingPeriod, Price totalPrice)
+            : base(id)
         {
-            Id = Guid.NewGuid();
             Client = client;
             Property = property;
             Agency = agency;
@@ -142,5 +141,18 @@ namespace DDD.Domain.Aggregates
             UpdatedAt = DateTime.UtcNow;
         }
         
+        public override bool Equals(object obj)
+        {
+            if (obj is Booking other)
+            {
+                return base.Equals(other);
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
     }
 }

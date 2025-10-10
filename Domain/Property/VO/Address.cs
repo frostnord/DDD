@@ -21,12 +21,12 @@ namespace DDD.Domain.ValueObjects
         /// <summary>
         /// Штат/область
         /// </summary>
-        public string State { get; }
+        public int HomeNumber { get; }
         
         /// <summary>
         /// Почтовый индекс
         /// </summary>
-        public string ZipCode { get; }
+        public int ZipCode { get; }
         
         /// <summary>
         /// Страна
@@ -38,15 +38,15 @@ namespace DDD.Domain.ValueObjects
         /// </summary>
         /// <param name="street">Улица</param>
         /// <param name="city">Город</param>
-        /// <param name="state">Штат/область</param>
+        /// <param name="homeNumber">Штат/область</param>
         /// <param name="zipCode">Почтовый индекс</param>
         /// <param name="country">Страна</param>
-        private Address(string street, string city, string state, string zipCode, string country)
+        private Address(string street, string city, int homeNumber, int zipCode, string country)
         {
             
             Street = street;
             City = city;
-            State = state;
+            HomeNumber = homeNumber;
             ZipCode = zipCode;
             Country = country;
         }
@@ -56,11 +56,12 @@ namespace DDD.Domain.ValueObjects
         /// </summary>
         /// <param name="street">Улица</param>
         /// <param name="city">Город</param>
-        /// <param name="state">Штат/область</param>
+        
+        /// <param name="homeNumber"></param>
         /// <param name="zipCode">Почтовый индекс</param>
         /// <param name="country">Страна</param>
         /// <returns>Result с экземпляром Address при успешной валидации или ошибкой при провале валидации</returns>
-        public static Result<Address> Create(string street, string city, string state, string zipCode, string country)
+        public static Result<Address> Create(string street, string city, int homeNumber, int zipCode, string country)
         {
             var errors = new List<string>();
 
@@ -68,21 +69,21 @@ namespace DDD.Domain.ValueObjects
                 errors.Add("Улица не может быть пустой");
             if (string.IsNullOrWhiteSpace(city))
                 errors.Add("Город не может быть пустым");
-            if (string.IsNullOrWhiteSpace(state))
-                errors.Add("Штат/область не может быть пустой");
-            if (string.IsNullOrWhiteSpace(zipCode))
+            if (homeNumber == null)
+                errors.Add("Номер дома не может быть пустой");
+            if (zipCode== null)
                 errors.Add("Почтовый индекс не может быть пустым");
             if (string.IsNullOrWhiteSpace(country))
                 errors.Add("Страна не может быть пустой");
 
             return errors.Count > 0
                ? Result.Failure<Address>(string.Join("; ", errors))
-               : Result.Success(new Address(street, city, state, zipCode, country));
+               : Result.Success(new Address(street, city, homeNumber, zipCode, country));
         }
 
         public override string ToString()
         {
-            return $"{Street}, {City}, {State}, {ZipCode}, {Country}";
+            return $"{Street}, {City}, {HomeNumber}, {ZipCode}, {Country}";
         }
     }
 }
