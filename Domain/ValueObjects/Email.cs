@@ -1,5 +1,6 @@
 using System;
 using System.Net.Mail;
+using System.Text.RegularExpressions;
 using CSharpFunctionalExtensions;
 
 namespace DDD.Domain.ValueObjects
@@ -52,7 +53,7 @@ namespace DDD.Domain.ValueObjects
         {
             // Регулярное выражение для проверки формата email
             var regex = new System.Text.RegularExpressions.Regex(
-                @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$");
+                @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", RegexOptions.Compiled|RegexOptions.IgnoreCase);
             return regex.IsMatch(email);
         }
 

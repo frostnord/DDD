@@ -1,29 +1,24 @@
-using System;
 using CSharpFunctionalExtensions;
-using Domain.ValueObjects;
 using DDD.Domain.ValueObjects;
+using DDD.Domain.ValueObjects.ClientVO;
 
-namespace Domain.Entities
+namespace DDD.Domain.Entities.Deal
 {
     /// <summary>
     /// Сущность совершенной сделки клиента
     /// </summary>
-    public class CompletedDeal
+    public class CompletedDeal : CSharpFunctionalExtensions.Entity<CompletedDealId>
     {
-        /// <summary>
-        /// Уникальный идентификатор сделки
-        /// </summary>
-        public Guid Id { get; private set; }
         
         /// <summary>
         /// Идентификатор клиента, участвовавшего в сделке
         /// </summary>
-        public Guid ClientId { get; private set; }
+        public ClientId ClientId { get; private set; }
         
         /// <summary>
         /// Идентификатор объекта недвижимости, участвовавшего в сделке
         /// </summary>
-        public Guid PropertyId { get; private set; }
+        public PropertyId PropertyId { get; private set; }
         
         /// <summary>
         /// Дата совершения сделки
@@ -50,6 +45,17 @@ namespace Domain.Entities
         /// </summary>
         public DateTime? UpdatedAt { get; private set; }
 
+        private CompletedDeal(CompletedDealId id, ClientId clientId, PropertyId propertyId, DateTime dealDate, Price dealAmount, string dealType)
+            : base(id)
+        {
+            ClientId = clientId;
+            PropertyId = propertyId;
+            DealDate = dealDate;
+            DealAmount = dealAmount;
+            DealType = dealType;
+            CreatedAt = DateTime.UtcNow;
+        }
+        
         /// <summary>
         /// Создает новый экземпляр совершенной сделки через фабричный метод
         /// </summary>
@@ -59,14 +65,14 @@ namespace Domain.Entities
         /// <param name="dealAmount">Сумма сделки</param>
         /// <param name="dealType">Тип сделки</param>
         /// <returns>Результат с совершенной сделкой или ошибкой</returns>
-        public static Result<CompletedDeal> Create(Guid clientId, Guid propertyId, DateTime dealDate, Price dealAmount, string dealType)
+        public static Result<CompletedDeal> Create(ClientId clientId, PropertyId propertyId, DateTime dealDate, Price dealAmount, string dealType)
         {
-            var validationErrors = new System.Collections.Generic.List<string>();
+            var validationErrors = new List<string>();
 
-            if (clientId == Guid.Empty)
+            if (clientId == null || clientId.Value == Guid.Empty)
                 validationErrors.Add("Идентификатор клиента не может быть пустым");
 
-            if (propertyId == Guid.Empty)
+            if (propertyId == null || propertyId.Value == Guid.Empty)
                 validationErrors.Add("Идентификатор объекта недвижимости не может быть пустым");
 
             if (dealAmount == null)
@@ -77,47 +83,16 @@ namespace Domain.Entities
 
             if (dealDate > DateTime.UtcNow)
                 validationErrors.Add("Дата сделки не может быть в будущем");
+            
+            var id = CompletedDealId.New();
 
             if (validationErrors.Count > 0)
             {
                 return Result.Failure<CompletedDeal>(string.Join("; ", validationErrors));
             }
 
-            var deal = new CompletedDeal(clientId, propertyId, dealDate, dealAmount, dealType);
+            var deal = new CompletedDeal(id, clientId, propertyId, dealDate, dealAmount, dealType);
             return Result.Success(deal);
-        }
-
-        /// <summary>
-        /// Создает новый экземпляр совершенной сделки
-        /// </summary>
-        /// <param name="clientId">Идентификатор клиента</param>
-        /// <param name="propertyId">Идентификатор объекта недвижимости</param>
-        /// <param name="dealDate">Дата совершения сделки</param>
-        /// <param name="dealAmount">Сумма сделки</param>
-        /// <param name="dealType">Тип сделки</param>
-        private CompletedDeal(Guid clientId, Guid propertyId, DateTime dealDate, Price dealAmount, string dealType)
-        {
-            Id = Guid.NewGuid();
-            ClientId = clientId;
-            PropertyId = propertyId;
-            DealDate = dealDate;
-            DealAmount = dealAmount;
-            DealType = dealType;
-            CreatedAt = DateTime.UtcNow;
-        }
-
-        public override bool Equals(object obj)
-        {
-            if (obj is CompletedDeal other)
-            {
-                return Id.Equals(other.Id);
-            }
-            return false;
-        }
-
-        public override int GetHashCode()
-        {
-            return Id.GetHashCode();
         }
     }
 }

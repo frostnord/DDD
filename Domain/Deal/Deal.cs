@@ -3,39 +3,38 @@ using System.Collections.Generic;
 using System.Linq;
 using CSharpFunctionalExtensions;
 using DDD.Domain.Entities;
-using DDD.Domain.Aggregates;
 using Domain.ValueObjects;
 using DDD.Domain.ValueObjects;
+using DDD.Domain.ValueObjects.BookingVO;
+using DDD.Domain.ValueObjects.ClientVO;
+using DDD.Domain.ValueObjects.DealVO;
 
-namespace Domain.Entities
+namespace DDD.Domain.Deal
 {
     /// <summary>
     /// Сущность сделки в системе управления недвижимостью
     /// Объединяет Property, Client, Booking и документы в единую сделку
     /// </summary>
-    public class Deal
+    public class Deal : CSharpFunctionalExtensions.Entity<DealId>
     {
         private List<Document> _documents;
-
-        /// <summary>
-        /// Уникальный идентификатор сделки
-        /// </summary>
-        public Guid Id { get; private set; }
+        
+        // Id уже определен в базовом классе CSharpFunctionalExtensions.Entity<TId>
         
         /// <summary>
         /// Идентификатор клиента, участвующего в сделке
         /// </summary>
-        public Guid ClientId { get; private set; }
+        public ClientId ClientId { get; private set; }
         
         /// <summary>
         /// Идентификатор объекта недвижимости, участвующего в сделке
         /// </summary>
-        public Guid PropertyId { get; private set; }
+        public PropertyId PropertyId { get; private set; }
         
         /// <summary>
         /// Идентификатор бронирования, связанного со сделкой
         /// </summary>
-        public Guid? BookingId { get; private set; }
+        public BookingId? BookingId { get; private set; }
         
         /// <summary>
         /// Детали сделки
@@ -63,45 +62,16 @@ namespace Domain.Entities
         public DateTime? UpdatedAt { get; private set; }
 
         /// <summary>
-        /// Создает новый экземпляр сделки через фабричный метод
-        /// </summary>
-        /// <param name="clientId">Идентификатор клиента</param>
-        /// <param name="propertyId">Идентификатор объекта недвижимости</param>
-        /// <param name="bookingId">Идентификатор бронирования (опционально)</param>
-        /// <param name="details">Детали сделки</param>
-        /// <returns>Результат с сделкой или ошибкой</returns>
-        public static Result<Deal> Create(Guid clientId, Guid propertyId, Guid? bookingId, DealDetails details)
-        {
-            var validationErrors = new List<string>();
-
-            if (clientId == Guid.Empty)
-                validationErrors.Add("Идентификатор клиента не может быть пустым");
-
-            if (propertyId == Guid.Empty)
-                validationErrors.Add("Идентификатор объекта недвижимости не может быть пустым");
-
-            if (details == null)
-                validationErrors.Add("Детали сделки не могут быть пустыми");
-
-            if (validationErrors.Count > 0)
-            {
-                return Result.Failure<Deal>(string.Join("; ", validationErrors));
-            }
-
-            var deal = new Deal(clientId, propertyId, bookingId, details);
-            return Result.Success(deal);
-        }
-
-        /// <summary>
         /// Создает новый экземпляр сделки
         /// </summary>
         /// <param name="clientId">Идентификатор клиента</param>
         /// <param name="propertyId">Идентификатор объекта недвижимости</param>
         /// <param name="bookingId">Идентификатор бронирования (опционально)</param>
         /// <param name="details">Детали сделки</param>
-        private Deal(Guid clientId, Guid propertyId, Guid? bookingId, DealDetails details)
+        private Deal(DealId id, ClientId clientId, PropertyId propertyId, BookingId? bookingId, DealDetails details)
+            : base(id)
         {
-            Id = Guid.NewGuid();
+           
             ClientId = clientId;
             PropertyId = propertyId;
             BookingId = bookingId;
@@ -110,7 +80,65 @@ namespace Domain.Entities
             CreatedAt = DateTime.UtcNow;
             _documents = new List<Document>();
         }
+        
+        /// <summary>
+        /// Создает новый экземпляр сделки через фабричный метод
+        /// </summary>
+        /// <param name="clientId">Идентификатор клиента</param>
+        /// <param name="propertyId">Идентификатор объекта недвижимости</param>
+        /// <param name="bookingId">Идентификатор бронирования (опционально)</param>
+        /// <param name="details">Детали сделки</param>
+        /// <returns>Результат с сделкой или ошибкой</returns>
+        public static Result<Deal> Create(ClientId clientId, PropertyId propertyId, BookingId? bookingId, DealDetails details)
+        {
+            var validationErrors = new List<string>();
 
+            if (clientId == null || clientId.Value == Guid.Empty)
+                validationErrors.Add("Идентификатор клиента не может быть пустым");
+
+            if (propertyId == null || propertyId.Value == Guid.Empty)
+                validationErrors.Add("Идентификатор объекта недвижимости не может быть пустым");
+
+            if (details == null)
+                validationErrors.Add("Детали сделки не могут быть пустыми");
+            
+            var id = DealId.New();
+
+            if (validationErrors.Count > 0)
+            {
+                return Result.Failure<Deal>(string.Join("; ", validationErrors));
+            }
+
+            var deal = new Deal(id, clientId, propertyId, bookingId, details);
+            return Result.Success(deal);
+        }
+
+        
+        
+        // public void Close()
+        // {
+        //     if (Status != DealStatus.Completed)
+        //         throw new InvalidDealStateException("Закрыть можно только активную сделку.");
+        //
+        //     Status = DealStatus.Completed;
+        //     ClosedAt = DateTime.UtcNow;
+        //
+        //     AddEvent(new DealClosedEvent(Id.Value, ClosedAt.Value));
+        // }
+        //
+        // public void Cancel(string reason)
+        // {
+        //     if (Status != DealStatus.Created)
+        //         throw new InvalidDealStateException("Отменить можно только активную сделку.");
+        //
+        //     Status = DealStatus.Cancelled;
+        //
+        //     AddEvent(new DealCancelledEvent(Id.Value, reason));
+        // }
+        //
+        // private void AddEvent(IDomainEvent @event) => _events.Add(@event);
+        // public IReadOnlyCollection<IDomainEvent> DomainEvents => _events.AsReadOnly();
+        
         /// <summary>
         /// Добавляет документ к сделке
         /// </summary>
