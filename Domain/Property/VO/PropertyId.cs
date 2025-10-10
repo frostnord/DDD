@@ -1,5 +1,5 @@
 ﻿using CSharpFunctionalExtensions;
-using DDD.Domain.ValueObjects.CommonVO;
+using DDD.Domain.ValueObjects;
 
 namespace DDD.Domain.ValueObjects;
 

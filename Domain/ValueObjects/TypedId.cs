@@ -1,6 +1,6 @@
 ﻿using CSharpFunctionalExtensions;
 
-namespace DDD.Domain.ValueObjects.CommonVO;
+namespace DDD.Domain;
 
 public abstract class TypedId<T> : ValueObject, IComparable<T>, IComparable
     where T : TypedId<T>
