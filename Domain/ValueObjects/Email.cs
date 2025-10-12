@@ -1,3 +1,4 @@
+using System.Text.RegularExpressions;
 using CSharpFunctionalExtensions;
 using DDD.Domain.ValueObjects;
 
@@ -9,6 +10,8 @@ namespace DDD.Domain.ValueObjects;
 /// </summary>
 public class Email : ValueObject
 {
+    
+    private static readonly Regex EmailRegex = new Regex(@"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", System.Text.RegularExpressions.RegexOptions.Compiled | System.Text.RegularExpressions.RegexOptions.IgnoreCase);
     /// <summary>
     /// Значение электронной почты
     /// </summary>
@@ -50,10 +53,7 @@ public class Email : ValueObject
 
     private static bool IsValidEmail(string email)
     {
-        // Регулярное выражение для проверки формата email
-        var regex = new System.Text.RegularExpressions.Regex(
-            @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", System.Text.RegularExpressions.RegexOptions.Compiled | System.Text.RegularExpressions.RegexOptions.IgnoreCase);
-        return regex.IsMatch(email);
+        return EmailRegex.IsMatch(email);
     }
 
     protected override IEnumerable<IComparable> GetEqualityComponents()

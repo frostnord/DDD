@@ -4,11 +4,25 @@ using CSharpFunctionalExtensions;
 
 namespace DDD.Domain.ValueObjects
 {
+    
     /// <summary>
     /// Объект значения, представляющий номер телефона
     /// </summary>
     public class PhoneNumber : ValueObject
     {
+        // Регулярное выражение для проверки российских номеров телефонов
+        // Поддерживаются форматы:
+        // +7XXXXXXXXXX
+        // 8XXXXXXXXXX
+        // +7(XXX)XXXXXXX
+        // 8(XXX)XXXXXXX
+        // +7 XXX XXX XXXX
+        // 8 XXX XXX XXXX
+        // +7-XXX-XXX-XXXX
+        // 8-XXX-XXX-XXXX
+        private static readonly Regex PhoneRegex = new Regex(@"^(\+7|8)(\s|-|\()?(\d{3})(\s|-|\))?(\d{3})(\s|-)?(\d{2})(\s|-)?(\d{2})$");
+
+        
         /// <summary>
         /// Значение номера телефона
         /// </summary>
@@ -34,9 +48,7 @@ namespace DDD.Domain.ValueObjects
             {
                 return Result.Failure<PhoneNumber>("Номер телефона не может быть пустым");
             }
-
-           
-
+            
             // Проверяем, что номер телефона соответствует формату российского номера
             if (!IsValidRussianPhoneNumber(value))
             {
@@ -53,22 +65,9 @@ namespace DDD.Domain.ValueObjects
         /// <returns>True, если номер соответствует формату, иначе False</returns>
         private static bool IsValidRussianPhoneNumber(string phoneNumber)
         {
-            // Регулярное выражение для проверки российских номеров телефонов
-            // Поддерживаются форматы:
-            // +7XXXXXXXXXX
-            // 8XXXXXXXXXX
-            // +7(XXX)XXXXXXX
-            // 8(XXX)XXXXXXX
-            // +7 XXX XXX XXXX
-            // 8 XXX XXX XXXX
-            // +7-XXX-XXX-XXXX
-            // 8-XXX-XXX-XXXX
-            var russianPhoneRegex = new Regex(@"^(\+7|8)(\s|-|\()?(\d{3})(\s|-|\))?(\d{3})(\s|-)?(\d{2})(\s|-)?(\d{2})$");
-            return russianPhoneRegex.IsMatch(phoneNumber);
+            return PhoneRegex.IsMatch(phoneNumber);
         }
-
-      
-
+        
         protected override IEnumerable<IComparable> GetEqualityComponents()
         {
             yield return Value;
