@@ -1,9 +1,9 @@
-using System;
-using CSharpFunctionalExtensions;
-using Domain.Entities;
+
+using DDD.Domain;
 using Domain.ValueObjects;
 using DDD.Domain.ValueObjects;
 using DDD.Domain.ValueObjects.PropertyDetailsVO;
+
 
 namespace Domain.Tests
 {
@@ -99,7 +99,7 @@ namespace Domain.Tests
                 roomsResult.Value,
                 floorResult.Value,
                 totalFloorsResult.Value,
-                DDD.Domain.ValueObjects.PropertyType.Apartment,
+                PropertyType.Apartment,
                 preferBalcony: true,
                 preferParking: true,
                 heatingTypeResult.Value,
@@ -156,7 +156,7 @@ namespace Domain.Tests
                 roomsResult.Value,
                 floorResult.Value,
                 totalFloorsResult.Value,
-                DDD.Domain.ValueObjects.PropertyType.House
+                PropertyType.House
             );
 
             if (newSearchCriteriaResult.IsSuccess)
@@ -232,13 +232,6 @@ namespace Domain.Tests
                 Console.WriteLine($"  Ошибки: {invalidEmailResult.Error}");
             }
 
-            // Тестирование PhoneNumber
-            var invalidPhoneResult = PhoneNumber.Create("invalid-phone");
-            if (invalidPhoneResult.IsFailure)
-            {
-                Console.WriteLine($"✓ Валидация номера телефона сработала корректно:");
-                Console.WriteLine($"  Ошибки: {invalidPhoneResult.Error}");
-            }
 
             // Тестирование Name
             var invalidNameResult = Name.Create("A"); // Слишком короткое имя

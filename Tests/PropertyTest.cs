@@ -1,6 +1,6 @@
 using System;
 using CSharpFunctionalExtensions;
-using DDD.Domain.Entities;
+using DDD.Domain;
 using DDD.Domain.ValueObjects;
 using Domain.ValueObjects;
 
@@ -11,7 +11,7 @@ namespace Domain.Tests
         public static void RunPropertyTests()
         {
             // Создание адреса
-            var addressResult = Address.Create("Ленина 10", "Москва", "Московская область", "123456", "Россия");
+            var addressResult = Address.Create("Ленина 10", "Москва", 494645677, 129903, "Россия");
             if (addressResult.IsFailure)
             {
                 Console.WriteLine($"Ошибка при создании адреса: {addressResult.Error}");

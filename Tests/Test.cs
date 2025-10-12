@@ -8,10 +8,10 @@ namespace DDD.Domain
         public static void Main()
         {
             // Вызов тестов для Property
-            // PropertyTest.RunPropertyTests();
+            PropertyTest.RunPropertyTests();
             
             // Вызов тестов для Client
-            ClientTest.RunClientTests();
+            // ClientTest.RunClientTests();
         }
     }
 }

@@ -5,19 +5,14 @@ using CSharpFunctionalExtensions;
 using DDD.Domain.ValueObjects;
 using Domain.ValueObjects;
 
-namespace DDD.Domain.Entities
+namespace DDD.Domain
 {
     /// <summary>
     /// Сущность объекта недвижимости в системе управления недвижимостью
     /// </summary>
-    public class Property
+    public class Property : CSharpFunctionalExtensions.Entity<PropertyId>
     {
         private readonly List<OwnershipRecord> _ownershipHistory;
-        
-        /// <summary>
-        /// Уникальный идентификатор объекта недвижимости
-        /// </summary>
-        public Guid Id { get; private set; }
         
         /// <summary>
         /// Адрес объекта недвижимости
@@ -61,17 +56,18 @@ namespace DDD.Domain.Entities
         /// </summary>
         public DateTime? UpdatedAt { get; private set; }
 
+
         /// <summary>
         /// Создает новый экземпляр объекта недвижимости
         /// </summary>
+        /// <param name="id"></param>
         /// <param name="address">Адрес объекта недвижимости</param>
         /// <param name="price">Цена объекта недвижимости</param>
         /// <param name="description">Описание объекта недвижимости</param>
         /// <param name="details">Детали объекта недвижимости</param>
         /// <param name="status">Статус недвижимости</param>
-        private Property(Address address, Price price, Description description, PropertyDetails details, PropertyStatus status)
+        private Property(PropertyId id, Address address, Price price, Description description, PropertyDetails details, PropertyStatus status) : base(id)
         {
-            Id = Guid.NewGuid();
             Address = address;
             Price = price;
             Description = description;
@@ -114,25 +110,30 @@ namespace DDD.Domain.Entities
             
             if (ownerRecord == null)
                 validationErrors.Add("Запись о владельце не может быть пустой");
+            
+            var id = PropertyId.New();
+            
+            // AddEvent(new PropertyCreatedEvent(Id));
 
             // Возврат результата валидации
             return validationErrors.Count > 0
                 ? Result.Failure<Property>(string.Join("; ", validationErrors))
-                : Result.Success(CreateWithOwner(address, price, description, details, ownerRecord));
+                : Result.Success(CreateWithOwner( id ,address, price, description, details, ownerRecord));
         }
 
         /// <summary>
         /// Внутренний метод создания Property с владельцем
         /// </summary>
+        /// <param name="id"></param>
         /// <param name="address">Адрес объекта недвижимости</param>
         /// <param name="price">Цена объекта недвижимости</param>
         /// <param name="description">Описание объекта недвижимости</param>
         /// <param name="details">Детали объекта недвижимости</param>
         /// <param name="ownerRecord">Запись о владельце</param>
         /// <returns>Экземпляр Property</returns>
-        private static Property CreateWithOwner(Address address, Price price, Description description, PropertyDetails details, OwnershipRecord ownerRecord)
+        private static Property CreateWithOwner(PropertyId id, Address address, Price price, Description description, PropertyDetails details, OwnershipRecord ownerRecord)
         {
-            var property = new Property(address, price, description, details, PropertyStatus.ForSale);
+            var property = new Property(id, address, price, description, details, PropertyStatus.ForSale);
             property.AddOwnershipRecord(ownerRecord);
             return property;
         }
@@ -210,6 +211,41 @@ namespace DDD.Domain.Entities
         {
             return $"Недвижимость [ID: {Id}, Адрес: {Address}, Цена: {Price}, Статус: {Status.GetDisplayName()}, Площадь: {Details.Area}, Комнат: {Details.NumberOfRooms}, Этаж: {Details.Floor}/{Details.TotalFloors}]";
         }
+        
+        // public void ChangePrice(decimal newPrice)
+        // {
+        //     if (Status == PropertyStatus.Sold)
+        //         throw new InvalidPropertyStateException("Нельзя изменить цену проданного объекта.");
+        //
+        //     var oldPrice = CurrentPrice.Amount;
+        //     CurrentPrice = CurrentPrice.Change(newPrice);
+        //     _priceHistory.Add(CurrentPrice);
+        //
+        //     AddEvent(new PropertyPriceChangedEvent(Id, oldPrice, newPrice));
+        // }
+        //
+        // public void Reserve()
+        // {
+        //     if (Status != PropertyStatus.Available)
+        //         throw new InvalidPropertyStateException("Зарезервировать можно только доступный объект.");
+        //     ChangeStatus(PropertyStatus.Reserved);
+        // }
+        //
+        // public void MarkAsSold()
+        // {
+        //     if (Status != PropertyStatus.Reserved)
+        //         throw new InvalidPropertyStateException("Продать можно только забронированный объект.");
+        //     ChangeStatus(PropertyStatus.Sold);
+        // }
+        //
+        // private void ChangeStatus(PropertyStatus newStatus)
+        // {
+        //     Status = newStatus;
+        //     AddEvent(new PropertyStatusChangedEvent(Id, newStatus));
+        // }
+        //
+        // private void AddEvent(IDomainEvent @event) => _events.Add(@event);
+        // public IReadOnlyCollection<IDomainEvent> DomainEvents => _events.AsReadOnly();
     }
 
     

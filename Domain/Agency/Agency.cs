@@ -1,20 +1,16 @@
 using CSharpFunctionalExtensions;
-using DDD.Domain.Aggregates;
+using DDD.Domain.Entities;
 using DDD.Domain.ValueObjects;
-using Domain.Entities;
+using DDD.Domain.ValueObjects.AgencyVO;
 using Domain.ValueObjects;
 
-namespace DDD.Domain.Entities
+namespace DDD.Domain
 {
     /// <summary>
     /// Сущность агентства недвижимости в системе управления недвижимостью
     /// </summary>
-    public class Agency
+    public class Agency : Entity<AgencyId>
     {
-        /// <summary>
-        /// Уникальный идентификатор агентства
-        /// </summary>
-        public Guid Id { get; private set; }
         
         /// <summary>
         /// Название агентства
@@ -49,14 +45,15 @@ namespace DDD.Domain.Entities
         /// <summary>
         /// Создает новый экземпляр агентства недвижимости
         /// </summary>
+        /// <param name="id">Идентификатор агентства</param>
         /// <param name="name">Название агентства</param>
         /// <param name="contactInfo">Контактная информация агентства</param>
         /// <param name="licenseNumber">Номер лицензии агентства</param>
         /// <exception cref="ArgumentException">Вызывается, если данные агентства некорректны</exception>
         /// <exception cref="ArgumentNullException">Вызывается, если контактная информация пуста</exception>
-        public Agency(Name name, ContactInfo contactInfo, LicenseNumber licenseNumber)
+        private Agency(AgencyId id, Name name, ContactInfo contactInfo, LicenseNumber licenseNumber)
+            : base(id)
         {
-            Id = Guid.NewGuid();
             Name = name;
             ContactInfo = contactInfo;
             LicenseNumber = licenseNumber;
@@ -84,9 +81,11 @@ namespace DDD.Domain.Entities
             if (licenseNumber == null)
                 validationErrors.Add("Номер лицензии не может быть пустым");
 
+            var id = AgencyId.New();
+
             return validationErrors.Count > 0
                 ? Result.Failure<Agency>(string.Join("; ", validationErrors))
-                : Result.Success(new Agency(name, contactInfo, licenseNumber));
+                : Result.Success(new Agency(id, name, contactInfo, licenseNumber));
         }
 
         /// <summary>
@@ -135,6 +134,20 @@ namespace DDD.Domain.Entities
             
             ContactInfo = newContactInfo;
             UpdatedAt = DateTime.UtcNow;
+        }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is Agency other)
+            {
+                return base.Equals(other);
+            }
+            return false;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
     }
 }
