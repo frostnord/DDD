@@ -10,7 +10,7 @@ namespace DDD.Domain
     /// <summary>
     /// Агрегат бронирования в системе управления недвижимостью
     /// </summary>
-    public class Booking : CSharpFunctionalExtensions.Entity<BookingId>
+    public class Booking : Entity<BookingId>
     {
         // Id уже определен в базовом классе CSharpFunctionalExtensions.Entity<TId>
         

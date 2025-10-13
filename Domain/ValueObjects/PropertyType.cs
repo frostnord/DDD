@@ -1,7 +1,11 @@
 using System;
+using DDD.Utilities;
 
 namespace DDD.Domain.ValueObjects
 {
+
+    
+    
     /// <summary>
     /// Перечисление, представляющее тип недвижимости
     /// </summary>
@@ -37,7 +41,7 @@ namespace DDD.Domain.ValueObjects
         /// </summary>
         Studio
     }
-
+    
     /// <summary>
     /// Расширения для PropertyType
     /// </summary>
@@ -62,7 +66,7 @@ namespace DDD.Domain.ValueObjects
             };
         }
         
-
+    
         /// <summary>
         /// Парсит строковое значение в PropertyType
         /// </summary>
@@ -72,7 +76,7 @@ namespace DDD.Domain.ValueObjects
         {
             if (string.IsNullOrWhiteSpace(value))
                 return null;
-
+    
             return value.ToLowerInvariant() switch
             {
                 "квартира" or "apartment" => PropertyType.Apartment,
