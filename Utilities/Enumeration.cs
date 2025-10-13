@@ -2,90 +2,81 @@
 
 namespace DDD.Utilities;
 
-
 /// <summary>
-/// базовое "умное" перечисление
+/// Базовое "умное" перечисление
 /// </summary>
-public abstract class Enumeration<TEnum>
-    where TEnum : Enumeration<TEnum>
+public abstract class Enumeration<TEnum> : IEquatable<Enumeration<TEnum>>, IComparable<Enumeration<TEnum>>
+   where TEnum : Enumeration<TEnum>
 {
-    /// <summary>
-    /// Фабрики перечисления
-    /// </summary>
-    private static Dictionary<int, Func<TEnum>> _factories = InitializeFactories();
+   private static readonly Dictionary<int, TEnum> _byValue;
+   private static readonly Dictionary<string, TEnum> _byName;
+   
+   static Enumeration()
+   {
+       
+       var values = typeof(TEnum)
+           .GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
+           .Where(f => f.FieldType == typeof(TEnum))
+           .Select(f => f.GetValue(null))
+           .Cast<TEnum>()
+           .ToList();
 
-    /// <summary>
-    /// Название перечисления
-    /// </summary>
-    public string Name { get; }
+       _byValue = values.ToDictionary(e => e.Value);
+       _byName = values.ToDictionary(e => e.Name, StringComparer.OrdinalIgnoreCase);
+   }
 
-    /// <summary>
-    /// Значение перечисления
-    /// </summary>
-    public int Value { get; }
+   /// <summary>
+   /// Название перечисления
+   /// </summary>
+   public string Name { get; }
 
-    protected Enumeration(int value, string name)
-    {
-        Value = value;
-        Name = name;
-    }
+   /// <summary>
+   /// Значение перечисления
+   /// </summary>
+   public int Value { get; }
 
-    /// <summary>
-    /// Созданием перечисления по имени
-    /// </summary>
-    /// <param name="name">Название перечисления</param>
-    /// <returns>TEnum - перечисление из семейства</returns>
-    /// <exception cref="ArgumentException">Исключение, если перечисления с таким названием не существует</exception>
-    public static TEnum FromName(string name)
-    {
-        foreach (KeyValuePair<int, Func<TEnum>> keyPair in _factories)
-        {
-            TEnum enumeration = keyPair.Value();
-            if (enumeration.Name == name)
-                return enumeration;
-        }
+   protected Enumeration(int value, string name)
+   {
+       Value = value;
+       Name = name ?? throw new ArgumentNullException(nameof(name));
+   }
 
-        throw new ArgumentException("Данное перечисление не поддерживавется.");
-    }
+   /// <summary>
+   /// Создание перечисления по значению
+   /// </summary>
+   /// <param name="value">Значение перечисления</param>
+   /// <returns>TEnum - перечисление из семейства</returns>
+   /// <exception cref="ArgumentException">Исключение, если перечисления с таким значением не существует</exception>
+   public static TEnum FromValue(int value) =>
+       _byValue.TryGetValue(value, out var result)
+           ? result
+           : throw new ArgumentException($"Значение {value} не поддерживается.");
 
-    /// <summary>
-    /// Создание перечисления по ключу
-    /// </summary>
-    /// <param name="value">Ключ перечисления</param>
-    /// <returns>TEnum - перечисление из семейства</returns>
-    /// <exception cref="ArgumentException">Исключение, если перечисления с таким ключом не существует</exception>
-    public static TEnum FromValue(int value) =>
-        !_factories.TryGetValue(value, out Func<TEnum>? factory)
-            ? throw new ArgumentException("Данное перечисление не поддерживавется.")
-            : factory();
+   /// <summary>
+   /// Создание перечисления по имени
+   /// </summary>
+   /// <param name="name">Название перечисления</param>
+   /// <returns>TEnum - перечисление из семейства</returns>
+   /// <exception cref="ArgumentException">Исключение, если перечисления с таким названием не существует</exception>
+   public static TEnum FromName(string name) =>
+       _byName.TryGetValue(name, out var result)
+           ? result
+           : throw new ArgumentException($"Имя {name} не поддерживается.");
 
-    /// <summary>
-    /// Инициализация словаря фабрик перечислений
-    /// </summary>
-    /// <returns>Словарь фабрик перечислений</returns>
-    private static Dictionary<int, Func<TEnum>> InitializeFactories()
-    {
-        // получение всех подтипов семейства перечислений TEnum
-        Type enumType = typeof(TEnum);
-        Type[] subtypes = [.. enumType.Assembly.GetTypes().Where(t => t.IsSubclassOf(enumType))];
+   public virtual bool Equals(Enumeration<TEnum> other) =>
+       other is not null && Value.Equals(other.Value);
 
-        // заполнение словаря фабрик
-        Dictionary<int, Func<TEnum>> factories = [];
-        foreach (Type entry in subtypes)
-        {
-            ConstructorInfo constructorInfo = entry
-                .GetConstructors()
-                .First(c => c.GetParameters().Length == 0);
+   public override bool Equals(object obj) =>
+       obj is Enumeration<TEnum> other && Equals(other);
 
-            TEnum enumeration = (TEnum)constructorInfo.Invoke(null);
-            int key = enumeration.Value;
+   public override int GetHashCode() => Value.GetHashCode();
+   
+   public int CompareTo(Enumeration<TEnum> other) =>
+       other is null ? 1 : Value.CompareTo(other.Value);
+   
+   public static bool operator ==(Enumeration<TEnum> left, Enumeration<TEnum> right) =>
+       left?.Equals(right) ?? right is null;
 
-            // конструктор конкретного перечисления, используем в лямбде
-            Func<TEnum> factory = () => (TEnum)constructorInfo.Invoke(null);
-            factories.Add(key, factory);
-        }
-
-        return factories;
-    }
-
+   public static bool operator !=(Enumeration<TEnum> left, Enumeration<TEnum> right) =>
+       !(left == right);
 }
