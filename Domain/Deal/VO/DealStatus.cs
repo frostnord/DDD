@@ -3,85 +3,37 @@ using System.Collections.Generic;
 using CSharpFunctionalExtensions;
 using Domain.ValueObjects;
 using DDD.Domain.ValueObjects;
+using DDD.Utilities;
 
 namespace Domain.ValueObjects
 {
-    /// <summary>
-    /// Объект значения, представляющий статус сделки
-    /// </summary>
-    public class DealStatus : ValueObject
+    public sealed class DealStatus : Enumeration<DealStatus>
     {
-        /// <summary>
-        /// Статус: Создана
-        /// </summary>
-        public static readonly DealStatus Created = new DealStatus("Created", "Создана");
-        
-        /// <summary>
-        /// Статус: Подтверждена
-        /// </summary>
-        public static readonly DealStatus Confirmed = new DealStatus("Confirmed", "Подтверждена");
-        
-        /// <summary>
-        /// Статус: Завершена
-        /// </summary>
-        public static readonly DealStatus Completed = new DealStatus("Completed", "Завершена");
-        
-        /// <summary>
-        /// Статус: Отменена
-        /// </summary>
-        public static readonly DealStatus Cancelled = new DealStatus("Cancelled", "Отменена");
+        public static readonly DealStatus Created = new DealStatus(0, "Created", "Сделка создана", true);
+        public static readonly DealStatus Confirmed = new DealStatus(1, "Confirmed", "Сделка подтверждена", true);
+        public static readonly DealStatus Completed = new DealStatus(2, "Completed", "Сделка завершена", false);
+        public static readonly DealStatus Cancelled = new DealStatus(3, "Cancelled", "Сделка отменена", false);
 
-        /// <summary>
-        /// Код статуса
-        /// </summary>
-        public string Code { get; }
-        
-        /// <summary>
-        /// Отображаемое имя статуса
-        /// </summary>
-        public string DisplayName { get; }
+        public string Description { get; } //test
+        public bool IsActiveStatus { get; } //test
 
-        /// <summary>
-        /// Создает новый экземпляр статуса сделки
-        /// </summary>
-        /// <param name="code">Код статуса</param>
-        /// <param name="displayName">Отображаемое имя</param>
-        private DealStatus(string code, string displayName)
+        private DealStatus(int value, string name, string description, bool isActive) : base(value, name)
         {
-            Code = code;
-            DisplayName = displayName;
+            Description = description;
+            IsActiveStatus = isActive;
         }
 
-        /// <summary>
-        /// Получает статус сделки по коду
-        /// </summary>
-        /// <param name="code">Код статуса</param>
-        /// <returns>Статус сделки или null, если не найден</returns>
-        public static DealStatus FromCode(string code)
+        public bool IsActive() => IsActiveStatus;
+    
+        public bool CanTransitionTo(DealStatus newStatus)
         {
-            switch (code?.ToLower())
-            {
-                case "created":
-                    return Created;
-                case "confirmed":
-                    return Confirmed;
-                case "completed":
-                    return Completed;
-                case "cancelled":
-                    return Cancelled;
-                default:
-                    return null;
-            }
+            // Логика перехода между статусами
+            return (this == Created && (newStatus == Confirmed || newStatus == Cancelled)) ||
+                   (this == Confirmed && (newStatus == Completed || newStatus == Cancelled)) ||
+                   (this == Completed || this == Cancelled); // Завершенные и отмененные статусы - финальные
         }
-
-        protected override IEnumerable<object> GetEqualityComponents()
-        {
-            yield return Code;
-        }
-
-        public override string ToString()
-        {
-            return DisplayName;
-        }
+    
+        public override string ToString() => $"{Name} ({Description})";
     }
+
 }
