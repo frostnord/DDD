@@ -53,8 +53,9 @@ namespace Domain.Tests
                 return;
             }
 
-            // Создание записи о владельце
-            var ownerRecordResult = OwnershipRecord.Create("Иванов Иван Иванович", DateTime.Now, "Покупка");
+            // Создание записи о владельце с временным PropertyId (он будет заменен в Property.Create)
+            var tempPropertyId = PropertyId.Create(Guid.NewGuid()).Value;
+            var ownerRecordResult = OwnershipRecord.Create("Иванов Иван Иванович", DateTime.Now, "Покупка", tempPropertyId);
             if (ownerRecordResult.IsFailure)
             {
                 Console.WriteLine($"Ошибка при создании записи о владельце: {ownerRecordResult.Error}");
@@ -104,7 +105,7 @@ namespace Domain.Tests
             Console.WriteLine($"Condition.Value: {property.Details.Condition.Value}");
             
             // Добавление нового владельца
-            var newOwnerResult = OwnershipRecord.Create("Петров Петр Петрович", DateTime.Now.AddYears(1), "Покупка");
+            var newOwnerResult = OwnershipRecord.Create("Петров Петр Петрович", DateTime.Now.AddYears(1), "Покупка", PropertyId.Create(Guid.NewGuid()).Value);
             if (newOwnerResult.IsSuccess)
             {
                 property.AddOwnershipRecord(newOwnerResult.Value);
@@ -148,7 +149,7 @@ namespace Domain.Tests
 
             if (basementDetailsResult.IsSuccess)
             {
-                var basementOwnerResult = OwnershipRecord.Create("Коммерсант Иван Иванович", DateTime.Now, "Покупка");
+                var basementOwnerResult = OwnershipRecord.Create("Коммерсант Иван Иванович", DateTime.Now, "Покупка", PropertyId.Create(Guid.NewGuid()).Value);
                 
                 var basementPropertyResult = Property.Create(
                     addressResult.Value,

@@ -10,6 +10,4 @@ public class CompletedDealId : TypedId<CompletedDealId>
 
     public static Result<CompletedDealId> Create(Guid value)
         => TypedId<CompletedDealId>.Create(value, v => new CompletedDealId(v));
-
-    public static CompletedDealId New() => new(Guid.NewGuid());
 }

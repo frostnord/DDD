@@ -1,6 +1,5 @@
 using CSharpFunctionalExtensions;
 using DDD.Domain.ValueObjects;
-using DDD.Domain.ValueObjects.ClientVO;
 
 namespace DDD.Domain.Entities.Deal
 {
@@ -84,7 +83,7 @@ namespace DDD.Domain.Entities.Deal
             if (dealDate > DateTime.UtcNow)
                 validationErrors.Add("Дата сделки не может быть в будущем");
             
-            var id = CompletedDealId.New();
+            var id = CompletedDealId.Create(Guid.NewGuid()).Value;
 
             if (validationErrors.Count > 0)
             {

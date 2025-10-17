@@ -2,7 +2,7 @@
 
 namespace DDD.Domain;
 
-public abstract class TypedId<T> : ValueObject, IComparable<T>, IComparable
+public abstract class TypedId<T> : ValueObject, IComparable<T>
     where T : TypedId<T>
 {
     public Guid Value { get; }

@@ -5,9 +5,7 @@ using CSharpFunctionalExtensions;
 using DDD.Domain.Entities;
 using Domain.ValueObjects;
 using DDD.Domain.ValueObjects;
-using DDD.Domain.ValueObjects.BookingVO;
-using DDD.Domain.ValueObjects.ClientVO;
-using DDD.Domain.ValueObjects.DealVO;
+
 
 namespace DDD.Domain.Deal
 {
@@ -102,7 +100,7 @@ namespace DDD.Domain.Deal
             if (details == null)
                 validationErrors.Add("Детали сделки не могут быть пустыми");
             
-            var id = DealId.New();
+            var id = DealId.Create(Guid.NewGuid()).Value;
 
             if (validationErrors.Count > 0)
             {

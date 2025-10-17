@@ -1,7 +1,7 @@
 using System;
 using CSharpFunctionalExtensions;
 using DDD.Domain.ValueObjects;
-using DDD.Domain.ValueObjects.PropertyDetailsVO;
+
 
 namespace Domain.ValueObjects
 {
@@ -10,10 +10,7 @@ namespace Domain.ValueObjects
     /// </summary>
     public class ClientSearchCriteria : IEquatable<ClientSearchCriteria>
     {
-        /// <summary>
-        /// Предпочитаемая площадь недвижимости
-        /// </summary>
-        public Area PreferredArea { get; }
+        
         
         /// <summary>
         /// Предпочтительное количество комнат
@@ -33,12 +30,8 @@ namespace Domain.ValueObjects
         /// <summary>
         /// Предпочтительный тип недвижимости
         /// </summary>
-        public PropertyType? PreferredType { get; }
+        public SmartPropertyType PreferredType { get; }
         
-        /// <summary>
-        /// Наличие предпочтения по балкону
-        /// </summary>
-        public bool? PreferBalcony { get; }
         
         /// <summary>
         /// Наличие предпочтения по парковке
@@ -58,25 +51,22 @@ namespace Domain.ValueObjects
         /// <summary>
         /// Создает новый экземпляр критериев поиска клиента
         /// </summary>
-        /// <param name="preferredArea">Предпочитаемая площадь недвижимости</param>
         /// <param name="preferredNumberOfRooms">Предпочтительное количество комнат</param>
         /// <param name="preferredFloor">Предпочтительный этаж</param>
         /// <param name="preferredTotalFloors">Предпочтительное общее количество этажей в здании</param>
         /// <param name="preferredType">Предпочтительный тип недвижимости</param>
-        /// <param name="preferBalcony">Наличие предпочтения по балкону</param>
         /// <param name="preferParking">Наличие предпочтения по парковке</param>
         /// <param name="preferredHeatingType">Предпочтительный тип отопления</param>
         /// <param name="preferredCondition">Предпочтительное состояние недвижимости</param>
-        private ClientSearchCriteria(Area preferredArea, NumberOfRooms preferredNumberOfRooms, Floor preferredFloor, TotalFloors preferredTotalFloors,
-            PropertyType? preferredType, bool? preferBalcony, bool? preferParking,
+        private ClientSearchCriteria( NumberOfRooms preferredNumberOfRooms, Floor preferredFloor, TotalFloors preferredTotalFloors,
+            SmartPropertyType preferredType, bool? preferParking,
             HeatingType preferredHeatingType, PropertyCondition preferredCondition)
         {
-            PreferredArea = preferredArea;
+            
             PreferredNumberOfRooms = preferredNumberOfRooms;
             PreferredFloor = preferredFloor;
             PreferredTotalFloors = preferredTotalFloors;
             PreferredType = preferredType;
-            PreferBalcony = preferBalcony;
             PreferParking = preferParking;
             PreferredHeatingType = preferredHeatingType;
             PreferredCondition = preferredCondition;
@@ -85,53 +75,29 @@ namespace Domain.ValueObjects
         /// <summary>
         /// Фабричный метод для создания экземпляра критериев поиска клиента с возвратом результата
         /// </summary>
-        /// <param name="preferredArea">Предпочитаемая площадь недвижимости</param>
         /// <param name="preferredNumberOfRooms">Предпочтительное количество комнат</param>
         /// <param name="preferredFloor">Предпочтительный этаж</param>
-        /// <param name="preferredTotalFloors">Предпочтительное общее количество этажей в здании</param>
-        /// <param name="preferredType">Предпочтительный тип недвижимости</param>
-        /// <param name="preferBalcony">Наличие предпочтения по балкону</param>
-        /// <param name="preferParking">Наличие предпочтения по парковке</param>
-        /// <param name="preferredHeatingType">Предпочтительный тип отопления</param>
-        /// <param name="preferredCondition">Предпочтительное состояние недвижимости</param>
         /// <returns>Result с экземпляром ClientSearchCriteria при успешной валидации или ошибкой при провале валидации</returns>
-        public static Result<ClientSearchCriteria> Create(Area preferredArea = null, NumberOfRooms preferredNumberOfRooms = null, Floor preferredFloor = null, TotalFloors preferredTotalFloors = null,
-            PropertyType? preferredType = null, bool? preferBalcony = null, bool? preferParking = null,
-            HeatingType preferredHeatingType = null, PropertyCondition preferredCondition = null)
+        public static Result<ClientSearchCriteria> Create( NumberOfRooms preferredNumberOfRooms, Floor preferredFloor, TotalFloors preferredTotalFloors,
+            SmartPropertyType preferredType, bool? preferParking, HeatingType preferredHeatingType, PropertyCondition preferredCondition)
         {
-            // Валидация не требуется, так как все параметры опциональные
-            // Возвращаем экземпляр с предоставленными значениями или null
-            return Result.Success(new ClientSearchCriteria(preferredArea, preferredNumberOfRooms, preferredFloor, preferredTotalFloors,
-                preferredType, preferBalcony, preferParking, preferredHeatingType, preferredCondition));
-        }
+            // Дополнительная доменная валидация отношений между полями
+            if (preferredFloor.Value > preferredTotalFloors.Value)
+                return Result.Failure<ClientSearchCriteria>("Предпочтительный этаж не может быть больше общего количества этажей");
 
-        public override bool Equals(object obj)
-        {
-            if (obj is ClientSearchCriteria other)
-            {
-                return Equals(PreferredArea, other.PreferredArea) &&
-                       Equals(PreferredNumberOfRooms, other.PreferredNumberOfRooms) &&
-                       Equals(PreferredFloor, other.PreferredFloor) &&
-                       Equals(PreferredTotalFloors, other.PreferredTotalFloors) &&
-                       Nullable.Equals(PreferredType, other.PreferredType) &&
-                       Nullable.Equals(PreferBalcony, other.PreferBalcony) &&
-                       Nullable.Equals(PreferParking, other.PreferParking) &&
-                       Equals(PreferredHeatingType, other.PreferredHeatingType) &&
-                       Equals(PreferredCondition, other.PreferredCondition);
-            }
-            return false;
+            return Result.Success(new ClientSearchCriteria( preferredNumberOfRooms, preferredFloor, preferredTotalFloors,
+                preferredType, preferParking, preferredHeatingType, preferredCondition));
         }
 
         public bool Equals(ClientSearchCriteria other)
         {
             if (other is null) return false;
             if (ReferenceEquals(this, other)) return true;
-            return Equals(PreferredArea, other.PreferredArea) &&
+            return
                    Equals(PreferredNumberOfRooms, other.PreferredNumberOfRooms) &&
                    Equals(PreferredFloor, other.PreferredFloor) &&
                    Equals(PreferredTotalFloors, other.PreferredTotalFloors) &&
                    Nullable.Equals(PreferredType, other.PreferredType) &&
-                   Nullable.Equals(PreferBalcony, other.PreferBalcony) &&
                    Nullable.Equals(PreferParking, other.PreferParking) &&
                    Equals(PreferredHeatingType, other.PreferredHeatingType) &&
                    Equals(PreferredCondition, other.PreferredCondition);
@@ -141,21 +107,20 @@ namespace Domain.ValueObjects
         {
             // HashCode.Combine в .NET 6+ поддерживает до 8 аргументов, поэтому разбиваем на части
             return HashCode.Combine(
-                HashCode.Combine(PreferredArea, PreferredNumberOfRooms, PreferredFloor, PreferredTotalFloors),
-                HashCode.Combine(PreferredType, PreferBalcony, PreferParking, PreferredHeatingType),
+                HashCode.Combine( PreferredNumberOfRooms, PreferredFloor, PreferredTotalFloors),
+                HashCode.Combine(PreferredType, PreferParking, PreferredHeatingType),
                 PreferredCondition?.GetHashCode() ?? 0);
         }
 
         public override string ToString()
         {
             var parts = new System.Collections.Generic.List<string>();
-            if (PreferredArea != null) parts.Add($"Area: {PreferredArea}");
-            if (PreferredNumberOfRooms != null) parts.Add($"Rooms: {PreferredNumberOfRooms}");
-            if (PreferredFloor != null) parts.Add($"Floor: {PreferredFloor}");
+            
+            parts.Add($"Rooms: {PreferredNumberOfRooms}");
+            parts.Add($"Floor: {PreferredFloor}");
             if (PreferredTotalFloors != null) parts.Add($"TotalFloors: {PreferredTotalFloors}");
-            if (PreferredType.HasValue) parts.Add($"Type: {PreferredType.Value.GetDisplayName()}");
-            if (PreferBalcony.HasValue) parts.Add($"Balcony: {PreferBalcony.Value}");
-            if (PreferParking.HasValue) parts.Add($"Parking: {PreferParking.Value}");
+            parts.Add($"Type: {PreferredType.DisplayName}");
+            if (PreferParking.HasValue) parts.Add($"Parking: {PreferParking}");
             if (PreferredHeatingType != null) parts.Add($"Heating: {PreferredHeatingType}");
             if (PreferredCondition != null) parts.Add($"Condition: {PreferredCondition}");
 

@@ -1,8 +1,6 @@
-
 using DDD.Domain;
 using Domain.ValueObjects;
 using DDD.Domain.ValueObjects;
-using DDD.Domain.ValueObjects.PropertyDetailsVO;
 
 
 namespace Domain.Tests
@@ -50,74 +48,11 @@ namespace Domain.Tests
                 return;
             }
 
-            // Создание критериев поиска
-            var areaResult = Area.Create(75);
-            var roomsResult = NumberOfRooms.Create(2);
-            var floorResult = Floor.Create(3);
-            var totalFloorsResult = TotalFloors.Create(9);
-            var heatingTypeResult = HeatingType.Create("Центральное");
-            var conditionResult = PropertyCondition.Create("Евроремонт");
-
-            if (areaResult.IsFailure)
-            {
-                Console.WriteLine($"Ошибка при создании площади: {areaResult.Error}");
-                return;
-            }
-
-            if (roomsResult.IsFailure)
-            {
-                Console.WriteLine($"Ошибка при создании количества комнат: {roomsResult.Error}");
-                return;
-            }
-
-            if (floorResult.IsFailure)
-            {
-                Console.WriteLine($"Ошибка при создании этажа: {floorResult.Error}");
-                return;
-            }
-
-            if (totalFloorsResult.IsFailure)
-            {
-                Console.WriteLine($"Ошибка при создании общего количества этажей: {totalFloorsResult.Error}");
-                return;
-            }
-
-            if (heatingTypeResult.IsFailure)
-            {
-                Console.WriteLine($"Ошибка при создании типа отопления: {heatingTypeResult.Error}");
-                return;
-            }
-
-            if (conditionResult.IsFailure)
-            {
-                Console.WriteLine($"Ошибка при создании состояния: {conditionResult.Error}");
-                return;
-            }
-
-            var searchCriteriaResult = ClientSearchCriteria.Create(
-                areaResult.Value,
-                roomsResult.Value,
-                floorResult.Value,
-                totalFloorsResult.Value,
-                PropertyType.Apartment,
-                preferBalcony: true,
-                preferParking: true,
-                heatingTypeResult.Value,
-                conditionResult.Value
-            );
-
-            if (searchCriteriaResult.IsFailure)
-            {
-                Console.WriteLine($"Ошибка при создании критериев поиска: {searchCriteriaResult.Error}");
-                return;
-            }
-
             // Создание клиента
             var clientResult = Client.Create(
                 firstNameResult.Value,
                 lastNameResult.Value,
-                contactInfoResult.Value,
-                searchCriteriaResult.Value
+                contactInfoResult.Value
             );
 
             if (clientResult.IsFailure)
@@ -132,9 +67,7 @@ namespace Domain.Tests
             Console.WriteLine($"  Имя: {client.FirstName}");
             Console.WriteLine($"  Фамилия: {client.LastName}");
             Console.WriteLine($"  Контактная информация: {client.ContactInfo}");
-            Console.WriteLine($"  Полное имя: {client.GetFullName()}");
-            Console.WriteLine($"  Дата создания: {client.CreatedAt}");
-            Console.WriteLine($"  Критерии поиска: {client.SearchCriteria}");
+            Console.WriteLine($"  Дата регистрации: {client.RegisteredDate}");
 
             // Демонстрация обновления контактной информации
             Console.WriteLine("\n=== Обновление контактной информации ===");
@@ -148,24 +81,6 @@ namespace Domain.Tests
                 Console.WriteLine($"Контактная информация обновлена: {client.ContactInfo}");
                 Console.WriteLine($"Дата обновления: {client.UpdatedAt}");
             }
-
-            // Демонстрация обновления критериев поиска
-            Console.WriteLine("\n=== Обновление критериев поиска ===");
-            var newSearchCriteriaResult = ClientSearchCriteria.Create(
-                areaResult.Value,
-                roomsResult.Value,
-                floorResult.Value,
-                totalFloorsResult.Value,
-                PropertyType.House
-            );
-
-            if (newSearchCriteriaResult.IsSuccess)
-            {
-                client.UpdateSearchCriteria(newSearchCriteriaResult.Value);
-                Console.WriteLine($"Критерии поиска обновлены: {client.SearchCriteria}");
-                Console.WriteLine($"Дата обновления: {client.UpdatedAt}");
-            }
-
 
             // Тестирование валидации
             Console.WriteLine("\n=== Тестирование валидации ===");
@@ -216,10 +131,6 @@ namespace Domain.Tests
                 Console.WriteLine($"✓ Валидация сработала корректно при создании клиента без контактной информации:");
                 Console.WriteLine($"  Ошибки: {invalidClientResult3.Error}");
             }
-            else
-            {
-                Console.WriteLine($"✗ Валидация не сработала при создании клиента без контактной информации!");
-            }
 
             // Тестирование Value Objects
             Console.WriteLine("\n=== Тестирование Value Objects ===");
@@ -231,7 +142,6 @@ namespace Domain.Tests
                 Console.WriteLine($"✓ Валидация email сработала корректно:");
                 Console.WriteLine($"  Ошибки: {invalidEmailResult.Error}");
             }
-
 
             // Тестирование Name
             var invalidNameResult = Name.Create("A"); // Слишком короткое имя

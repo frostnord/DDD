@@ -9,6 +9,6 @@ public class PropertyId : TypedId<PropertyId>
 
     public static Result<PropertyId> Create(Guid value)
         => TypedId<PropertyId>.Create(value, v => new PropertyId(v));
-
-    public static PropertyId New() => new (Guid.NewGuid());
+    
+    
 }

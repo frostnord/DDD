@@ -1,7 +1,7 @@
 using CSharpFunctionalExtensions;
 
 
-namespace DDD.Domain.ValueObjects.BookingVO;
+namespace DDD.Domain.ValueObjects;
 
 /// <summary>
 /// Идентификатор бронирования
@@ -12,6 +12,4 @@ public class BookingId : TypedId<BookingId>
 
     public static Result<BookingId> Create(Guid value)
         => TypedId<BookingId>.Create(value, v => new BookingId(v));
-
-    public static BookingId New() => new(Guid.NewGuid());
 }

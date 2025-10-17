@@ -81,7 +81,7 @@ namespace DDD.Domain
             if (licenseNumber == null)
                 validationErrors.Add("Номер лицензии не может быть пустым");
 
-            var id = AgencyId.New();
+            var id = AgencyId.Create(Guid.NewGuid()).Value;
 
             return validationErrors.Count > 0
                 ? Result.Failure<Agency>(string.Join("; ", validationErrors))
