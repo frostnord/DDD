@@ -1,7 +1,7 @@
 using CSharpFunctionalExtensions;
 
 
-namespace DDD.Domain.ValueObjects.ClientVO
+namespace DDD.Domain.ValueObjects
 {
     /// <summary>
     /// Объект значения, представляющий идентификатор клиента
@@ -12,8 +12,6 @@ namespace DDD.Domain.ValueObjects.ClientVO
 
         public static Result<ClientId> Create(Guid value)
             => TypedId<ClientId>.Create(value, v => new ClientId(v));
-
-        public static ClientId New() => new(Guid.NewGuid());
 
     }
 }

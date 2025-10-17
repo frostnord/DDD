@@ -1,7 +1,6 @@
 using System;
 using CSharpFunctionalExtensions;
 using DDD.Domain.ValueObjects;
-using DDD.Domain.ValueObjects.PropertyDetailsVO;
 
 namespace Domain.ValueObjects
 {
@@ -113,7 +112,7 @@ namespace Domain.ValueObjects
             }
 
             // Валидация Floor (с учетом totalFloors)
-            var floorResult = Floor.Create(floor, totalFloors);
+            var floorResult = Floor.Create(floor);
             if (floorResult.IsFailure)
             {
                 errors.Add(floorResult.Error);

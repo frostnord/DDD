@@ -9,6 +9,4 @@ public class AgencyId : TypedId<AgencyId>
 
     public static Result<AgencyId> Create(Guid value)
         => TypedId<AgencyId>.Create(value, v => new AgencyId(v));
-
-    public static AgencyId New() => new(Guid.NewGuid());
 }

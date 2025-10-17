@@ -1,7 +1,7 @@
 using System;
 using CSharpFunctionalExtensions;
 
-namespace DDD.Domain.ValueObjects.PropertyDetailsVO
+namespace DDD.Domain.ValueObjects
 {
     /// <summary>
     /// Объект значения, представляющий количество комнат
@@ -29,7 +29,7 @@ namespace DDD.Domain.ValueObjects.PropertyDetailsVO
         /// <returns>Result с экземпляром NumberOfRooms при успешной валидации или ошибкой при провале валидации</returns>
         public static Result<NumberOfRooms> Create(int value)
         {
-            if (value < 0)
+            if (value <= 0)
             {
                 return Result.Failure<NumberOfRooms>("Количество комнат не может быть отрицательным");
             }

@@ -1,7 +1,8 @@
 ﻿using CSharpFunctionalExtensions;
+using DDD.Domain;
 
 
-namespace DDD.Domain.ValueObjects.DealVO;
+namespace DDD.Domain.ValueObjects;
 
 public class DealId : TypedId<DealId>
 {
@@ -9,6 +10,4 @@ public class DealId : TypedId<DealId>
 
     public static Result<DealId> Create(Guid value)
         => TypedId<DealId>.Create(value, v => new DealId(v));
-
-    public static DealId New() => new(Guid.NewGuid());
 }

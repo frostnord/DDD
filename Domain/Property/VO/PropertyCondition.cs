@@ -1,7 +1,7 @@
 using System;
 using CSharpFunctionalExtensions;
 
-namespace DDD.Domain.ValueObjects.PropertyDetailsVO
+namespace DDD.Domain.ValueObjects
 {
     /// <summary>
     /// Объект значения, представляющий состояние недвижимости

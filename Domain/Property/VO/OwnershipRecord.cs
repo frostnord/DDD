@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using CSharpFunctionalExtensions;
 using DDD.Domain.ValueObjects;
-
 namespace Domain.ValueObjects
 {
     /// <summary>
@@ -10,6 +9,11 @@ namespace Domain.ValueObjects
     /// </summary>
     public class OwnershipRecord
     {
+        /// <summary>
+        /// Клиент (владелец) по ClientId
+        /// </summary>
+        public ClientId OwnerClientId { get; }
+
         /// <summary>
         /// Имя владельца
         /// </summary>
@@ -19,44 +23,52 @@ namespace Domain.ValueObjects
         /// Дата начала владения
         /// </summary>
         public DateTime StartDate { get; }
-        
         /// <summary>
         /// Дата окончания владения
         /// </summary>
         public DateTime? EndDate { get; private set; }
-        
+
         /// <summary>
-        /// Причина владения (покупка, наследство и т.д.)
+        /// Идентификатор недвижимости, которой владеет владелец
         /// </summary>
-        public string OwnershipReason { get; }
+        public PropertyId PropertyId { get; }
 
         /// <summary>
         /// Создает новый экземпляр записи о владельце
         /// </summary>
+        /// <param name="ownerClientId">Клиент (владелец) по ClientId</param>
         /// <param name="ownerName">Имя владельца</param>
         /// <param name="startDate">Дата начала владения</param>
         /// <param name="ownershipReason">Причина владения</param>
+        /// <param name="propertyId">Идентификатор недвижимости</param>
         /// <param name="endDate">Дата окончания владения (необязательно)</param>
-        private OwnershipRecord(Name ownerName, DateTime startDate, string ownershipReason, DateTime? endDate = null)
+        private OwnershipRecord(ClientId ownerClientId, Name ownerName, DateTime startDate, PropertyId propertyId, DateTime? endDate = null)
         {
+            OwnerClientId = ownerClientId;
             OwnerName = ownerName;
             StartDate = startDate;
-            OwnershipReason = ownershipReason;
+            PropertyId = propertyId;
             EndDate = endDate;
         }
 
         /// <summary>
         /// Фабричный метод для создания экземпляра записи о владельце с возвратом результата
         /// </summary>
+        /// <param name="ownerClientId">Клиент (владелец) по ClientId</param>
         /// <param name="ownerName">Имя владельца (строка)</param>
         /// <param name="startDate">Дата начала владения</param>
         /// <param name="ownershipReason">Причина владения</param>
+        /// <param name="propertyId">Идентификатор недвижимости</param>
         /// <param name="endDate">Дата окончания владения (необязательно)</param>
         /// <returns>Result с экземпляром OwnershipRecord при успешной валидации или ошибкой при провале валидации</returns>
-        public static Result<OwnershipRecord> Create(string ownerName, DateTime startDate, string ownershipReason, DateTime? endDate = null)
+        public static Result<OwnershipRecord> Create(ClientId ownerClientId, string ownerName, DateTime startDate, PropertyId propertyId, DateTime? endDate = null)
         {
             var errors = new List<string>();
 
+            if (ownerClientId == null)
+            {
+                errors.Add("Идентификатор клиента не может быть пустым");
+            }
             // Создание и валидация Name
             var nameResult = Name.Create(ownerName);
             if (nameResult.IsFailure)
@@ -67,15 +79,15 @@ namespace Domain.ValueObjects
             if (startDate == default(DateTime))
                 errors.Add("Дата начала владения не может быть пустой");
 
-            if (string.IsNullOrWhiteSpace(ownershipReason))
-                errors.Add("Причина владения не может быть пустой");
+            if (propertyId == null)
+                errors.Add("Идентификатор недвижимости не может быть пустым");
 
             if (endDate.HasValue && startDate > endDate.Value)
                 errors.Add("Дата начала владения не может быть позже даты окончания владения");
 
             return errors.Count > 0
                 ? Result.Failure<OwnershipRecord>(string.Join("; ", errors))
-                : Result.Success(new OwnershipRecord(nameResult.Value, startDate, ownershipReason, endDate));
+                : Result.Success(new OwnershipRecord(ownerClientId, nameResult.Value, startDate, propertyId, endDate));
         }
 
         /// <summary>
@@ -93,30 +105,29 @@ namespace Domain.ValueObjects
             EndDate = endDate;
         }
         
-
         public override string ToString()
         {
             var period = EndDate.HasValue 
                 ? $"{StartDate:dd.MM.yyyy} - {EndDate.Value:dd.MM.yyyy}" 
                 : $"с {StartDate:dd.MM.yyyy}";
             
-            return $"{OwnerName} ({OwnershipReason}, {period})";
+            return $"{OwnerName} ({period})";
         }
-
         public override bool Equals(object obj)
         {
             if (obj is OwnershipRecord other)
             {
-                return OwnerName.Equals(other.OwnerName) 
+                return OwnerClientId.Equals(other.OwnerClientId)
+                    && OwnerName.Equals(other.OwnerName)
                     && StartDate.Equals(other.StartDate)
-                    && OwnershipReason.Equals(other.OwnershipReason);
+                    && PropertyId.Equals(other.PropertyId);
             }
             return false;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(OwnerName, StartDate, OwnershipReason);
+            return HashCode.Combine(OwnerClientId, OwnerName, StartDate, PropertyId);
         }
     }
 }

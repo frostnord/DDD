@@ -2,7 +2,6 @@ using System;
 using CSharpFunctionalExtensions;
 using DDD.Domain.Entities;
 using DDD.Domain.ValueObjects;
-using DDD.Domain.ValueObjects.BookingVO;
 using Domain.ValueObjects;
 
 namespace DDD.Domain
@@ -89,7 +88,7 @@ namespace DDD.Domain
                 return Result.Failure<Booking>(string.Join("; ", validationErrors));
             }
 
-            var id = BookingId.New();
+            var id = BookingId.Create(Guid.NewGuid()).Value;
             var booking = new Booking(id, client, property, agency, bookingPeriod, totalPrice);
             return Result.Success(booking);
         }

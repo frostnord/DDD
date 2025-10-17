@@ -87,6 +87,7 @@ namespace DDD.Domain
         /// <param name="ownerRecord">Запись о первом владельце</param>
         /// <returns>Result с экземпляром Property при успешной валидации или ошибкой при провале валидации</returns>
         public static Result<Property> Create(
+            
             Address address, 
             Price price, 
             Description description, 
@@ -111,7 +112,7 @@ namespace DDD.Domain
             if (ownerRecord == null)
                 validationErrors.Add("Запись о владельце не может быть пустой");
             
-            var id = PropertyId.New();
+            var id = PropertyId.Create(Guid.NewGuid()).Value;
             
             // AddEvent(new PropertyCreatedEvent(Id));
 
@@ -125,16 +126,19 @@ namespace DDD.Domain
         /// Внутренний метод создания Property с владельцем
         /// </summary>
         /// <param name="id"></param>
-        /// <param name="address">Адрес объекта недвижимости</param>
-        /// <param name="price">Цена объекта недвижимости</param>
-        /// <param name="description">Описание объекта недвижимости</param>
-        /// <param name="details">Детали объекта недвижимости</param>
         /// <param name="ownerRecord">Запись о владельце</param>
         /// <returns>Экземпляр Property</returns>
         private static Property CreateWithOwner(PropertyId id, Address address, Price price, Description description, PropertyDetails details, OwnershipRecord ownerRecord)
         {
             var property = new Property(id, address, price, description, details, PropertyStatus.ForSale);
-            property.AddOwnershipRecord(ownerRecord);
+            // Создаем новую запись с правильным PropertyId
+            var ownershipRecord = OwnershipRecord.Create(
+                ownerRecord.OwnerClientId,
+                ownerRecord.OwnerName.Value,
+                ownerRecord.StartDate,
+                property.Id,  // передаем PropertyId текущей недвижимости
+                ownerRecord.EndDate).Value;
+            property._ownershipHistory.Add(ownershipRecord);
             return property;
         }
 
@@ -151,7 +155,15 @@ namespace DDD.Domain
                 throw new ArgumentNullException(nameof(record), "Запись истории владения не может быть пустой");
             }
 
-            _ownershipHistory.Add(record);
+            // Создаем новую запись с правильным PropertyId
+            var recordWithPropertyId = OwnershipRecord.Create(
+                record.OwnerClientId,
+                record.OwnerName.Value,
+                record.StartDate,
+                this.Id, // передаем PropertyId текущей недвижимости
+                record.EndDate).Value;
+
+            _ownershipHistory.Add(recordWithPropertyId);
             // Сортировка записей по дате начала владения
             _ownershipHistory.Sort((r1, r2) => r1.StartDate.CompareTo(r2.StartDate));
             UpdatedAt = DateTime.UtcNow;

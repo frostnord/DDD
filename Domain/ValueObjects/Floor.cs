@@ -1,7 +1,7 @@
 using System;
 using CSharpFunctionalExtensions;
 
-namespace DDD.Domain.ValueObjects.PropertyDetailsVO
+namespace DDD.Domain.ValueObjects
 {
     /// <summary>
     /// Объект значения, представляющий этаж
@@ -28,18 +28,13 @@ namespace DDD.Domain.ValueObjects.PropertyDetailsVO
         /// <param name="value">Номер этажа (может быть отрицательным для подвалов: -1, -2 и т.д.)</param>
         /// <param name="totalFloors">Общее количество этажей (для валидации)</param>
         /// <returns>Result с экземпляром Floor при успешной валидации или ошибкой при провале валидации</returns>
-        public static Result<Floor> Create(int value, int totalFloors = int.MaxValue)
+        public static Result<Floor> Create(int value)
         {
             // Разрешаем отрицательные значения для подвальных этажей (-1, -2, и т.д.)
             // и 0 для цокольного этажа
             if (value < -10)
             {
                 return Result.Failure<Floor>("Номер этажа не может быть меньше -10 (слишком глубокий подвал)");
-            }
-
-            if (value > totalFloors && value > 0)
-            {
-                return Result.Failure<Floor>($"Номер этажа ({value}) не может быть больше общего количества этажей ({totalFloors})");
             }
 
             if (value > 200)
