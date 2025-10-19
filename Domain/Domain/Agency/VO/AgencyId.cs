@@ -1,0 +1,12 @@
+using CSharpFunctionalExtensions;
+
+
+namespace Domain.Domain;
+
+public class AgencyId : TypedId<AgencyId>
+{
+    private AgencyId(Guid value) : base(value) { }
+
+    public static Result<AgencyId> Create(Guid value)
+        => TypedId<AgencyId>.Create(value, v => new AgencyId(v));
+}
