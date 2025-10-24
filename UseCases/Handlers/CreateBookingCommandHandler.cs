@@ -1,9 +1,10 @@
 
 using CSharpFunctionalExtensions;
 using Domain.Domain;
-using Domain.Repositories;
+using Domain.Domain.Booking;
 using Domain.ValueObjects;
 using UseCases.Commands;
+using UseCases.Interfaces.Repositories;
 
 namespace UseCases.Handlers
 {

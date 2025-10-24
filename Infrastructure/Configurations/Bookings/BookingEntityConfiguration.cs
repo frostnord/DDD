@@ -1,4 +1,6 @@
 using Domain.Domain;
+using Domain.Domain.Booking;
+using Domain.Domain.Booking.VO;
 using Domain.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;

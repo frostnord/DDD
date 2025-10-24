@@ -1,8 +1,8 @@
 using CSharpFunctionalExtensions;
 using Domain.Domain;
 using Domain.Domain.Deal;
-using Domain.Repositories;
 using UseCases.Commands;
+using UseCases.Interfaces.Repositories;
 
 namespace UseCases.Handlers
 {

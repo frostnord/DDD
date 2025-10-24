@@ -1,10 +1,14 @@
+using System;
+using Domain.Domain.Booking.VO;
+using Domain.Domain.Customers.Client.VO;
 using Domain.Domain.Deal;
+using Domain.Domain.Property.VO;
 using Domain.Domain.ValueObjects;
 using Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Domain.Database.Configurations.Deals;
+namespace Infrastructure.Configurations.Deals;
 
 public sealed class DealEntityConfiguration : IEntityTypeConfiguration<Deal>
 {
