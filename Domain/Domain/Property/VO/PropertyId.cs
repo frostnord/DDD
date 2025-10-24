@@ -1,0 +1,14 @@
+﻿using CSharpFunctionalExtensions;
+using Domain.Domain.ValueObjects;
+
+namespace Domain.Domain.ValueObjects;
+
+public class PropertyId : TypedId<PropertyId>
+{
+    private PropertyId(Guid value) : base(value) { }
+
+    public static Result<PropertyId> Create(Guid value)
+        => TypedId<PropertyId>.Create(value, v => new PropertyId(v));
+    
+    
+}
