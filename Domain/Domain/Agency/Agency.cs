@@ -2,11 +2,12 @@ using CSharpFunctionalExtensions;
 using Domain.Domain.ValueObjects;
 using Domain.ValueObjects;
 
-namespace Domain.Domain
+namespace Domain.Domain.Agency
 {
     /// <summary>
     /// Сущность агентства недвижимости в системе управления недвижимостью
     /// </summary>
+    /// 
     public class Agency : Entity<AgencyId>
     {
         

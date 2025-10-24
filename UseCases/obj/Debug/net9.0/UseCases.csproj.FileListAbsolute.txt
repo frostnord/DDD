@@ -1,0 +1,16 @@
+D:\Prog\C# projects\DDD\UseCases\bin\Debug\net9.0\UseCases.deps.json
+D:\Prog\C# projects\DDD\UseCases\bin\Debug\net9.0\UseCases.dll
+D:\Prog\C# projects\DDD\UseCases\bin\Debug\net9.0\UseCases.pdb
+D:\Prog\C# projects\DDD\UseCases\bin\Debug\net9.0\Domain.dll
+D:\Prog\C# projects\DDD\UseCases\bin\Debug\net9.0\Domain.pdb
+D:\Prog\C# projects\DDD\UseCases\obj\Debug\net9.0\UseCases.csproj.AssemblyReference.cache
+D:\Prog\C# projects\DDD\UseCases\obj\Debug\net9.0\UseCases.GeneratedMSBuildEditorConfig.editorconfig
+D:\Prog\C# projects\DDD\UseCases\obj\Debug\net9.0\UseCases.AssemblyInfoInputs.cache
+D:\Prog\C# projects\DDD\UseCases\obj\Debug\net9.0\UseCases.AssemblyInfo.cs
+D:\Prog\C# projects\DDD\UseCases\obj\Debug\net9.0\UseCases.csproj.CoreCompileInputs.cache
+D:\Prog\C# projects\DDD\UseCases\obj\Debug\net9.0\UseCases.sourcelink.json
+D:\Prog\C# projects\DDD\UseCases\obj\Debug\net9.0\UseCases.csproj.Up2Date
+D:\Prog\C# projects\DDD\UseCases\obj\Debug\net9.0\UseCases.dll
+D:\Prog\C# projects\DDD\UseCases\obj\Debug\net9.0\refint\UseCases.dll
+D:\Prog\C# projects\DDD\UseCases\obj\Debug\net9.0\UseCases.pdb
+D:\Prog\C# projects\DDD\UseCases\obj\Debug\net9.0\ref\UseCases.dll

@@ -24,7 +24,7 @@ namespace Domain.Domain
         /// <summary>
         /// Агентство, осуществляющее бронирование
         /// </summary>
-        public Agency Agency { get; private set; }
+        public Agency.Agency Agency { get; private set; }
         
         /// <summary>
         /// Период бронирования
@@ -56,7 +56,7 @@ namespace Domain.Domain
         /// <param name="bookingPeriod">Период бронирования</param>
         /// <param name="totalPrice">Общая цена бронирования</param>
         /// <returns>Результат с бронированием или ошибкой</returns>
-        public static Result<Booking> Create(Client client, Property property, Agency agency, Period bookingPeriod, Price totalPrice)
+        public static Result<Booking> Create(Client client, Property property, Agency.Agency agency, Period bookingPeriod, Price totalPrice)
         {
             var validationErrors = new List<string>();
 
@@ -100,7 +100,7 @@ namespace Domain.Domain
         /// <param name="agency">Агентство, осуществляющее бронирование</param>
         /// <param name="bookingPeriod">Период бронирования</param>
         /// <param name="totalPrice">Общая цена бронирования</param>
-        private Booking(BookingId id, Client client, Property property, Agency agency, Period bookingPeriod, Price totalPrice)
+        private Booking(BookingId id, Client client, Property property, Agency.Agency agency, Period bookingPeriod, Price totalPrice)
             : base(id)
         {
             Client = client;
