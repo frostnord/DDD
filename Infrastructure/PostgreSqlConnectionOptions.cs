@@ -7,7 +7,6 @@ public sealed class PostgreSqlConnectionOptions
     // public required string Port { get; init; }
     public required string Username { get; init; }
     public required string Password { get; init; }
-    // public required string ConnectionString { get; init; }
     
     public string GetConnectionString()
     {
