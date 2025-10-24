@@ -19,7 +19,7 @@ namespace Domain.Domain.Deal
         }
 
         public bool IsActive() => IsActiveStatus;
-    
+
         public bool CanTransitionTo(DealStatus newStatus)
         {
             // Логика перехода между статусами
@@ -27,8 +27,7 @@ namespace Domain.Domain.Deal
                    (this == Confirmed && (newStatus == Completed || newStatus == Cancelled)) ||
                    (this == Completed || this == Cancelled); // Завершенные и отмененные статусы - финальные
         }
-    
+
         public override string ToString() => $"{Name} ({Description})";
     }
-
 }

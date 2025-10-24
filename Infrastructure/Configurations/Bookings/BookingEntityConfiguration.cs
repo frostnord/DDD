@@ -1,13 +1,10 @@
-using Domain.Domain;
 using Domain.Domain.Booking;
-using Domain.Domain.Booking.Booking;
-using Domain.Domain.Booking.Booking.VO;
 using Domain.Domain.Booking.VO;
 using Domain.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Infrastructure.Persistence.Configurations.Bookings;
+namespace Infrastructure.Configurations.Bookings;
 
 public sealed class BookingEntityConfiguration : IEntityTypeConfiguration<Booking>
 {

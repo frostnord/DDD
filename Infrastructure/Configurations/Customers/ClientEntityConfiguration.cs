@@ -1,11 +1,10 @@
-using Domain.Domain;
 using Domain.Domain.Customers.Client;
 using Domain.Domain.Customers.Client.VO;
 using Domain.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Domain.DbContext.Database.Configurations;
+namespace Infrastructure.Configurations.Customers;
 
 public sealed class ClientEntityConfiguration : IEntityTypeConfiguration<Client>
 {

@@ -11,38 +11,38 @@ namespace Domain.Domain.Booking
     public class Booking : Entity<BookingId>
     {
         // Id уже определен в базовом классе CSharpFunctionalExtensions.Entity<TId>
-        
+
         /// <summary>
         /// Клиент, совершающий бронирование
         /// </summary>
         public Client Client { get; private set; }
-        
+
         /// <summary>
         /// Объект недвижимости, который бронируется
         /// </summary>
         public Property.Property Property { get; private set; }
-        
+
         /// <summary>
         /// Агентство, осуществляющее бронирование
         /// </summary>
         public Agency.Agency Agency { get; private set; }
-        
+
         /// <summary>
         /// Период бронирования
         /// </summary>
         public Period BookingPeriod { get; private set; }
-        
+
         /// <summary>
         /// Общая цена бронирования
         /// </summary>
         public Price TotalPrice { get; private set; }
-        
-        
+
+
         /// <summary>
         /// Дата создания бронирования
         /// </summary>
         public DateTime CreatedAt { get; private set; }
-        
+
         /// <summary>
         /// Дата последнего обновления бронирования
         /// </summary>
@@ -57,7 +57,8 @@ namespace Domain.Domain.Booking
         /// <param name="bookingPeriod">Период бронирования</param>
         /// <param name="totalPrice">Общая цена бронирования</param>
         /// <returns>Результат с бронированием или ошибкой</returns>
-        public static Result<Booking> Create(Client client, Property.Property property, Agency.Agency agency, Period bookingPeriod, Price totalPrice)
+        public static Result<Booking> Create(Client client, Property.Property property, Agency.Agency agency,
+            Period bookingPeriod, Price totalPrice)
         {
             var validationErrors = new List<string>();
 
@@ -101,7 +102,8 @@ namespace Domain.Domain.Booking
         /// <param name="agency">Агентство, осуществляющее бронирование</param>
         /// <param name="bookingPeriod">Период бронирования</param>
         /// <param name="totalPrice">Общая цена бронирования</param>
-        private Booking(BookingId id, Client client, Property.Property property, Agency.Agency agency, Period bookingPeriod, Price totalPrice)
+        private Booking(BookingId id, Client client, Property.Property property, Agency.Agency agency,
+            Period bookingPeriod, Price totalPrice)
             : base(id)
         {
             Client = client;

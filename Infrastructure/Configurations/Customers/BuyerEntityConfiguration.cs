@@ -1,4 +1,3 @@
-using Domain.Domain;
 using Domain.Domain.Customers.Buyer;
 using Domain.Domain.Customers.Buyer.VO;
 using Domain.Domain.Customers.Client.VO;
@@ -7,7 +6,7 @@ using Domain.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Domain.Database.Configurations;
+namespace Infrastructure.Configurations.Customers;
 
 public sealed class BuyerEntityConfiguration : IEntityTypeConfiguration<Buyer>
 {

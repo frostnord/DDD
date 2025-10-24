@@ -5,8 +5,10 @@ namespace Domain.Domain.Deal;
 
 public class DealId : TypedId<DealId>
 {
-    private DealId(Guid value) : base(value) { }
+    private DealId(Guid value) : base(value)
+    {
+    }
 
     public static Result<DealId> Create(Guid value)
-        => TypedId<DealId>.Create(value, v => new DealId(v));
+        => Create(value, v => new DealId(v));
 }

@@ -11,32 +11,31 @@ namespace Domain.Domain.Agency
     /// 
     public class Agency : Entity<AgencyId>
     {
-        
         /// <summary>
         /// Название агентства
         /// </summary>
         public Name Name { get; private set; }
-        
+
         /// <summary>
         /// Контактная информация агентства
         /// </summary>
         public ContactInfo ContactInfo { get; private set; }
-        
+
         /// <summary>
         /// Номер лицензии агентства
         /// </summary>
         public LicenseNumber LicenseNumber { get; private set; }
-        
+
         /// <summary>
         /// Список объектов недвижимости, принадлежащих агентству
         /// </summary>
         public List<Property.Property> Properties { get; private set; }
-        
+
         /// <summary>
         /// Дата создания записи об агентстве
         /// </summary>
         public DateTime CreatedAt { get; private set; }
-        
+
         /// <summary>
         /// Дата последнего обновления записи об агентстве
         /// </summary>
@@ -99,7 +98,7 @@ namespace Domain.Domain.Agency
             {
                 throw new ArgumentNullException(nameof(property), "Объект недвижимости не может быть пустым");
             }
-            
+
             Properties.Add(property);
             UpdatedAt = DateTime.UtcNow;
         }
@@ -115,7 +114,7 @@ namespace Domain.Domain.Agency
             {
                 throw new ArgumentNullException(nameof(property), "Объект недвижимости не может быть пустым");
             }
-            
+
             Properties.Remove(property);
             UpdatedAt = DateTime.UtcNow;
         }
@@ -131,10 +130,9 @@ namespace Domain.Domain.Agency
             {
                 throw new ArgumentNullException(nameof(newContactInfo), "Контактная информация не может быть пустой");
             }
-            
+
             ContactInfo = newContactInfo;
             UpdatedAt = DateTime.UtcNow;
         }
-        
     }
 }

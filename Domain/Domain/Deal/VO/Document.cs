@@ -11,22 +11,22 @@ namespace Domain.Domain.Deal
         /// Уникальный идентификатор документа
         /// </summary>
         public Guid Id { get; }
-        
+
         /// <summary>
         /// Название документа
         /// </summary>
         public string Title { get; }
-        
+
         /// <summary>
         /// Тип документа (
         /// </summary>
         public string DocumentType { get; }
-        
+
         /// <summary>
         /// Путь к файлу документа
         /// </summary>
         public string FilePath { get; }
-        
+
         /// <summary>
         /// Дата создания документа
         /// </summary>

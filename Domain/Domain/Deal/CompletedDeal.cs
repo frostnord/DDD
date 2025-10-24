@@ -8,7 +8,7 @@ namespace Domain.Domain.Deal
     /// <summary>
     /// Сущность совершенной сделки (без привязки владения к конкретной стороне)
     /// </summary>
-    public class CompletedDeal : CSharpFunctionalExtensions.Entity<CompletedDealId>
+    public class CompletedDeal : Entity<CompletedDealId>
     {
         /// <summary>
         /// Клиент-покупатель
@@ -50,7 +50,8 @@ namespace Domain.Domain.Deal
         /// </summary>
         public DateTime? UpdatedAt { get; private set; }
 
-        private CompletedDeal(CompletedDealId id, ClientId buyerClientId, ClientId sellerClientId, PropertyId propertyId, DateTime dealDate, Price dealAmount, DealType dealType)
+        private CompletedDeal(CompletedDealId id, ClientId buyerClientId, ClientId sellerClientId,
+            PropertyId propertyId, DateTime dealDate, Price dealAmount, DealType dealType)
             : base(id)
         {
             BuyerClientId = buyerClientId;
@@ -72,7 +73,8 @@ namespace Domain.Domain.Deal
         /// <param name="dealAmount">Сумма сделки</param>
         /// <param name="dealType">Тип сделки</param>
         /// <returns>Результат с совершенной сделкой или ошибкой</returns>
-        public static Result<CompletedDeal> Create(ClientId buyerClientId, ClientId sellerClientId, PropertyId propertyId, DateTime dealDate, Price dealAmount, DealType dealType)
+        public static Result<CompletedDeal> Create(ClientId buyerClientId, ClientId sellerClientId,
+            PropertyId propertyId, DateTime dealDate, Price dealAmount, DealType dealType)
         {
             var validationErrors = new List<string>();
 

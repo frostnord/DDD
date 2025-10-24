@@ -1,7 +1,6 @@
 using CSharpFunctionalExtensions;
 using Domain.Domain.Customers.Buyer.VO;
 using Domain.Domain.Customers.Client.VO;
-using Domain.Domain.ValueObjects;
 
 namespace Domain.Domain.Customers.Buyer
 {
@@ -13,7 +12,7 @@ namespace Domain.Domain.Customers.Buyer
         public const int MAX_HEATING_TYPE_LENGTH = 20;
         public ClientId ClientId { get; private set; }
         public ClientSearchCriteria SearchCriteria { get; private set; }
-        
+
         private Buyer(BuyerId id, ClientId clientId, ClientSearchCriteria searchCriteria)
             : base(id)
         {
@@ -34,6 +33,7 @@ namespace Domain.Domain.Customers.Buyer
             var id = BuyerId.Create(Guid.NewGuid()).Value;
             return Result.Success(new Buyer(id, clientId, searchCriteria));
         }
+
         public void UpdateSearchCriteria(ClientSearchCriteria newSearchCriteria)
         {
             SearchCriteria = newSearchCriteria;

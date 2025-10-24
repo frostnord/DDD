@@ -1,11 +1,9 @@
-using Microsoft.EntityFrameworkCore;
-using Presenter;
-using Domain.Database;
 using Infrastructure;
 
 var builder = WebApplication.CreateBuilder(args);
 
-PostgreSqlConnectionOptions? options = builder.Configuration.GetSection(nameof(PostgreSqlConnectionOptions)).Get<PostgreSqlConnectionOptions>();
+PostgreSqlConnectionOptions? options = builder.Configuration.GetSection(nameof(PostgreSqlConnectionOptions))
+    .Get<PostgreSqlConnectionOptions>();
 
 if (options == null)
 {
@@ -20,4 +18,3 @@ Console.WriteLine(options.Password);
 var app = builder.Build();
 
 app.Run();
-

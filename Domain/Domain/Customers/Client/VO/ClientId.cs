@@ -8,10 +8,11 @@ namespace Domain.Domain.Customers.Client.VO
     /// </summary>
     public class ClientId : TypedId<ClientId>
     {
-        private ClientId(Guid value) : base(value) { }
+        private ClientId(Guid value) : base(value)
+        {
+        }
 
         public static Result<ClientId> Create(Guid value)
-            => TypedId<ClientId>.Create(value, v => new ClientId(v));
-
+            => Create(value, v => new ClientId(v));
     }
 }

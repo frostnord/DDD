@@ -1,5 +1,5 @@
-using System;
 using CSharpFunctionalExtensions;
+
 namespace Domain.Domain.ValueObjects
 {
     /// <summary>
@@ -54,6 +54,7 @@ namespace Domain.Domain.ValueObjects
             {
                 return Value.Equals(other.Value);
             }
+
             return false;
         }
 

@@ -6,7 +6,7 @@ namespace UseCases.Commands
     {
         Task<Result> HandleAsync(TCommand command);
     }
-    
+
     public interface ICommandHandler<in TCommand, TResponse> where TCommand : ICommand<TResponse>
     {
         Task<Result<TResponse>> HandleAsync(TCommand command);

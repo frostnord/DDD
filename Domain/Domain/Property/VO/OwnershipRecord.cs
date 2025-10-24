@@ -12,11 +12,12 @@ namespace Domain.Domain.Property.VO
         /// Клиент (владелец) по ClientId
         /// </summary>
         public ClientId OwnerClientId { get; }
-        
+
         /// <summary>
         /// Дата начала владения
         /// </summary>
         public DateTime StartDate { get; }
+
         /// <summary>
         /// Дата окончания владения
         /// </summary>
@@ -42,7 +43,8 @@ namespace Domain.Domain.Property.VO
         /// <param name="startDate">Дата начала владения</param>
         /// <param name="endDate">Дата окончания владения (необязательно)</param>
         /// <returns>Result с экземпляром OwnershipRecord при успешной валидации или ошибкой при провале валидации</returns>
-        public static Result<OwnershipRecord> Create(ClientId ownerClientId, DateTime startDate, DateTime? endDate = null)
+        public static Result<OwnershipRecord> Create(ClientId ownerClientId, DateTime startDate,
+            DateTime? endDate = null)
         {
             var errors = new List<string>();
 
@@ -71,16 +73,17 @@ namespace Domain.Domain.Property.VO
         {
             if (endDate < StartDate)
             {
-                throw new ArgumentException("Дата окончания владения не может быть раньше даты начала владения", nameof(endDate));
+                throw new ArgumentException("Дата окончания владения не может быть раньше даты начала владения",
+                    nameof(endDate));
             }
-            
+
             EndDate = endDate;
         }
-        
+
         public override string ToString()
         {
-            var period = EndDate.HasValue 
-                ? $"{StartDate:dd.MM.yyyy} - {EndDate.Value:dd.MM.yyyy}" 
+            var period = EndDate.HasValue
+                ? $"{StartDate:dd.MM.yyyy} - {EndDate.Value:dd.MM.yyyy}"
                 : $"с {StartDate:dd.MM.yyyy}";
             return $"Owner {OwnerClientId.Value} ({period})";
         }
@@ -96,8 +99,9 @@ namespace Domain.Domain.Property.VO
             if (obj is OwnershipRecord other)
             {
                 return OwnerClientId.Equals(other.OwnerClientId)
-                    && StartDate.Equals(other.StartDate);
+                       && StartDate.Equals(other.StartDate);
             }
+
             return false;
         }
 

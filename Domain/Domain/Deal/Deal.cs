@@ -1,12 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using CSharpFunctionalExtensions;
 using Domain.Domain.Booking.VO;
 using Domain.Domain.Customers.Client.VO;
 using Domain.Domain.Property.VO;
-using Domain.Domain.ValueObjects;
-
 
 namespace Domain.Domain.Deal
 {
@@ -14,45 +9,45 @@ namespace Domain.Domain.Deal
     /// Сущность сделки в системе управления недвижимостью
     /// Объединяет Property, Client, Booking и документы в единую сделку
     /// </summary>
-    public class Deal : CSharpFunctionalExtensions.Entity<DealId>
+    public class Deal : Entity<DealId>
     {
         private List<Document> _documents;
-        
+
         /// <summary>
         /// Идентификатор клиента, участвующего в сделке
         /// </summary>
         public ClientId ClientId { get; private set; }
-        
+
         /// <summary>
         /// Идентификатор объекта недвижимости, участвующего в сделке
         /// </summary>
         public PropertyId PropertyId { get; private set; }
-        
+
         /// <summary>
         /// Идентификатор бронирования, связанного со сделкой
         /// </summary>
         public BookingId? BookingId { get; private set; }
-        
+
         /// <summary>
         /// Детали сделки
         /// </summary>
         public DealDetails Details { get; private set; }
-        
+
         /// <summary>
         /// Список документов, связанных со сделкой
         /// </summary>
         public IReadOnlyList<Document> Documents => _documents.AsReadOnly();
-        
+
         /// <summary>
         /// Статус сделки
         /// </summary>
         public DealStatus Status { get; private set; }
-        
+
         /// <summary>
         /// Дата создания сделки
         /// </summary>
         public DateTime CreatedAt { get; private set; }
-        
+
         /// <summary>
         /// Дата последнего обновления сделки
         /// </summary>
@@ -68,7 +63,6 @@ namespace Domain.Domain.Deal
         private Deal(DealId id, ClientId clientId, PropertyId propertyId, BookingId? bookingId, DealDetails details)
             : base(id)
         {
-           
             ClientId = clientId;
             PropertyId = propertyId;
             BookingId = bookingId;
@@ -77,7 +71,7 @@ namespace Domain.Domain.Deal
             CreatedAt = DateTime.UtcNow;
             _documents = new List<Document>();
         }
-        
+
         /// <summary>
         /// Создает новый экземпляр сделки через фабричный метод
         /// </summary>
@@ -86,7 +80,8 @@ namespace Domain.Domain.Deal
         /// <param name="bookingId">Идентификатор бронирования (опционально)</param>
         /// <param name="details">Детали сделки</param>
         /// <returns>Результат с сделкой или ошибкой</returns>
-        public static Result<Deal> Create(ClientId clientId, PropertyId propertyId, BookingId? bookingId, DealDetails details)
+        public static Result<Deal> Create(ClientId clientId, PropertyId propertyId, BookingId? bookingId,
+            DealDetails details)
         {
             var validationErrors = new List<string>();
 
@@ -98,7 +93,7 @@ namespace Domain.Domain.Deal
 
             if (details == null)
                 validationErrors.Add("Детали сделки не могут быть пустыми");
-            
+
             var id = DealId.Create(Guid.NewGuid()).Value;
 
             if (validationErrors.Count > 0)
@@ -110,8 +105,7 @@ namespace Domain.Domain.Deal
             return Result.Success(deal);
         }
 
-        
-        
+
         // public void Close()
         // {
         //     if (Status != DealStatus.Completed)
@@ -135,7 +129,7 @@ namespace Domain.Domain.Deal
         //
         // private void AddEvent(IDomainEvent @event) => _events.Add(@event);
         // public IReadOnlyCollection<IDomainEvent> DomainEvents => _events.AsReadOnly();
-        
+
         /// <summary>
         /// Добавляет документ к сделке
         /// </summary>
@@ -144,7 +138,7 @@ namespace Domain.Domain.Deal
         {
             if (document == null)
                 throw new ArgumentNullException(nameof(document), "Документ не может быть пустым");
-                
+
             if (!_documents.Contains(document))
             {
                 _documents.Add(document);
@@ -199,6 +193,7 @@ namespace Domain.Domain.Deal
             {
                 return Id.Equals(other.Id);
             }
+
             return false;
         }
 

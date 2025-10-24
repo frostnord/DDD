@@ -1,5 +1,3 @@
-using System;
-using System.Collections.Generic;
 using CSharpFunctionalExtensions;
 using Domain.Domain.ValueObjects;
 
@@ -14,17 +12,17 @@ namespace Domain.Domain.Deal
         /// Дата сделки
         /// </summary>
         public DateTime DealDate { get; }
-        
+
         /// <summary>
         /// Сумма сделки
         /// </summary>
         public Price DealAmount { get; }
-        
+
         /// <summary>
         /// Тип сделки (покупка, аренда и т.д.)
         /// </summary>
         public string DealType { get; }
-        
+
         /// <summary>
         /// Комментарии к сделке
         /// </summary>
@@ -53,7 +51,8 @@ namespace Domain.Domain.Deal
         /// <param name="dealType">Тип сделки</param>
         /// <param name="comments">Комментарии к сделке</param>
         /// <returns>Result с экземпляром DealDetails при успешной валидации или ошибкой при провале валидации</returns>
-        public static Result<DealDetails> Create(DateTime dealDate, Price dealAmount, string dealType, string comments = null)
+        public static Result<DealDetails> Create(DateTime dealDate, Price dealAmount, string dealType,
+            string comments = null)
         {
             var validationErrors = new List<string>();
 

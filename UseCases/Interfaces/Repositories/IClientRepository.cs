@@ -1,8 +1,6 @@
 using CSharpFunctionalExtensions;
-using Domain.Domain;
 using Domain.Domain.Customers.Client;
 using Domain.Domain.Customers.Client.VO;
-using Domain.Domain.ValueObjects;
 
 namespace UseCases.Interfaces.Repositories
 {

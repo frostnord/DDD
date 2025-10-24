@@ -1,11 +1,10 @@
-using Domain.Domain;
 using Domain.Domain.Agency;
 using Domain.Domain.Agency.VO;
 using Domain.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Infrastructure.Persistence.Configurations.Agencies;
+namespace Infrastructure.Configurations.Agencies;
 
 public sealed class AgencyEntityConfiguration : IEntityTypeConfiguration<Agency>
 {

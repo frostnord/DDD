@@ -1,14 +1,11 @@
-using Domain.Domain;
 using Domain.Domain.Customers.Client.VO;
 using Domain.Domain.Customers.Seller;
 using Domain.Domain.Customers.Seller.VO;
-using Domain.Domain.Property.Property.VO;
 using Domain.Domain.Property.VO;
-using Domain.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Domain.DbContext.Database.Configurations;
+namespace Infrastructure.Configurations.Customers;
 
 public sealed class SellerEntityConfiguration : IEntityTypeConfiguration<Seller>
 {

@@ -1,4 +1,3 @@
-using System;
 using CSharpFunctionalExtensions;
 
 namespace Domain.Domain.ValueObjects
@@ -53,6 +52,7 @@ namespace Domain.Domain.ValueObjects
             {
                 return Value.Equals(other.Value);
             }
+
             return false;
         }
 

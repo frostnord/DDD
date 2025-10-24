@@ -1,10 +1,7 @@
-using Domain.Domain.Booking.Booking.VO;
 using Domain.Domain.Booking.VO;
 using Domain.Domain.Customers.Client.VO;
 using Domain.Domain.Deal;
-using Domain.Domain.Property.Property.VO;
 using Domain.Domain.Property.VO;
-using Domain.Domain.ValueObjects;
 
 namespace UseCases.Commands
 {

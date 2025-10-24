@@ -5,10 +5,10 @@ namespace Domain.Domain.Property.VO;
 
 public class PropertyId : TypedId<PropertyId>
 {
-    private PropertyId(Guid value) : base(value) { }
+    private PropertyId(Guid value) : base(value)
+    {
+    }
 
     public static Result<PropertyId> Create(Guid value)
-        => TypedId<PropertyId>.Create(value, v => new PropertyId(v));
-    
-    
+        => Create(value, v => new PropertyId(v));
 }

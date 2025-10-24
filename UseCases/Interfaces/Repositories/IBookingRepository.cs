@@ -1,15 +1,8 @@
-using System;
-using System.Collections.Generic;
 using CSharpFunctionalExtensions;
-using Domain.Domain;
 using Domain.Domain.Booking;
-using Domain.Domain.Booking.Booking;
-using Domain.Domain.Booking.Booking.VO;
 using Domain.Domain.Booking.VO;
 using Domain.Domain.Customers.Client.VO;
-using Domain.Domain.Property.Property.VO;
 using Domain.Domain.Property.VO;
-using Domain.Domain.ValueObjects;
 
 namespace UseCases.Interfaces.Repositories
 {
@@ -52,7 +45,7 @@ namespace UseCases.Interfaces.Repositories
         /// <param name="id">Идентификатор бронирования для удаления</param>
         /// <returns>Результат операции</returns>
         Task<Result> DeleteAsync(BookingId id);
-        
+
         /// <summary>
         /// Проверяет, существует ли бронирование с указанным идентификатором
         /// </summary>

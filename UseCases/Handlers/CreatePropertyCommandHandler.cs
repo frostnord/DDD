@@ -1,7 +1,5 @@
 using CSharpFunctionalExtensions;
-using Domain.Domain;
 using Domain.Domain.Property;
-using Domain.Domain.Property.Property;
 using UseCases.Commands;
 using UseCases.Interfaces.Repositories;
 

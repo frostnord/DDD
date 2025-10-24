@@ -12,42 +12,42 @@ namespace Domain.Domain.Property.VO
         /// Площадь в квадратных метрах
         /// </summary>
         public Area Area { get; }
-        
+
         /// <summary>
         /// Количество комнат
         /// </summary>
         public NumberOfRooms NumberOfRooms { get; }
-        
+
         /// <summary>
         /// Этаж
         /// </summary>
         public Floor Floor { get; }
-        
+
         /// <summary>
         /// Всего этажей в здании
         /// </summary>
         public TotalFloors TotalFloors { get; }
-        
+
         /// <summary>
         /// Тип недвижимости: квартира, дом, коммерческое помещение
         /// </summary>
         public SmartPropertyType Type { get; }
-        
+
         /// <summary>
         /// Наличие балкона
         /// </summary>
         public bool HasBalcony { get; }
-        
+
         /// <summary>
         /// Наличие парковки
         /// </summary>
         public bool HasParking { get; }
-        
+
         /// <summary>
         /// Тип отопления
         /// </summary>
         public HeatingType HeatingType { get; }
-        
+
         /// <summary>
         /// Состояние (новый, под ремонт, евроремонт и т.д.)
         /// </summary>
@@ -155,6 +155,8 @@ namespace Domain.Domain.Property.VO
         /// Возвращает площадь одной комнаты
         /// </summary>
         /// <returns>Площадь одной комнаты или 0, если невозможно рассчитать</returns>
-        public int GetRoomArea() => Area.Value > NumberOfRooms.Value && NumberOfRooms.Value > 0 ? Area.Value / NumberOfRooms.Value : 0;
+        public int GetRoomArea() => Area.Value > NumberOfRooms.Value && NumberOfRooms.Value > 0
+            ? Area.Value / NumberOfRooms.Value
+            : 0;
     }
 }

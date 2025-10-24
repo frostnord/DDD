@@ -40,7 +40,7 @@ namespace Domain.Domain.ValueObjects
         public static explicit operator Price(decimal value) => new Price(value);
         public static explicit operator Price(int value) => new Price(value);
         public static explicit operator Price(double value) => new Price((decimal)value);
-        
+
         public override string ToString()
         {
             return Value.ToString("C");

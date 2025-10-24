@@ -1,8 +1,5 @@
-
 using CSharpFunctionalExtensions;
-using Domain.Domain;
 using Domain.Domain.Booking;
-using Domain.Domain.Booking.Booking;
 using Domain.Domain.Booking.VO;
 using Domain.Domain.Property.VO;
 using UseCases.Commands;
@@ -46,16 +43,18 @@ namespace UseCases.Handlers
             var property = propertyResult.Value;
             if (property.Status != PropertyStatus.ForSale)
             {
-                return Result.Failure<Booking>($"Property with ID {command.PropertyId.Value} is not available for booking");
+                return Result.Failure<Booking>(
+                    $"Property with ID {command.PropertyId.Value} is not available for booking");
             }
 
             // Проверяем, что на эту дату нет уже забронированных визитов
             var existingBookingsResult = await _bookingRepository.GetByPropertyIdAsync(command.PropertyId);
             if (existingBookingsResult.IsFailure)
             {
-                return Result.Failure<Booking>($"Failed to retrieve existing bookings for property with ID {command.PropertyId.Value}");
+                return Result.Failure<Booking>(
+                    $"Failed to retrieve existing bookings for property with ID {command.PropertyId.Value}");
             }
-            
+
             var existingBookings = existingBookingsResult.Value;
             var hasConflictingBooking = existingBookings.Any(b =>
                 b.BookingPeriod.StartDate.Date == command.VisitDate.Date ||
@@ -65,7 +64,8 @@ namespace UseCases.Handlers
 
             if (hasConflictingBooking)
             {
-                return Result.Failure<Booking>($"Property with ID {command.PropertyId.Value} is already booked for the requested date");
+                return Result.Failure<Booking>(
+                    $"Property with ID {command.PropertyId.Value} is already booked for the requested date");
             }
 
             // Создаем период бронирования (один день визита)

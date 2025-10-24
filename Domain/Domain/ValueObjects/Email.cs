@@ -1,6 +1,5 @@
 using System.Text.RegularExpressions;
 using CSharpFunctionalExtensions;
-using Domain.Domain.ValueObjects;
 
 namespace Domain.Domain.ValueObjects;
 
@@ -18,9 +17,9 @@ public class Email : ValueObject
     public const int MAX_EMAIL_LEANGTH = 100;
 
     private static readonly Regex EmailRegex = new Regex(
-        @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$", 
-        System.Text.RegularExpressions.RegexOptions.Compiled | 
-        System.Text.RegularExpressions.RegexOptions.IgnoreCase);
+        @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
+        RegexOptions.Compiled |
+        RegexOptions.IgnoreCase);
 
     /// <summary>
     /// Значение электронной почты

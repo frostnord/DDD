@@ -1,5 +1,4 @@
 using CSharpFunctionalExtensions;
-using Domain.Domain;
 using Domain.Domain.Deal;
 using Domain.Domain.Property.VO;
 using UseCases.Commands;

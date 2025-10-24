@@ -1,4 +1,3 @@
-using System;
 using System.Text.RegularExpressions;
 using CSharpFunctionalExtensions;
 
@@ -11,6 +10,7 @@ namespace Domain.Domain.ValueObjects
     {
         public const int MinLength = 2;
         public const int MaxLength = 200;
+
         /// <summary>
         /// Полное имя
         /// </summary>
@@ -102,6 +102,7 @@ namespace Domain.Domain.ValueObjects
             {
                 return Value.Equals(other.Value, StringComparison.OrdinalIgnoreCase);
             }
+
             return false;
         }
 

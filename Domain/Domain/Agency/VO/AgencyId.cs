@@ -5,8 +5,10 @@ namespace Domain.Domain.Agency.VO;
 
 public class AgencyId : TypedId<AgencyId>
 {
-    private AgencyId(Guid value) : base(value) { }
+    private AgencyId(Guid value) : base(value)
+    {
+    }
 
     public static Result<AgencyId> Create(Guid value)
-        => TypedId<AgencyId>.Create(value, v => new AgencyId(v));
+        => Create(value, v => new AgencyId(v));
 }

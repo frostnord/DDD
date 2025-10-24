@@ -14,7 +14,7 @@ namespace Domain.Domain.Agency.VO
         /// Номер лицензии
         /// </summary>
         public string Value { get; }
-        
+
         /// <summary>
         /// Создает новый экземпляр номера лицензии
         /// </summary>

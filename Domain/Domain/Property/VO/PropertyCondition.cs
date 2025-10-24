@@ -42,21 +42,22 @@ namespace Domain.Domain.Property.VO
             }
 
             // Проверка на допустимые значения
-            var validConditions = new[] 
-            { 
-                "Новый", 
-                "Отличное", 
-                "Хорошее", 
-                "Удовлетворительное", 
-                "Требует ремонта", 
-                "Евроремонт", 
+            var validConditions = new[]
+            {
+                "Новый",
+                "Отличное",
+                "Хорошее",
+                "Удовлетворительное",
+                "Требует ремонта",
+                "Евроремонт",
                 "Косметический ремонт",
                 "Черновая отделка",
                 "Под ремонт",
-                "Не указано" 
+                "Не указано"
             };
 
-            var isValid = Array.Exists(validConditions, c => c.Equals(trimmedValue, StringComparison.OrdinalIgnoreCase));
+            var isValid = Array.Exists(validConditions,
+                c => c.Equals(trimmedValue, StringComparison.OrdinalIgnoreCase));
 
             if (!isValid)
             {
@@ -75,6 +76,7 @@ namespace Domain.Domain.Property.VO
             {
                 return Value.Equals(other.Value, StringComparison.OrdinalIgnoreCase);
             }
+
             return false;
         }
 

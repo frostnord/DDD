@@ -11,7 +11,7 @@ namespace Domain.Domain.Booking.VO
         /// Дата начала периода
         /// </summary>
         public DateTime StartDate { get; }
-        
+
         /// <summary>
         /// Дата окончания периода
         /// </summary>
@@ -65,11 +65,11 @@ namespace Domain.Domain.Booking.VO
         {
             return date >= StartDate && date <= EndDate;
         }
- 
-       /// <summary>
-       /// Возвращает продолжительность периода
-       /// </summary>
-       public TimeSpan Duration => EndDate - StartDate;
+
+        /// <summary>
+        /// Возвращает продолжительность периода
+        /// </summary>
+        public TimeSpan Duration => EndDate - StartDate;
 
         protected override IEnumerable<object> GetEqualityComponents()
         {

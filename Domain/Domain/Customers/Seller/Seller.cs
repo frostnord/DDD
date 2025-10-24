@@ -2,7 +2,6 @@ using CSharpFunctionalExtensions;
 using Domain.Domain.Customers.Client.VO;
 using Domain.Domain.Customers.Seller.VO;
 using Domain.Domain.Property.VO;
-using Domain.Domain.ValueObjects;
 
 namespace Domain.Domain.Customers.Seller
 {
@@ -14,7 +13,7 @@ namespace Domain.Domain.Customers.Seller
         public ClientId ClientId { get; private set; }
         private readonly List<PropertyId> _ownedProperties = new();
         public IReadOnlyCollection<PropertyId> OwnedProperties => _ownedProperties.AsReadOnly();
-        
+
         private Seller(SellerId id, ClientId clientId) : base(id)
         {
             ClientId = clientId;
@@ -28,9 +27,10 @@ namespace Domain.Domain.Customers.Seller
             {
                 errors.Add("Клиент не может быть пустым");
             }
+
             if (errors.Count > 0)
                 return Result.Failure<Seller>(string.Join("; ", errors));
-        
+
             var id = SellerId.Create(Guid.NewGuid()).Value;
             return Result.Success(new Seller(id, clientId));
         }

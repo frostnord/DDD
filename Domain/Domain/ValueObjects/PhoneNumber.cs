@@ -10,7 +10,7 @@ public class PhoneNumber : ValueObject
 {
     public const int MAX_TELEPHONE_NUMBER = 11;
     public string Value { get; set; }
-        
+
     // Регулярное выражление для проверки российских номеров телефонов
     // Поддерживаются форматы:
     // +7XXXXXXXXXX
@@ -21,7 +21,8 @@ public class PhoneNumber : ValueObject
     // 8 XXX XXX XXXX
     // +7-XXX-XXX-XXXX
     // 8-XXX-XXX-XXXX
-    private static readonly Regex PhoneRegex = new Regex(@"^(\+7|8)(\s|-|\()?([0-9]{3})(\s|-|\))?([0-9]{3})(\s|-)?([0-9]{2})(\s|-)?([0-9]{2})$");
+    private static readonly Regex PhoneRegex =
+        new Regex(@"^(\+7|8)(\s|-|\()?([0-9]{3})(\s|-|\))?([0-9]{3})(\s|-)?([0-9]{2})(\s|-)?([0-9]{2})$");
 
     /// <summary>
     /// Создает новый экземпляр номера телефона
@@ -31,7 +32,7 @@ public class PhoneNumber : ValueObject
     {
         Value = value;
     }
-        
+
     /// <summary>
     /// Фабричный метод для создания экземпляра номера телефона с возвратом результата
     /// </summary>
@@ -43,7 +44,7 @@ public class PhoneNumber : ValueObject
         {
             return Result.Failure<PhoneNumber>("Номер телефона не может быть пустым");
         }
-            
+
         // Проверяем, что номер телефона соответствует формату российского номера
         if (!IsValidRussianPhoneNumber(value))
         {
@@ -62,7 +63,7 @@ public class PhoneNumber : ValueObject
     {
         return PhoneRegex.IsMatch(phoneNumber);
     }
-        
+
     protected override IEnumerable<IComparable> GetEqualityComponents()
     {
         yield return Value;

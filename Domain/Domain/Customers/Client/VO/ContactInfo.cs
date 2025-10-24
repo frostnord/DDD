@@ -12,7 +12,7 @@ namespace Domain.Domain.Customers.Client.VO
         /// Электронная почта
         /// </summary>
         public Email Email { get; }
-        
+
         /// <summary>
         /// Номер телефона
         /// </summary>
@@ -66,6 +66,7 @@ namespace Domain.Domain.Customers.Client.VO
                 return Email.Equals(other.Email) &&
                        PhoneNumber.Equals(other.PhoneNumber);
             }
+
             return false;
         }
 

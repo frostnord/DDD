@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using CSharpFunctionalExtensions;
 using Domain.Utilities;
 
 namespace Domain.Domain.ValueObjects
@@ -12,7 +9,10 @@ namespace Domain.Domain.ValueObjects
     {
         public static readonly SmartPropertyType Apartment = new SmartPropertyType(1, "Apartment", "Квартира");
         public static readonly SmartPropertyType House = new SmartPropertyType(2, "House", "Дом");
-        public static readonly SmartPropertyType Commercial = new SmartPropertyType(3, "Commercial", "Коммерческое помещение");
+
+        public static readonly SmartPropertyType Commercial =
+            new SmartPropertyType(3, "Commercial", "Коммерческое помещение");
+
         public static readonly SmartPropertyType Land = new SmartPropertyType(4, "Land", "Земельный участок");
         public static readonly SmartPropertyType Townhouse = new SmartPropertyType(5, "Townhouse", "Таунхаус");
         public static readonly SmartPropertyType Studio = new SmartPropertyType(6, "Studio", "Студия");
@@ -26,7 +26,7 @@ namespace Domain.Domain.ValueObjects
         {
             DisplayName = displayName;
         }
-        
+
         /// <summary>
         /// Проверяет, является ли тип недвижимости жилым
         /// </summary>

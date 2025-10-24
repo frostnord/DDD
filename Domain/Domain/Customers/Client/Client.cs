@@ -9,16 +9,17 @@ namespace Domain.Domain.Customers.Client
     /// </summary>
     public class Client : Entity<ClientId>
     {
-        
         /// <summary>
         /// Имя клиента
         /// </summary>
         public Name FirstName { get; private set; }
+
         public Name LastName { get; private set; }
         public ContactInfo ContactInfo { get; private set; }
 
         public DateTime RegisteredDate { get; set; }
         public DateTime UpdatedAt { get; set; }
+
         /// <param name="id"></param>
         /// <param name="firstName">Имя клиента</param>
         /// <param name="lastName">Фамилия клиента</param>
@@ -30,11 +31,11 @@ namespace Domain.Domain.Customers.Client
             LastName = lastName;
             ContactInfo = contactInfo;
             RegisteredDate = DateTime.UtcNow;
-            
+
             // CompletedDeals = new List<CompletedDeal>().AsReadOnly();
             // BookingIds = new List<Guid>().AsReadOnly();
         }
-        
+
         /// <summary>
         /// Фабричный метод для создания экземпляра клиента с возвратом результата
         /// </summary>
@@ -58,28 +59,27 @@ namespace Domain.Domain.Customers.Client
             if (errors.Count > 0)
                 return Result.Failure<Client>(string.Join("; ", errors));
 
-            
+
             var id = ClientId.Create(Guid.NewGuid()).Value;
             var client = new Client(id, firstName, lastName, contactInfo);
             return Result.Success(client);
         }
-        
+
         /// <summary>
         /// Обновляет контактную информацию клиента
         /// </summary>
         /// <param name="newContactInfo">Новая контактная информация</param>
-        
         public void UpdateContactInfo(ContactInfo newContactInfo)
         {
             if (newContactInfo == null)
             {
                 throw new ArgumentNullException(nameof(newContactInfo), "Контактная информация не может быть пустой");
             }
-            
+
             ContactInfo = newContactInfo;
             UpdatedAt = DateTime.UtcNow;
         }
-        
+
         // /// <summary>
         // /// Добавляет совершенную сделку клиенту
         // /// </summary>
@@ -150,8 +150,7 @@ namespace Domain.Domain.Customers.Client
         // /// <returns>Полное имя клиента (имя и фамилия)</returns>
         // public string GetFullName() => $"{FirstName} {LastName}";
         //
-        
-        
+
 
         public override bool Equals(object obj)
         {
@@ -159,9 +158,10 @@ namespace Domain.Domain.Customers.Client
             {
                 return Id.Equals(other.Id);
             }
+
             return false;
         }
-        
+
         public override int GetHashCode()
         {
             return Id.GetHashCode();
