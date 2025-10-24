@@ -1,6 +1,6 @@
 using Domain.Utilities;
 
-namespace Domain.Domain
+namespace Domain.Domain.Property.VO
 {
     /// <summary>
     /// Smart Enum статуса недвижимости

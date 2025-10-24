@@ -1,9 +1,6 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using CSharpFunctionalExtensions;
 
-namespace Domain.ValueObjects
+namespace Domain.Domain.Property.VO
 {
     /// <summary>
     /// Объект значения, представляющий историю владения недвижимостью

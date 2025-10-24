@@ -1,7 +1,7 @@
 using CSharpFunctionalExtensions;
+using Domain.Domain.ValueObjects;
 
-
-namespace Domain.Domain.ValueObjects;
+namespace Domain.Domain.Booking.VO;
 
 /// <summary>
 /// Идентификатор бронирования

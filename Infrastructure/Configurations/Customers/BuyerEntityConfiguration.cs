@@ -1,8 +1,9 @@
 using Domain.Domain;
 using Domain.Domain.Customers.Buyer;
+using Domain.Domain.Customers.Buyer.VO;
 using Domain.Domain.Customers.Client.VO;
+using Domain.Domain.Property.VO;
 using Domain.Domain.ValueObjects;
-using Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

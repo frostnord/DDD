@@ -1,9 +1,8 @@
-using System;
-using System.Collections.Generic;
 using CSharpFunctionalExtensions;
+using Domain.Domain.Customers.Client.VO;
 using Domain.Domain.ValueObjects;
 
-namespace Domain.Domain
+namespace Domain.Domain.Customers.Client
 {
     /// <summary>
     /// Сущность клиента в системе управления недвижимостью

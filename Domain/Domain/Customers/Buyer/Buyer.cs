@@ -1,11 +1,9 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using CSharpFunctionalExtensions;
+using Domain.Domain.Customers.Buyer.VO;
+using Domain.Domain.Customers.Client.VO;
 using Domain.Domain.ValueObjects;
-using Domain.ValueObjects;
 
-namespace Domain.Domain
+namespace Domain.Domain.Customers.Buyer
 {
     /// <summary>
     /// Покупатель (отдельная сущность от Клиента/Продавца)

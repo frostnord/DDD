@@ -1,7 +1,6 @@
-using System;
-using System.Collections.Generic;
 using CSharpFunctionalExtensions;
-namespace Domain.ValueObjects
+
+namespace Domain.Domain.Agency.VO
 {
     /// <summary>
     /// Объект значения, представляющий номер лицензии

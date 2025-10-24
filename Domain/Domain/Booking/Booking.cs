@@ -1,8 +1,9 @@
 using CSharpFunctionalExtensions;
+using Domain.Domain.Booking.VO;
+using Domain.Domain.Customers.Client;
 using Domain.Domain.ValueObjects;
-using Domain.ValueObjects;
 
-namespace Domain.Domain
+namespace Domain.Domain.Booking
 {
     /// <summary>
     /// Агрегат бронирования в системе управления недвижимостью
@@ -19,7 +20,7 @@ namespace Domain.Domain
         /// <summary>
         /// Объект недвижимости, который бронируется
         /// </summary>
-        public Property Property { get; private set; }
+        public Property.Property Property { get; private set; }
         
         /// <summary>
         /// Агентство, осуществляющее бронирование
@@ -56,7 +57,7 @@ namespace Domain.Domain
         /// <param name="bookingPeriod">Период бронирования</param>
         /// <param name="totalPrice">Общая цена бронирования</param>
         /// <returns>Результат с бронированием или ошибкой</returns>
-        public static Result<Booking> Create(Client client, Property property, Agency.Agency agency, Period bookingPeriod, Price totalPrice)
+        public static Result<Booking> Create(Client client, Property.Property property, Agency.Agency agency, Period bookingPeriod, Price totalPrice)
         {
             var validationErrors = new List<string>();
 
@@ -100,7 +101,7 @@ namespace Domain.Domain
         /// <param name="agency">Агентство, осуществляющее бронирование</param>
         /// <param name="bookingPeriod">Период бронирования</param>
         /// <param name="totalPrice">Общая цена бронирования</param>
-        private Booking(BookingId id, Client client, Property property, Agency.Agency agency, Period bookingPeriod, Price totalPrice)
+        private Booking(BookingId id, Client client, Property.Property property, Agency.Agency agency, Period bookingPeriod, Price totalPrice)
             : base(id)
         {
             Client = client;

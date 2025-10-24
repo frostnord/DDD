@@ -1,6 +1,7 @@
 using CSharpFunctionalExtensions;
+using Domain.Domain.ValueObjects;
 
-namespace Domain.Domain.ValueObjects
+namespace Domain.Domain.Customers.Buyer.VO
 {
     /// <summary>
     /// Объект значения, представляющий идентификатор покупателя

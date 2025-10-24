@@ -1,11 +1,6 @@
-using System;
-using System.Collections.Generic;
-using CSharpFunctionalExtensions;
-using Domain.ValueObjects;
-using Domain.Domain.ValueObjects;
 using Domain.Utilities;
 
-namespace Domain.ValueObjects
+namespace Domain.Domain.Deal
 {
     public sealed class DealStatus : Enumeration<DealStatus>
     {

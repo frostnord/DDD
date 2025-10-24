@@ -1,5 +1,6 @@
 using Domain.Domain.Customers.Client.VO;
 using Domain.Domain.Deal;
+using Domain.Domain.Property.Property.VO;
 using Domain.Domain.Property.VO;
 using Domain.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;

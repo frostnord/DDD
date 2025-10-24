@@ -1,4 +1,6 @@
 using CSharpFunctionalExtensions;
+using Domain.Domain.Customers.Client.VO;
+using Domain.Domain.Property.VO;
 using Domain.Domain.ValueObjects;
 
 namespace Domain.Domain.Deal

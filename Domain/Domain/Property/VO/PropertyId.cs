@@ -1,7 +1,7 @@
 ﻿using CSharpFunctionalExtensions;
 using Domain.Domain.ValueObjects;
 
-namespace Domain.Domain.ValueObjects;
+namespace Domain.Domain.Property.VO;
 
 public class PropertyId : TypedId<PropertyId>
 {

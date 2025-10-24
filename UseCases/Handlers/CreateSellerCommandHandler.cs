@@ -1,5 +1,6 @@
 using CSharpFunctionalExtensions;
 using Domain.Domain;
+using Domain.Domain.Customers.Seller;
 using UseCases.Commands;
 using UseCases.Interfaces.Repositories;
 

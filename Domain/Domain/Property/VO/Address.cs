@@ -1,7 +1,6 @@
 using CSharpFunctionalExtensions;
 
-
-namespace Domain.Domain
+namespace Domain.Domain.Property.VO
 {
     /// <summary>
     /// Объект значения, представляющий адрес недвижимости

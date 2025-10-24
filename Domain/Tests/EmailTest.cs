@@ -1,8 +1,6 @@
-using System;
-using CSharpFunctionalExtensions;
-using Domain.Tests;
+using Domain.Domain.ValueObjects;
 
-namespace Domain.Domain.ValueObjects
+namespace Domain.Tests
 {
     public class EmailTest
     {

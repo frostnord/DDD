@@ -1,5 +1,6 @@
 using Domain.Domain;
-using Domain.ValueObjects;
+using Domain.Domain.Customers.Client;
+using Domain.Domain.Customers.Client.VO;
 using Domain.Domain.ValueObjects;
 
 

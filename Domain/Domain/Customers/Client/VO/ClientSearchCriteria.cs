@@ -1,9 +1,8 @@
-using System;
 using CSharpFunctionalExtensions;
+using Domain.Domain.Property.VO;
 using Domain.Domain.ValueObjects;
 
-
-namespace Domain.ValueObjects
+namespace Domain.Domain.Customers.Client.VO
 {
     /// <summary>
     /// Объект значения, представляющий критерии поиска клиента

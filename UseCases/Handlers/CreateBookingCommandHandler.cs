@@ -2,7 +2,9 @@
 using CSharpFunctionalExtensions;
 using Domain.Domain;
 using Domain.Domain.Booking;
-using Domain.ValueObjects;
+using Domain.Domain.Booking.Booking;
+using Domain.Domain.Booking.VO;
+using Domain.Domain.Property.VO;
 using UseCases.Commands;
 using UseCases.Interfaces.Repositories;
 

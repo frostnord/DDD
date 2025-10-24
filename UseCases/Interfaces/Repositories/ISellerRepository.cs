@@ -1,5 +1,6 @@
 using CSharpFunctionalExtensions;
 using Domain.Domain;
+using Domain.Domain.Customers.Seller;
 using Domain.Domain.Customers.Seller.VO;
 using Domain.Domain.ValueObjects;
 

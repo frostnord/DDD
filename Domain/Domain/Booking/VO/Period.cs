@@ -1,8 +1,6 @@
-using System;
-using System.Collections.Generic;
 using CSharpFunctionalExtensions;
 
-namespace Domain.ValueObjects
+namespace Domain.Domain.Booking.VO
 {
     /// <summary>
     /// Объект значения, представляющий период времени

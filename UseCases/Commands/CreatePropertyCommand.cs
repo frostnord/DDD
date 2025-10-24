@@ -1,9 +1,10 @@
 using CSharpFunctionalExtensions;
 using Domain.Domain;
 using Domain.Domain.Property;
+using Domain.Domain.Property.Property;
+using Domain.Domain.Property.Property.VO;
 using Domain.Domain.Property.VO;
 using Domain.Domain.ValueObjects;
-using Domain.ValueObjects;
 
 namespace UseCases.Commands
 {

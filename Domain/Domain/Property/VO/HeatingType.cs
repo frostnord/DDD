@@ -1,8 +1,7 @@
-using System;
 using CSharpFunctionalExtensions;
 using Domain.Utilities;
 
-namespace Domain.Domain.ValueObjects
+namespace Domain.Domain.Property.VO
 {
     /// <summary>
     /// Smart Enum для типа отопления

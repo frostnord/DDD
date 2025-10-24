@@ -1,5 +1,6 @@
 using Domain.Domain;
 using Domain.Domain.Customers.Client.VO;
+using Domain.Domain.Customers.Seller;
 using Domain.Domain.ValueObjects;
 
 namespace UseCases.Commands

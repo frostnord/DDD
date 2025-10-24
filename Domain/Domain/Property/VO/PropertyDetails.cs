@@ -1,8 +1,7 @@
-using System;
 using CSharpFunctionalExtensions;
 using Domain.Domain.ValueObjects;
 
-namespace Domain.ValueObjects
+namespace Domain.Domain.Property.VO
 {
     /// <summary>
     /// Объект значения, представляющий детали объекта недвижимости

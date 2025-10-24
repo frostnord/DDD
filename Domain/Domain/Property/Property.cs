@@ -1,9 +1,8 @@
-
 using CSharpFunctionalExtensions;
+using Domain.Domain.Property.VO;
 using Domain.Domain.ValueObjects;
-using Domain.ValueObjects;
 
-namespace Domain.Domain
+namespace Domain.Domain.Property
 {
     /// <summary>
     /// Сущность объекта недвижимости в системе управления недвижимостью

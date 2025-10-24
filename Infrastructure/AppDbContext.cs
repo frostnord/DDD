@@ -1,10 +1,12 @@
 using Domain.Domain;
 using Domain.Domain.Booking;
+using Domain.Domain.Booking.Booking;
 using Domain.Domain.Customers.Buyer;
 using Domain.Domain.Customers.Client;
 using Domain.Domain.Customers.Seller;
 using Domain.Domain.Deal;
 using Domain.Domain.Property;
+using Domain.Domain.Property.Property;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure;

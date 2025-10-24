@@ -1,6 +1,7 @@
 using CSharpFunctionalExtensions;
+using Domain.Domain.Agency.VO;
+using Domain.Domain.Customers.Client.VO;
 using Domain.Domain.ValueObjects;
-using Domain.ValueObjects;
 
 namespace Domain.Domain.Agency
 {
@@ -29,7 +30,7 @@ namespace Domain.Domain.Agency
         /// <summary>
         /// Список объектов недвижимости, принадлежащих агентству
         /// </summary>
-        public List<Property> Properties { get; private set; }
+        public List<Property.Property> Properties { get; private set; }
         
         /// <summary>
         /// Дата создания записи об агентстве
@@ -56,7 +57,7 @@ namespace Domain.Domain.Agency
             Name = name;
             ContactInfo = contactInfo;
             LicenseNumber = licenseNumber;
-            Properties = new List<Property>();
+            Properties = new List<Property.Property>();
             CreatedAt = DateTime.UtcNow;
         }
 
@@ -92,7 +93,7 @@ namespace Domain.Domain.Agency
         /// </summary>
         /// <param name="property">Объект недвижимости для добавления</param>
         /// <exception cref="ArgumentNullException">Вызывается, если объект недвижимости пуст</exception>
-        public void AddProperty(Property property)
+        public void AddProperty(Property.Property property)
         {
             if (property == null)
             {
@@ -108,7 +109,7 @@ namespace Domain.Domain.Agency
         /// </summary>
         /// <param name="property">Объект недвижимости для удаления</param>
         /// <exception cref="ArgumentNullException">Вызывается, если объект недвижимости пуст</exception>
-        public void RemoveProperty(Property property)
+        public void RemoveProperty(Property.Property property)
         {
             if (property == null)
             {

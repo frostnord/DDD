@@ -1,6 +1,5 @@
 using System;
 using CSharpFunctionalExtensions;
-using Domain.ValueObjects;
 using Domain.Domain.ValueObjects;
 
 namespace Domain.Tests

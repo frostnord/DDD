@@ -1,5 +1,8 @@
 using System;
 using Domain.Domain;
+using Domain.Domain.Customers.Client.VO;
+using Domain.Domain.Customers.Seller;
+using Domain.Domain.Property.VO;
 using Domain.Domain.ValueObjects;
 
 namespace Domain.Tests

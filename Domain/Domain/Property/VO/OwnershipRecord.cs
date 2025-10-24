@@ -1,8 +1,7 @@
-using System;
-using System.Collections.Generic;
 using CSharpFunctionalExtensions;
-using Domain.Domain.ValueObjects;
-namespace Domain.ValueObjects
+using Domain.Domain.Customers.Client.VO;
+
+namespace Domain.Domain.Property.VO
 {
     /// <summary>
     /// Объект значения, представляющий запись о владельце недвижимости

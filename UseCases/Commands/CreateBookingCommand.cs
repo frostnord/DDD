@@ -1,6 +1,8 @@
 using Domain.Domain;
 using Domain.Domain.Booking;
+using Domain.Domain.Booking.Booking;
 using Domain.Domain.Customers.Client.VO;
+using Domain.Domain.Property.Property.VO;
 using Domain.Domain.Property.VO;
 using Domain.Domain.ValueObjects;
 
