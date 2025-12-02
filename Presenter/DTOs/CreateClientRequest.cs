@@ -2,7 +2,7 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Presenter.DTOs
 {
-    public class CreateClientDto
+    public class CreateClientRequest
     {
         [Required(ErrorMessage = "Имя обязательно")]
         [StringLength(200, MinimumLength = 2, ErrorMessage = "Имя должно содержать от 2 до 200 символов")]

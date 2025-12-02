@@ -1,12 +1,10 @@
+using CSharpFunctionalExtensions;
 using Domain.Domain.Customers.Client;
-using Domain.Domain.Customers.Client.VO;
 using Domain.Domain.ValueObjects;
 using Microsoft.AspNetCore.Mvc;
 using Presenter.DTOs;
 using Presenter.Extensions;
-using UseCases.Commands;
-using UseCases.Handlers;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces;
 
 namespace Presenter.Controllers
 {
@@ -14,28 +12,26 @@ namespace Presenter.Controllers
     [Route("api/[controller]")]
     public class ClientsController : ControllerBase
     {
-        private readonly ICommandHandler<CreateClientCommand, Client> _createClientHandler;
+        private readonly IClientService _clientService;
 
-        public ClientsController(
-            ICommandHandler<CreateClientCommand, Client> createClientHandler)
+        public ClientsController(IClientService clientService)
         {
-            _createClientHandler = createClientHandler;
+            _clientService = clientService;
         }
-
+        /// <summary>
+        /// Создание клиента
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         [HttpPost]
-        public async Task<ActionResult<ClientDto>> CreateClient([FromBody] CreateClientDto request)
+        public async Task<ActionResult<ClientDto>> CreateClient([FromBody] CreateClientRequest request)
         {
-            var command = new CreateClientCommand
-            {
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                Email = request.Email,
-                PhoneNumber = request.PhoneNumber
-                
-            };
+            var result = await _clientService.CreateClientAsync(
+                request.FirstName,
+                request.LastName,
+                request.Email,
+                request.PhoneNumber);
             
- 
-            var result = ClientStorage.Add(command);
             if (result.IsFailure)
             {
                 return BadRequest(new { Error = result.Error });
@@ -46,21 +42,19 @@ namespace Presenter.Controllers
                 new { id = result.Value.Id.Value },
                 result.Value.ToDTO());
         }
-
+        /// <summary>
+        /// Получение клиента по ID
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        
         [HttpGet("{id}")]
         public async Task<ActionResult<ClientDto>> GetClient(Guid id)
         {
-            var clientIdResult = ClientId.Create(id);
-            if (clientIdResult.IsFailure)
-            {
-                return BadRequest(new { Error = "Invalid client ID" });
-            }
-
-            var clientId = clientIdResult.Value;
-            var result = ClientStorage.Get(clientId);
+            var result = await _clientService.GetClientByIdAsync(id);
             if (result.IsFailure)
             {
-                return NotFound(new { Error = result.Error });
+                return BadRequest(new { Error = result.Error });
             }
 
             return Ok(result.Value.ToDTO());
@@ -69,186 +63,50 @@ namespace Presenter.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ClientDto>>> GetClients()
         {
-            var result = ClientStorage.GetAllDtos();
+            var result = await _clientService.GetAllClientsAsync();
             if (result.IsFailure)
             {
                 return BadRequest(new { Error = result.Error });
             }
 
-            return Ok(result.Value);
+            return Ok(result.Value.Select(client => client.ToDTO()));
         }
 
         [HttpPut("{id}")]
-        public async Task<ActionResult<ClientDto>> UpdateClient(Guid id, [FromBody] CreateClientDto clientDto)
+        public async Task<ActionResult<ClientDto>> UpdateClient(Guid id, [FromBody] CreateClientRequest clientDto)
         {
-            var clientIdResult = ClientId.Create(id);
-            if (clientIdResult.IsFailure)
-            {
-                return BadRequest(new { Error = "Invalid client ID" });
-            }
-
-            var clientId = clientIdResult.Value;
-            var existingClientResult = ClientStorage.Get(clientId);
-            if (existingClientResult.IsFailure)
-            {
-                return NotFound(new { Error = existingClientResult.Error });
-            }
-
-            var existingClient = existingClientResult.Value;
-
-            var firstNameResult = Name.Create(clientDto.FirstName);
-            if (firstNameResult.IsFailure)
-                return BadRequest(new { Error = firstNameResult.Error });
-    
-            var lastNameResult = Name.Create(clientDto.LastName);
-            if (lastNameResult.IsFailure)
-                return BadRequest(new { Error = lastNameResult.Error });
-    
-            var emailResult = Email.Create(clientDto.Email);
-            if (emailResult.IsFailure)
-                return BadRequest(new { Error = emailResult.Error });
-    
-            var phoneResult = PhoneNumber.Create(clientDto.PhoneNumber);
-            if (phoneResult.IsFailure)
-                return BadRequest(new { Error = phoneResult.Error });
-    
-            var contactInfoResult = ContactInfo.Create(emailResult.Value, phoneResult.Value);
-            if (contactInfoResult.IsFailure)
-                return BadRequest(new { Error = contactInfoResult.Error });
-    
-            var updateResult = existingClient.UpdateClientData(firstNameResult.Value, lastNameResult.Value, contactInfoResult.Value);
-            if (updateResult.IsFailure)
-                return BadRequest(new { Error = updateResult.Error });
-    
-            var result = ClientStorage.Update(clientId, new CreateClientCommand
-            {
-                FirstName = clientDto.FirstName,
-                LastName = clientDto.LastName,
-                Email = clientDto.Email,
-                PhoneNumber = clientDto.PhoneNumber
-            });
+            var result = await _clientService.UpdateClientAsync(
+                id,
+                clientDto.FirstName,
+                clientDto.LastName,
+                clientDto.Email,
+                clientDto.PhoneNumber);
+                
             if (result.IsFailure)
             {
                 return BadRequest(new { Error = result.Error });
             }
-    
-            return Ok(existingClient.ToDTO());
+
+            return Ok(result.Value.ToDTO());
         }
 
         [HttpDelete("{id}")]
         public async Task<ActionResult<ClientDto>> DeleteClient(Guid id)
         {
-            var clientIdResult = ClientId.Create(id);
-            if (clientIdResult.IsFailure)
+            var result = await _clientService.DeleteClientAsync(id);
+            if (result.IsFailure)
             {
-                return BadRequest(new { Error = "Invalid client ID" });
+                return BadRequest(new { Error = result.Error });
             }
 
-            var clientId = clientIdResult.Value;
-            var getClientResult = ClientStorage.Get(clientId);
+            // Для возврата удаленного клиента, нужно сначала получить его
+            var getClientResult = await _clientService.GetClientByIdAsync(id);
             if (getClientResult.IsFailure)
             {
                 return NotFound(new { Error = getClientResult.Error });
             }
 
-            var clientToDelete = getClientResult.Value;
-            var result = ClientStorage.Remove(clientId);
-            if (result.IsFailure)
-            {
-                return NotFound(new { Error = result.Error });
-            }
-
-            return Ok(clientToDelete.ToDTO());
+            return Ok(getClientResult.Value.ToDTO());
         }
-
-        [HttpGet("storage/{id}")]
-       public async Task<ActionResult<ClientDto>> GetClientFromStorage(Guid id)
-       {
-           var clientIdResult = ClientId.Create(id);
-           if (clientIdResult.IsFailure)
-           {
-               return BadRequest(new { Error = "Invalid client ID" });
-           }
-
-           var clientId = clientIdResult.Value;
-           var result = ClientStorage.Get(clientId);
-           if (result.IsFailure)
-           {
-               return NotFound(new { Error = result.Error });
-           }
-
-           return Ok(result.Value.ToDTO());
-       }
-
-       [HttpGet("storage")]
-       public async Task<ActionResult<IEnumerable<ClientDto>>> GetClientsFromStorage()
-       {
-           var result = ClientStorage.GetAllDtos();
-           if (result.IsFailure)
-           {
-               return BadRequest(new { Error = result.Error });
-           }
-
-           return Ok(result.Value);
-       }
-
-       [HttpPut("storage/{id}")]
-       public async Task<ActionResult<ClientDto>> UpdateClientInStorage(Guid id, [FromBody] CreateClientDto clientDto)
-       {
-           var clientIdResult = ClientId.Create(id);
-           if (clientIdResult.IsFailure)
-           {
-               return BadRequest(new { Error = "Invalid client ID" });
-           }
-
-           var clientId = clientIdResult.Value;
-           var existingClientResult = ClientStorage.Get(clientId);
-           if (existingClientResult.IsFailure)
-           {
-               return NotFound(new { Error = existingClientResult.Error });
-           }
-
-           var existingClient = existingClientResult.Value;
-
-           var updateResult = ClientStorage.UpdateDto(clientId, new CreateClientCommand
-           {
-               FirstName = clientDto.FirstName,
-               LastName = clientDto.LastName,
-               Email = clientDto.Email,
-               PhoneNumber = clientDto.PhoneNumber
-           });
-           if (updateResult.IsFailure)
-           {
-               return BadRequest(new { Error = updateResult.Error });
-           }
-
-           return Ok(updateResult.Value);
-       }
-
-       [HttpDelete("storage/{id}")]
-       public async Task<ActionResult<ClientDto>> DeleteClientFromStorage(Guid id)
-       {
-           var clientIdResult = ClientId.Create(id);
-           if (clientIdResult.IsFailure)
-           {
-               return BadRequest(new { Error = "Invalid client ID" });
-           }
-
-           var clientId = clientIdResult.Value;
-           var getClientResult = ClientStorage.Get(clientId);
-           if (getClientResult.IsFailure)
-           {
-               return NotFound(new { Error = getClientResult.Error });
-           }
-
-           var clientToDelete = getClientResult.Value;
-           var result = ClientStorage.Remove(clientId);
-           if (result.IsFailure)
-           {
-               return NotFound(new { Error = result.Error });
-           }
-
-           return Ok(clientToDelete.ToDTO());
-       }
     }
 }
