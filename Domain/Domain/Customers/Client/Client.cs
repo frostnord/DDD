@@ -1,5 +1,6 @@
 using CSharpFunctionalExtensions;
 using Domain.Domain.Customers.Client.VO;
+using Domain.Domain.Deal;
 using Domain.Domain.ValueObjects;
 
 namespace Domain.Domain.Customers.Client
@@ -79,7 +80,33 @@ namespace Domain.Domain.Customers.Client
             ContactInfo = newContactInfo;
             UpdatedAt = DateTime.UtcNow;
         }
-
+   
+        /// <summary>
+        /// Обновляет данные клиента
+        /// </summary>
+        /// <param name="firstName">Новое имя</param>
+        /// <param name="lastName">Новая фамилия</param>
+        /// <param name="contactInfo">Новая контактная информация</param>
+        /// <returns>Результат операции обновления</returns>
+        public Result UpdateClientData(Name firstName, Name lastName, ContactInfo contactInfo)
+        {
+            if (firstName == null)
+                return Result.Failure("Имя не может быть пустым");
+   
+            if (lastName == null)
+                return Result.Failure("Фамилия не может быть пустой");
+   
+            if (contactInfo == null)
+                return Result.Failure("Контактная информация не может быть пустой");
+   
+            FirstName = firstName;
+            LastName = lastName;
+            ContactInfo = contactInfo;
+            UpdatedAt = DateTime.UtcNow;
+   
+            return Result.Success();
+        }
+   
         // /// <summary>
         // /// Добавляет совершенную сделку клиенту
         // /// </summary>
@@ -97,7 +124,7 @@ namespace Domain.Domain.Customers.Client
         //         UpdatedAt = DateTime.UtcNow;
         //     }
         // }
-        //
+        
         // /// <summary>
         // /// Удаляет совершенную сделку у клиента
         // /// </summary>

@@ -1,20 +1,30 @@
 using Infrastructure;
+using Presenter;
 
 var builder = WebApplication.CreateBuilder(args);
 
-PostgreSqlConnectionOptions? options = builder.Configuration.GetSection(nameof(PostgreSqlConnectionOptions))
-    .Get<PostgreSqlConnectionOptions>();
+// Add services to the container.
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
 
-if (options == null)
-{
-    throw new InvalidOperationException("PostgreSqlConnectionOptions not found");
-}
+// Get connection string from configuration
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
-Console.WriteLine(options.HostName);
-Console.WriteLine(options.DatabaseName);
-Console.WriteLine(options.Username);
-Console.WriteLine(options.Password);
+// Add application services including command handlers and repositories
+builder.Services.AddApplicationServices(connectionString);
 
 var app = builder.Build();
+
+// Configure the HTTP request pipeline.
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+
+app.UseHttpsRedirection();
+app.UseAuthorization();
+app.MapControllers();
 
 app.Run();
