@@ -5,15 +5,16 @@ using Domain.Domain.Customers.Client.VO;
 using Domain.Domain.ValueObjects;
 using Presenter.DTOs;
 using Presenter.Extensions;
+using UseCases.Clients.Commands.CreateClientCommand;
 using UseCases.Commands;
 
 namespace Presenter.Controllers;
 
-public class ClientStorage
+public class Storage
 {
      private static readonly ConcurrentDictionary<ClientId, Client> Clients = new();
      
-     static ClientStorage()
+     static Storage()
      {
       if (Clients.Count > 0) return;
       Result<Client> client = Client.Create(

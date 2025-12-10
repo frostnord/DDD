@@ -59,7 +59,10 @@ namespace Presenter.Controllers
 
             return Ok(result.Value.ToDTO());
         }
-
+        /// <summary>
+        /// Получение всех клиентов
+        /// </summary>
+        /// <returns></returns>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ClientDto>>> GetClients()
         {
@@ -71,7 +74,12 @@ namespace Presenter.Controllers
 
             return Ok(result.Value.Select(client => client.ToDTO()));
         }
-
+        /// <summary>
+        /// Обновить клиента
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="clientDto"></param>
+        /// <returns></returns>
         [HttpPut("{id}")]
         public async Task<ActionResult<ClientDto>> UpdateClient(Guid id, [FromBody] CreateClientRequest clientDto)
         {
@@ -89,7 +97,11 @@ namespace Presenter.Controllers
 
             return Ok(result.Value.ToDTO());
         }
-
+        /// <summary>
+        /// Удалить клиента
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpDelete("{id}")]
         public async Task<ActionResult<ClientDto>> DeleteClient(Guid id)
         {
