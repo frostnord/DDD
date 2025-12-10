@@ -1,28 +1,38 @@
 using CSharpFunctionalExtensions;
 using Domain.Domain.Customers.Client;
+using Domain.Domain.Customers.Client.VO;
 using Domain.Domain.ValueObjects;
 using Microsoft.AspNetCore.Mvc;
 using Presenter.DTOs;
 using Presenter.Extensions;
+using UseCases.Commands;
 using UseCases.Interfaces;
 
 namespace Presenter.Controllers
 {
+    /// <summary>
+    /// Контроллер для работы с клиентами
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class ClientsController : ControllerBase
     {
         private readonly IClientService _clientService;
 
+        /// <summary>
+        /// Конструктор контроллера клиентов
+        /// </summary>
+        /// <param name="clientService">Сервис для работы с клиентами</param>
         public ClientsController(IClientService clientService)
         {
             _clientService = clientService;
         }
+
         /// <summary>
-        /// Создание клиента
+        /// Создание нового клиента
         /// </summary>
-        /// <param name="request"></param>
-        /// <returns></returns>
+        /// <param name="request">Данные для создания клиента</param>
+        /// <returns>Созданный клиент</returns>
         [HttpPost]
         public async Task<ActionResult<ClientDto>> CreateClient([FromBody] CreateClientRequest request)
         {
@@ -42,12 +52,12 @@ namespace Presenter.Controllers
                 new { id = result.Value.Id.Value },
                 result.Value.ToDTO());
         }
+
         /// <summary>
         /// Получение клиента по ID
         /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
-        
+        /// <param name="id">Идентификатор клиента</param>
+        /// <returns>Клиент</returns>
         [HttpGet("{id}")]
         public async Task<ActionResult<ClientDto>> GetClient(Guid id)
         {
@@ -59,10 +69,11 @@ namespace Presenter.Controllers
 
             return Ok(result.Value.ToDTO());
         }
+
         /// <summary>
-        /// Получение всех клиентов
+        /// Получение списка всех клиентов
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Список клиентов</returns>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ClientDto>>> GetClients()
         {
@@ -74,21 +85,22 @@ namespace Presenter.Controllers
 
             return Ok(result.Value.Select(client => client.ToDTO()));
         }
+
         /// <summary>
-        /// Обновить клиента
+        /// Обновление информации о клиенте
         /// </summary>
-        /// <param name="id"></param>
-        /// <param name="clientDto"></param>
-        /// <returns></returns>
+        /// <param name="id">Идентификатор клиента</param>
+        /// <param name="clientRequest">Данные для обновления клиента</param>
+        /// <returns>Обновленный клиент</returns>
         [HttpPut("{id}")]
-        public async Task<ActionResult<ClientDto>> UpdateClient(Guid id, [FromBody] CreateClientRequest clientDto)
+        public async Task<ActionResult<ClientDto>> UpdateClient(Guid id, [FromBody] CreateClientRequest clientRequest)
         {
             var result = await _clientService.UpdateClientAsync(
                 id,
-                clientDto.FirstName,
-                clientDto.LastName,
-                clientDto.Email,
-                clientDto.PhoneNumber);
+                clientRequest.FirstName,
+                clientRequest.LastName,
+                clientRequest.Email,
+                clientRequest.PhoneNumber);
                 
             if (result.IsFailure)
             {
@@ -97,11 +109,12 @@ namespace Presenter.Controllers
 
             return Ok(result.Value.ToDTO());
         }
+
         /// <summary>
-        /// Удалить клиента
+        /// Удаление клиента
         /// </summary>
-        /// <param name="id"></param>
-        /// <returns></returns>
+        /// <param name="id">Идентификатор клиента</param>
+        /// <returns>Удаленный клиент</returns>
         [HttpDelete("{id}")]
         public async Task<ActionResult<ClientDto>> DeleteClient(Guid id)
         {
