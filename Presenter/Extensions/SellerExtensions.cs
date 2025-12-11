@@ -14,7 +14,7 @@ namespace Presenter.Extensions
             {
                 Id = seller.Id.Value,
                 ClientId = seller.ClientId.Value,
-                RegisteredAt = DateTime.UtcNow // В реальной реализации это должно быть свойство в сущности
+                RegisteredAt = DateTime.UtcNow 
             };
         }
     }

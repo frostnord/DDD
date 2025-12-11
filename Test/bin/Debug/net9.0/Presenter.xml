@@ -1,0 +1,313 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Presenter</name>
+    </assembly>
+    <members>
+        <member name="T:Presenter.Controllers.BuyersController">
+            <summary>
+            Контроллер для работы с покупателями
+            </summary>
+        </member>
+        <member name="M:Presenter.Controllers.BuyersController.#ctor(UseCases.Interfaces.IBuyerService)">
+            <summary>
+            Конструктор контроллера покупателей
+            </summary>
+            <param name="buyerService">Сервис для работы с покупателями</param>
+        </member>
+        <member name="M:Presenter.Controllers.BuyersController.CreateBuyer(Presenter.DTOs.CreateBuyerRequest)">
+            <summary>
+            Создание нового покупателя
+            </summary>
+            <param name="request">Данные для создания покупателя</param>
+            <returns>Созданный покупатель</returns>
+        </member>
+        <member name="M:Presenter.Controllers.BuyersController.GetBuyer(System.Guid)">
+            <summary>
+            Получение покупателя по ID
+            </summary>
+            <param name="id">Идентификатор покупателя</param>
+            <returns>Покупатель</returns>
+        </member>
+        <member name="M:Presenter.Controllers.BuyersController.GetBuyers">
+            <summary>
+            Получение списка всех покупателей
+            </summary>
+            <returns>Список покупателей</returns>
+        </member>
+        <member name="M:Presenter.Controllers.BuyersController.UpdateBuyer(System.Guid,Presenter.DTOs.CreateBuyerRequest)">
+            <summary>
+            Обновление информации о покупателе
+            </summary>
+            <param name="id">Идентификатор покупателя</param>
+            <param name="request">Данные для обновления покупателя</param>
+            <returns>Обновленный покупатель</returns>
+        </member>
+        <member name="M:Presenter.Controllers.BuyersController.DeleteBuyer(System.Guid)">
+            <summary>
+            Удаление покупателя
+            </summary>
+            <param name="id">Идентификатор покупателя</param>
+            <returns>Удаленный покупатель</returns>
+        </member>
+        <member name="T:Presenter.Controllers.ClientsController">
+            <summary>
+            Контроллер для работы с клиентами
+            </summary>
+        </member>
+        <member name="M:Presenter.Controllers.ClientsController.#ctor(UseCases.Interfaces.IClientService)">
+            <summary>
+            Конструктор контроллера клиентов
+            </summary>
+            <param name="clientService">Сервис для работы с клиентами</param>
+        </member>
+        <member name="M:Presenter.Controllers.ClientsController.CreateClient(Presenter.DTOs.CreateClientRequest)">
+            <summary>
+            Создание нового клиента
+            </summary>
+            <param name="request">Данные для создания клиента</param>
+            <returns>Созданный клиент</returns>
+        </member>
+        <member name="M:Presenter.Controllers.ClientsController.GetClient(System.Guid)">
+            <summary>
+            Получение клиента по ID
+            </summary>
+            <param name="id">Идентификатор клиента</param>
+            <returns>Клиент</returns>
+        </member>
+        <member name="M:Presenter.Controllers.ClientsController.GetClients">
+            <summary>
+            Получение списка всех клиентов
+            </summary>
+            <returns>Список клиентов</returns>
+        </member>
+        <member name="M:Presenter.Controllers.ClientsController.UpdateClient(System.Guid,Presenter.DTOs.CreateClientRequest)">
+            <summary>
+            Обновление информации о клиенте
+            </summary>
+            <param name="id">Идентификатор клиента</param>
+            <param name="clientRequest">Данные для обновления клиента</param>
+            <returns>Обновленный клиент</returns>
+        </member>
+        <member name="M:Presenter.Controllers.ClientsController.DeleteClient(System.Guid)">
+            <summary>
+            Удаление клиента
+            </summary>
+            <param name="id">Идентификатор клиента</param>
+            <returns>Удаленный клиент</returns>
+        </member>
+        <member name="T:Presenter.Controllers.SellersController">
+            <summary>
+            Контроллер для работы с продавцами
+            </summary>
+        </member>
+        <member name="M:Presenter.Controllers.SellersController.#ctor(UseCases.Interfaces.ISellerService)">
+            <summary>
+            Конструктор контроллера продавцов
+            </summary>
+            <param name="sellerService">Сервис для работы с продавцами</param>
+        </member>
+        <member name="M:Presenter.Controllers.SellersController.CreateSeller(Presenter.DTOs.CreateSellerRequest)">
+            <summary>
+            Создание нового продавца
+            </summary>
+            <param name="request">Данные для создания продавца</param>
+            <returns>Созданный продавец</returns>
+        </member>
+        <member name="M:Presenter.Controllers.SellersController.GetSeller(System.Guid)">
+            <summary>
+            Получение продавца по ID
+            </summary>
+            <param name="id">Идентификатор продавца</param>
+            <returns>Продавец</returns>
+        </member>
+        <member name="M:Presenter.Controllers.SellersController.GetSellers">
+            <summary>
+            Получение списка всех продавцов
+            </summary>
+            <returns>Список продавцов</returns>
+        </member>
+        <member name="M:Presenter.Controllers.SellersController.UpdateSeller(System.Guid,Presenter.DTOs.CreateSellerRequest)">
+            <summary>
+            Обновление информации о продавце
+            </summary>
+            <param name="id">Идентификатор продавца</param>
+            <param name="request">Данные для обновления продавца</param>
+            <returns>Обновленный продавец</returns>
+        </member>
+        <member name="M:Presenter.Controllers.SellersController.DeleteSeller(System.Guid)">
+            <summary>
+            Удаление продавца
+            </summary>
+            <param name="id">Идентификатор продавца</param>
+            <returns>Удаленный продавец</returns>
+        </member>
+        <member name="T:Presenter.DTOs.BuyerDto">
+            <summary>
+            DTO для представления покупателя
+            </summary>
+        </member>
+        <member name="P:Presenter.DTOs.BuyerDto.Id">
+            <summary>
+            Идентификатор покупателя
+            </summary>
+        </member>
+        <member name="P:Presenter.DTOs.BuyerDto.ClientId">
+            <summary>
+            Идентификатор клиента, связанного с покупателем
+            </summary>
+        </member>
+        <member name="P:Presenter.DTOs.BuyerDto.RegisteredAt">
+            <summary>
+            Дата регистрации
+            </summary>
+        </member>
+        <member name="T:Presenter.DTOs.ClientDto">
+            <summary>
+            DTO для представления клиента
+            </summary>
+        </member>
+        <member name="P:Presenter.DTOs.ClientDto.Id">
+            <summary>
+            Идентификатор клиента
+            </summary>
+        </member>
+        <member name="P:Presenter.DTOs.ClientDto.FirstName">
+            <summary>
+            Имя клиента
+            </summary>
+        </member>
+        <member name="P:Presenter.DTOs.ClientDto.LastName">
+            <summary>
+            Фамилия клиента
+            </summary>
+        </member>
+        <member name="P:Presenter.DTOs.ClientDto.Email">
+            <summary>
+            Email клиента
+            </summary>
+        </member>
+        <member name="P:Presenter.DTOs.ClientDto.PhoneNumber">
+            <summary>
+            Номер телефона клиента
+            </summary>
+        </member>
+        <member name="P:Presenter.DTOs.ClientDto.RegisteredDate">
+            <summary>
+            Дата регистрации
+            </summary>
+        </member>
+        <member name="P:Presenter.DTOs.ClientDto.UpdatedAt">
+            <summary>
+            Дата последнего обновления
+            </summary>
+        </member>
+        <member name="T:Presenter.DTOs.CreateBuyerRequest">
+            <summary>
+            DTO для запроса создания покупателя
+            </summary>
+        </member>
+        <member name="P:Presenter.DTOs.CreateBuyerRequest.ClientId">
+            <summary>
+            Идентификатор клиента
+            </summary>
+        </member>
+        <member name="P:Presenter.DTOs.CreateBuyerRequest.PreferredNumberOfRooms">
+            <summary>
+            Предпочтительное количество комнат
+            </summary>
+        </member>
+        <member name="P:Presenter.DTOs.CreateBuyerRequest.PreferredFloor">
+            <summary>
+            Предпочтительный этаж
+            </summary>
+        </member>
+        <member name="P:Presenter.DTOs.CreateBuyerRequest.PreferredTotalFloors">
+            <summary>
+            Предпочтительное общее количество этажей в здании
+            </summary>
+        </member>
+        <member name="P:Presenter.DTOs.CreateBuyerRequest.PreferredType">
+            <summary>
+            Предпочтительный тип недвижимости
+            </summary>
+        </member>
+        <member name="P:Presenter.DTOs.CreateBuyerRequest.PreferParking">
+            <summary>
+            Наличие предпочтения по парковке
+            </summary>
+        </member>
+        <member name="P:Presenter.DTOs.CreateBuyerRequest.PreferredHeatingType">
+            <summary>
+            Предпочтительный тип отопления
+            </summary>
+        </member>
+        <member name="P:Presenter.DTOs.CreateBuyerRequest.PreferredCondition">
+            <summary>
+            Предпочтительное состояние недвижимости
+            </summary>
+        </member>
+        <member name="T:Presenter.DTOs.CreateClientRequest">
+            <summary>
+            DTO для запроса создания клиента
+            </summary>
+        </member>
+        <member name="P:Presenter.DTOs.CreateClientRequest.FirstName">
+            <summary>
+            Имя клиента
+            </summary>
+        </member>
+        <member name="P:Presenter.DTOs.CreateClientRequest.LastName">
+            <summary>
+            Фамилия клиента
+            </summary>
+        </member>
+        <member name="P:Presenter.DTOs.CreateClientRequest.Email">
+            <summary>
+            Email клиента
+            </summary>
+        </member>
+        <member name="P:Presenter.DTOs.CreateClientRequest.PhoneNumber">
+            <summary>
+            Номер телефона клиента
+            </summary>
+        </member>
+        <member name="T:Presenter.DTOs.CreateSellerRequest">
+            <summary>
+            DTO для запроса создания продавца
+            </summary>
+        </member>
+        <member name="P:Presenter.DTOs.CreateSellerRequest.ClientId">
+            <summary>
+            Идентификатор клиента
+            </summary>
+        </member>
+        <member name="T:Presenter.DTOs.SellerDto">
+            <summary>
+            DTO для представления продавца
+            </summary>
+        </member>
+        <member name="P:Presenter.DTOs.SellerDto.Id">
+            <summary>
+            Идентификатор продавца
+            </summary>
+        </member>
+        <member name="P:Presenter.DTOs.SellerDto.ClientId">
+            <summary>
+            Идентификатор клиента, связанного с продавцом
+            </summary>
+        </member>
+        <member name="P:Presenter.DTOs.SellerDto.RegisteredAt">
+            <summary>
+            Дата регистрации
+            </summary>
+        </member>
+        <member name="M:Presenter.Extensions.ClientExtensions.ToDTO(Domain.Domain.Customers.Client.Client)">
+            <summary>
+            Преобразует сущность клиента в DTO
+            </summary>
+            <param name="client">Сущность клиента</param>
+            <returns>ClientDto с данными клиента</returns>
+        </member>
+    </members>
+</doc>

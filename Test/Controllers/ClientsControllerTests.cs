@@ -1,0 +1,214 @@
+using CSharpFunctionalExtensions;
+using Microsoft.AspNetCore.Mvc;
+using Moq;
+using Presenter.Controllers;
+using Presenter.DTOs;
+using UseCases.Interfaces;
+using Xunit;
+
+namespace Test.Controllers
+{
+    public class ClientsControllerTests
+    {
+        private readonly Mock<IClientService> _mockClientService;
+        private readonly ClientsController _controller;
+
+        public ClientsControllerTests()
+        {
+            _mockClientService = new Mock<IClientService>();
+            _controller = new ClientsController(_mockClientService.Object);
+        }
+
+
+        [Fact]
+        public async Task CreateClient_ValidRequest_ReturnsCreatedAtActionResult()
+        {
+            // Arrange
+            var request = new CreateClientRequest
+            {
+                FirstName = "Иван",
+                LastName = "Иванов",
+                Email = "ivan@example.com",
+                PhoneNumber = "+79991234567"
+            };
+
+            // Создаем клиента через фабричный метод, используя данные из запроса
+            var client = Domain.Domain.Customers.Client.Client.Create(
+                Domain.Domain.ValueObjects.Name.Create(request.FirstName).Value,
+                Domain.Domain.ValueObjects.Name.Create(request.LastName).Value,
+                Domain.Domain.Customers.Client.VO.ContactInfo.Create(
+                    Domain.Domain.ValueObjects.Email.Create(request.Email).Value,
+                    Domain.Domain.ValueObjects.PhoneNumber.Create(request.PhoneNumber).Value).Value
+            ).Value;
+            
+            var result = Result.Success(client);
+            _mockClientService.Setup(x => x.CreateClientAsync(
+                request.FirstName,
+                request.LastName,
+                request.Email,
+                request.PhoneNumber))
+                .ReturnsAsync(result);
+
+            // Act
+            var actionResult = await _controller.CreateClient(request);
+
+            // Assert
+            var createdAtResult = Assert.IsType<CreatedAtActionResult>(actionResult.Result);
+            Assert.Equal("GetClient", createdAtResult.ActionName);
+        }
+
+        [Fact]
+        public async Task CreateClient_InvalidRequest_ReturnsBadRequest()
+        {
+            // Arrange
+            var request = new CreateClientRequest
+            {
+                FirstName = "",
+                LastName = "",
+                Email = "",
+                PhoneNumber = ""
+            };
+
+            var errorResult = Result.Failure<Domain.Domain.Customers.Client.Client>("Validation error");
+            _mockClientService.Setup(x => x.CreateClientAsync(
+                request.FirstName,
+                request.LastName,
+                request.Email,
+                request.PhoneNumber))
+                .ReturnsAsync(errorResult);
+
+            // Act
+            var actionResult = await _controller.CreateClient(request);
+
+            // Assert
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(actionResult.Result);
+            Assert.Contains("Validation error", badRequestResult.Value.ToString());
+        }
+
+        [Fact]
+        public async Task GetClient_ExistingId_ReturnsOkResult()
+        {
+            // Arrange
+            var clientId = Guid.NewGuid();
+            
+            // Создаем клиента через фабричный метод с фиксированными данными
+            var client = Domain.Domain.Customers.Client.Client.Create(
+                Domain.Domain.ValueObjects.Name.Create("Иван").Value,
+                Domain.Domain.ValueObjects.Name.Create("Иванов").Value,
+                Domain.Domain.Customers.Client.VO.ContactInfo.Create(
+                    Domain.Domain.ValueObjects.Email.Create("ivan@example.com").Value,
+                    Domain.Domain.ValueObjects.PhoneNumber.Create("+79991234567").Value).Value
+            ).Value;
+            
+            var result = Result.Success(client);
+            _mockClientService.Setup(x => x.GetClientByIdAsync(clientId))
+                .ReturnsAsync(result);
+
+            // Act
+            var actionResult = await _controller.GetClient(clientId);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
+            var clientDto = Assert.IsType<ClientDto>(okResult.Value);
+            // Проверяем, что возвращаемые данные соответствуют ожидаемым
+            Assert.Equal("Иван", clientDto.FirstName);
+            Assert.Equal("Иванов", clientDto.LastName);
+            Assert.Equal("ivan@example.com", clientDto.Email);
+        }
+
+        [Fact]
+        public async Task GetClient_NonExistingId_ReturnsBadRequest()
+        {
+            // Arrange
+            var clientId = Guid.NewGuid();
+            var errorResult = Result.Failure<Domain.Domain.Customers.Client.Client>("Client not found");
+            _mockClientService.Setup(x => x.GetClientByIdAsync(clientId))
+                .ReturnsAsync(errorResult);
+
+            // Act
+            var actionResult = await _controller.GetClient(clientId);
+
+            // Assert
+            var badRequestResult = Assert.IsType<BadRequestObjectResult>(actionResult.Result);
+            Assert.Contains("Client not found", badRequestResult.Value.ToString());
+        }
+
+        [Fact]
+        public async Task UpdateClient_ValidRequest_ReturnsOkResult()
+        {
+            // Arrange
+            var clientId = Guid.NewGuid();
+            var request = new CreateClientRequest
+            {
+                FirstName = "Иван",
+                LastName = "Иванов",
+                Email = "ivan@example.com",
+                PhoneNumber = "+79991234567"
+            };
+
+            // Создаем клиента через фабричный метод, используя данные из запроса
+            var client = Domain.Domain.Customers.Client.Client.Create(
+                Domain.Domain.ValueObjects.Name.Create(request.FirstName).Value,
+                Domain.Domain.ValueObjects.Name.Create(request.LastName).Value,
+                Domain.Domain.Customers.Client.VO.ContactInfo.Create(
+                    Domain.Domain.ValueObjects.Email.Create(request.Email).Value,
+                    Domain.Domain.ValueObjects.PhoneNumber.Create(request.PhoneNumber).Value).Value
+            ).Value;
+            
+            var result = Result.Success(client);
+            _mockClientService.Setup(x => x.UpdateClientAsync(
+                clientId,
+                request.FirstName,
+                request.LastName,
+                request.Email,
+                request.PhoneNumber))
+                .ReturnsAsync(result);
+
+            // Act
+            var actionResult = await _controller.UpdateClient(clientId, request);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
+            var clientDto = Assert.IsType<ClientDto>(okResult.Value);
+            // Проверяем, что возвращаемые данные соответствуют ожидаемым
+            Assert.Equal("Иван", clientDto.FirstName);
+            Assert.Equal("Иванов", clientDto.LastName);
+            Assert.Equal("ivan@example.com", clientDto.Email);
+        }
+
+        [Fact]
+        public async Task DeleteClient_ExistingId_ReturnsOkResult()
+        {
+            // Arrange
+            var clientId = Guid.NewGuid();
+            
+            // Мокаем успешное удаление
+            _mockClientService.Setup(x => x.DeleteClientAsync(clientId))
+                .ReturnsAsync(Result.Success());
+            
+            // Создаем клиента через фабричный метод с фиксированными данными
+            var client = Domain.Domain.Customers.Client.Client.Create(
+                Domain.Domain.ValueObjects.Name.Create("Иван").Value,
+                Domain.Domain.ValueObjects.Name.Create("Иванов").Value,
+                Domain.Domain.Customers.Client.VO.ContactInfo.Create(
+                    Domain.Domain.ValueObjects.Email.Create("ivan@example.com").Value,
+                    Domain.Domain.ValueObjects.PhoneNumber.Create("+79991234567").Value).Value
+            ).Value;
+            
+            _mockClientService.Setup(x => x.GetClientByIdAsync(clientId))
+                .ReturnsAsync(Result.Success(client));
+
+            // Act
+            var actionResult = await _controller.DeleteClient(clientId);
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
+            var clientDto = Assert.IsType<ClientDto>(okResult.Value);
+            // Проверяем, что возвращаемые данные соответствуют ожидаемым
+            Assert.Equal("Иван", clientDto.FirstName);
+            Assert.Equal("Иванов", clientDto.LastName);
+            Assert.Equal("ivan@example.com", clientDto.Email);
+        }
+
+    }
+}
