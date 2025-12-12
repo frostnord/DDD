@@ -1,6 +1,6 @@
 using CSharpFunctionalExtensions;
-using Domain.Domain.Customers.Buyer;
-using Domain.Domain.Customers.Buyer.VO;
+using Domain.Customers.Buyer;
+using Domain.Customers.Buyer.VO;
 using Microsoft.EntityFrameworkCore;
 using UseCases.Interfaces.Repositories;
 
@@ -15,32 +15,32 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Result<Buyer>> GetByIdAsync(BuyerId id)
+        public async Task<Result<BuyerEntity>> GetByIdAsync(BuyerId id)
         {
             var buyer = await _context.Buyers
                 .FirstOrDefaultAsync(b => b.Id == id);
 
             return buyer != null
                 ? Result.Success(buyer)
-                : Result.Failure<Buyer>($"Buyer with ID {id.Value} not found");
+                : Result.Failure<BuyerEntity>($"Buyer with ID {id.Value} not found");
         }
 
-        public async Task<Result<IEnumerable<Buyer>>> GetAllAsync()
+        public async Task<Result<IEnumerable<BuyerEntity>>> GetAllAsync()
         {
             var buyers = await _context.Buyers.ToListAsync();
-            return Result.Success<IEnumerable<Buyer>>(buyers);
+            return Result.Success<IEnumerable<BuyerEntity>>(buyers);
         }
 
-        public async Task<Result<Buyer>> AddAsync(Buyer buyer)
+        public async Task<Result<BuyerEntity>> AddAsync(BuyerEntity buyerEntity)
         {
-            await _context.Buyers.AddAsync(buyer);
+            await _context.Buyers.AddAsync(buyerEntity);
             await _context.SaveChangesAsync();
-            return Result.Success(buyer);
+            return Result.Success(buyerEntity);
         }
 
-        public async Task<Result> UpdateAsync(Buyer buyer)
+        public async Task<Result> UpdateAsync(BuyerEntity buyerEntity)
         {
-            _context.Buyers.Update(buyer);
+            _context.Buyers.Update(buyerEntity);
             await _context.SaveChangesAsync();
             return Result.Success();
         }

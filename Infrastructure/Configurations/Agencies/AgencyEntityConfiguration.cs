@@ -1,14 +1,14 @@
-using Domain.Domain.Agency;
-using Domain.Domain.Agency.VO;
-using Domain.Domain.ValueObjects;
+using Domain.Agency;
+using Domain.Agency.VO;
+using Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Infrastructure.Configurations.Agencies;
 
-public sealed class AgencyEntityConfiguration : IEntityTypeConfiguration<Agency>
+public sealed class AgencyEntityConfiguration : IEntityTypeConfiguration<AgencyEntity>
 {
-    public void Configure(EntityTypeBuilder<Agency> builder)
+    public void Configure(EntityTypeBuilder<AgencyEntity> builder)
     {
         // Таблица
         builder.ToTable("agency");

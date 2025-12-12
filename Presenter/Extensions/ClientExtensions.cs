@@ -1,4 +1,4 @@
-using Domain.Domain.Customers.Client;
+using Domain.Customers.Client;
 using Presenter.DTOs;
 
 namespace Presenter.Extensions
@@ -8,22 +8,22 @@ namespace Presenter.Extensions
         /// <summary>
         /// Преобразует сущность клиента в DTO
         /// </summary>
-        /// <param name="client">Сущность клиента</param>
+        /// <param name="clientEntity">Сущность клиента</param>
         /// <returns>ClientDto с данными клиента</returns>
-        public static ClientDto ToDTO(this Client client)
+        public static ClientDto ToDTO(this ClientEntity clientEntity)
         {
-            if (client == null)
+            if (clientEntity == null)
                 return null;
 
             return new ClientDto
             {
-                Id = client.Id.Value,
-                FirstName = client.FirstName.Value,
-                LastName = client.LastName.Value,
-                Email = client.ContactInfo.Email.Value,
-                PhoneNumber = client.ContactInfo.PhoneNumber.Value,
-                RegisteredDate = client.RegisteredDate,
-                UpdatedAt = client.UpdatedAt
+                Id = clientEntity.Id.Value,
+                FirstName = clientEntity.FirstName.Value,
+                LastName = clientEntity.LastName.Value,
+                Email = clientEntity.ContactInfo.Email.Value,
+                PhoneNumber = clientEntity.ContactInfo.PhoneNumber.Value,
+                RegisteredDate = clientEntity.RegisteredDate,
+                UpdatedAt = clientEntity.UpdatedAt
             };
         }
     }

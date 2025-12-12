@@ -1,17 +1,17 @@
-using Domain.Domain.Agency.VO;
-using Domain.Domain.Booking;
-using Domain.Domain.Booking.VO;
-using Domain.Domain.Customers.Client.VO;
-using Domain.Domain.Property.VO;
-using Domain.Domain.ValueObjects;
+using Domain.Agency.VO;
+using Domain.Booking;
+using Domain.Booking.VO;
+using Domain.Customers.Client.VO;
+using Domain.Property.VO;
+using Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Infrastructure.Configurations.Bookings;
 
-public sealed class BookingEntityConfiguration : IEntityTypeConfiguration<Booking>
+public sealed class BookingEntityConfiguration : IEntityTypeConfiguration<BookingEntity>
 {
-    public void Configure(EntityTypeBuilder<Booking> builder)
+    public void Configure(EntityTypeBuilder<BookingEntity> builder)
     {
         // Таблица
         builder.ToTable("booking");

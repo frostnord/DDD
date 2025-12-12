@@ -1,13 +1,14 @@
 using CSharpFunctionalExtensions;
-using Domain.Domain.Customers.Buyer;
-using Domain.Domain.Customers.Client.VO;
-using Domain.Domain.Property.VO;
-using Domain.Domain.ValueObjects;
+using Domain.Customers.Buyer;
+using Domain.Customers.Client.VO;
+using Domain.Property.VO;
+using Domain.ValueObjects;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Presenter.Controllers;
 using Presenter.DTOs;
 using UseCases.Interfaces;
+using UseCases.Interfaces.Services;
 using Xunit;
 
 namespace Test.Controllers
@@ -41,8 +42,8 @@ namespace Test.Controllers
             };
 
             var clientIdVO = ClientId.Create(clientId).Value;
-            
-            var buyer = Buyer.Create(clientIdVO,
+
+            var buyer = BuyerEntity.Create(clientIdVO,
                 ClientSearchCriteria.Create(
                     NumberOfRooms.Create(request.PreferredNumberOfRooms).Value,
                     Floor.Create(request.PreferredFloor).Value,
@@ -53,12 +54,12 @@ namespace Test.Controllers
                     PropertyCondition.Create(request.PreferredCondition).Value
                 ).Value
             ).Value;
-            
+
             var result = Result.Success(buyer);
             _mockBuyerService.Setup(x => x.CreateBuyerAsync(request.ClientId,
-                request.PreferredNumberOfRooms, request.PreferredFloor, request.PreferredTotalFloors,
-                request.PreferredType, request.PreferredHeatingType, request.PreferredCondition,
-                request.PreferParking))
+                    request.PreferredNumberOfRooms, request.PreferredFloor, request.PreferredTotalFloors,
+                    request.PreferredType, request.PreferredHeatingType, request.PreferredCondition,
+                    request.PreferParking))
                 .ReturnsAsync(result);
 
             // Act
@@ -86,11 +87,11 @@ namespace Test.Controllers
                 PreferParking = true
             };
 
-            var errorResult = Result.Failure<Buyer>("Validation error");
+            var errorResult = Result.Failure<BuyerEntity>("Validation error");
             _mockBuyerService.Setup(x => x.CreateBuyerAsync(request.ClientId,
-                request.PreferredNumberOfRooms, request.PreferredFloor, request.PreferredTotalFloors,
-                request.PreferredType, request.PreferredHeatingType, request.PreferredCondition,
-                request.PreferParking))
+                    request.PreferredNumberOfRooms, request.PreferredFloor, request.PreferredTotalFloors,
+                    request.PreferredType, request.PreferredHeatingType, request.PreferredCondition,
+                    request.PreferParking))
                 .ReturnsAsync(errorResult);
 
             // Act
@@ -107,10 +108,10 @@ namespace Test.Controllers
             // Arrange
             var buyerId = Guid.NewGuid();
             var clientId = Guid.NewGuid();
-            
+
             var clientIdVO = ClientId.Create(clientId).Value;
-            
-            var buyer = Buyer.Create(clientIdVO,
+
+            var buyer = BuyerEntity.Create(clientIdVO,
                 ClientSearchCriteria.Create(
                     NumberOfRooms.Create(2).Value,
                     Floor.Create(3).Value,
@@ -121,7 +122,7 @@ namespace Test.Controllers
                     PropertyCondition.Create("Хорошее").Value
                 ).Value
             ).Value;
-            
+
             var result = Result.Success(buyer);
             _mockBuyerService.Setup(x => x.GetBuyerByIdAsync(buyerId))
                 .ReturnsAsync(result);
@@ -141,7 +142,7 @@ namespace Test.Controllers
         {
             // Arrange
             var buyerId = Guid.NewGuid();
-            var errorResult = Result.Failure<Buyer>("Buyer not found");
+            var errorResult = Result.Failure<BuyerEntity>("Buyer not found");
             _mockBuyerService.Setup(x => x.GetBuyerByIdAsync(buyerId))
                 .ReturnsAsync(errorResult);
 
@@ -172,8 +173,8 @@ namespace Test.Controllers
             };
 
             var clientIdVO = ClientId.Create(request.ClientId).Value;
-            
-            var buyer = Buyer.Create(clientIdVO,
+
+            var buyer = BuyerEntity.Create(clientIdVO,
                 ClientSearchCriteria.Create(
                     NumberOfRooms.Create(request.PreferredNumberOfRooms).Value,
                     Floor.Create(request.PreferredFloor).Value,
@@ -184,12 +185,12 @@ namespace Test.Controllers
                     PropertyCondition.Create(request.PreferredCondition).Value
                 ).Value
             ).Value;
-            
+
             var result = Result.Success(buyer);
             _mockBuyerService.Setup(x => x.UpdateBuyerAsync(buyerId, request.ClientId,
-                request.PreferredNumberOfRooms, request.PreferredFloor, request.PreferredTotalFloors,
-                request.PreferredType, request.PreferredHeatingType, request.PreferredCondition,
-                request.PreferParking))
+                    request.PreferredNumberOfRooms, request.PreferredFloor, request.PreferredTotalFloors,
+                    request.PreferredType, request.PreferredHeatingType, request.PreferredCondition,
+                    request.PreferParking))
                 .ReturnsAsync(result);
 
             // Мокаем вызов GetBuyerByIdAsync, который используется в контроллере после обновления
@@ -212,14 +213,14 @@ namespace Test.Controllers
             // Arrange
             var buyerId = Guid.NewGuid();
             var clientId = Guid.NewGuid();
-            
+
             // Мокаем успешное удаление
             _mockBuyerService.Setup(x => x.DeleteBuyerAsync(buyerId))
                 .ReturnsAsync(Result.Success());
-            
+
             var clientIdVO = ClientId.Create(clientId).Value;
-            
-            var buyer = Buyer.Create(clientIdVO,
+
+            var buyer = BuyerEntity.Create(clientIdVO,
                 ClientSearchCriteria.Create(
                     NumberOfRooms.Create(2).Value,
                     Floor.Create(3).Value,
@@ -230,7 +231,7 @@ namespace Test.Controllers
                     PropertyCondition.Create("Хорошее").Value
                 ).Value
             ).Value;
-            
+
             _mockBuyerService.Setup(x => x.GetBuyerByIdAsync(buyerId))
                 .ReturnsAsync(Result.Success(buyer));
 
@@ -248,9 +249,9 @@ namespace Test.Controllers
         public async Task GetBuyers_ReturnsOkResultWithListOfBuyers()
         {
             // Arrange
-            var buyers = new List<Buyer>
+            var buyers = new List<BuyerEntity>
             {
-                Buyer.Create(
+                BuyerEntity.Create(
                     ClientId.Create(Guid.NewGuid()).Value,
                     ClientSearchCriteria.Create(
                         NumberOfRooms.Create(2).Value,
@@ -262,7 +263,7 @@ namespace Test.Controllers
                         PropertyCondition.Create("Хорошее").Value
                     ).Value
                 ).Value,
-                Buyer.Create(
+                BuyerEntity.Create(
                     ClientId.Create(Guid.NewGuid()).Value,
                     ClientSearchCriteria.Create(
                         NumberOfRooms.Create(3).Value,

@@ -1,12 +1,13 @@
 using CSharpFunctionalExtensions;
-using Domain.Domain.Customers.Client.VO;
-using Domain.Domain.Customers.Seller;
-using Domain.Domain.Customers.Seller.VO;
+using Domain.Customers.Client.VO;
+using Domain.Customers.Seller;
+using Domain.Customers.Seller.VO;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Presenter.Controllers;
 using Presenter.DTOs;
 using UseCases.Interfaces;
+using UseCases.Interfaces.Services;
 using Xunit;
 
 namespace Test.Controllers
@@ -35,8 +36,8 @@ namespace Test.Controllers
             // Создаем продавца через фабричный метод, используя ClientId из запроса
             var sellerId = SellerId.Create(Guid.NewGuid()).Value;
             var clientIdObj = ClientId.Create(clientId).Value;
-            var seller = Seller.Create(clientIdObj).Value;
-            
+            var seller = SellerEntity.Create(clientIdObj).Value;
+
             var result = Result.Success(seller);
             _mockSellerService.Setup(x => x.CreateSellerAsync(request.ClientId))
                 .ReturnsAsync(result);
@@ -59,7 +60,7 @@ namespace Test.Controllers
                 ClientId = clientId
             };
 
-            var errorResult = Result.Failure<Seller>("Validation error");
+            var errorResult = Result.Failure<SellerEntity>("Validation error");
             _mockSellerService.Setup(x => x.CreateSellerAsync(request.ClientId))
                 .ReturnsAsync(errorResult);
 
@@ -76,12 +77,12 @@ namespace Test.Controllers
         {
             // Arrange
             var sellerId = Guid.NewGuid();
-            
+
             // Создаем продавца через фабричный метод с фиксированными данными
             var clientId = Guid.NewGuid();
             var clientIdObj = ClientId.Create(clientId).Value;
-            var seller = Seller.Create(clientIdObj).Value;
-            
+            var seller = SellerEntity.Create(clientIdObj).Value;
+
             var result = Result.Success(seller);
             _mockSellerService.Setup(x => x.GetSellerByIdAsync(sellerId))
                 .ReturnsAsync(result);
@@ -101,7 +102,7 @@ namespace Test.Controllers
         {
             // Arrange
             var sellerId = Guid.NewGuid();
-            var errorResult = Result.Failure<Seller>("Seller not found");
+            var errorResult = Result.Failure<SellerEntity>("Seller not found");
             _mockSellerService.Setup(x => x.GetSellerByIdAsync(sellerId))
                 .ReturnsAsync(errorResult);
 
@@ -126,8 +127,8 @@ namespace Test.Controllers
 
             // Создаем продавца через фабричный метод, используя ClientId из запроса
             var clientIdObj = ClientId.Create(clientId).Value;
-            var seller = Seller.Create(clientIdObj).Value;
-            
+            var seller = SellerEntity.Create(clientIdObj).Value;
+
             var result = Result.Success(seller);
             _mockSellerService.Setup(x => x.UpdateSellerAsync(sellerId, request.ClientId))
                 .ReturnsAsync(result);
@@ -151,16 +152,16 @@ namespace Test.Controllers
         {
             // Arrange
             var sellerId = Guid.NewGuid();
-            
+
             // Мокаем успешное удаление
             _mockSellerService.Setup(x => x.DeleteSellerAsync(sellerId))
                 .ReturnsAsync(Result.Success());
-            
+
             // Создаем продавца через фабричный метод с фиксированными данными
             var clientId = Guid.NewGuid();
             var clientIdObj = ClientId.Create(clientId).Value;
-            var seller = Seller.Create(clientIdObj).Value;
-            
+            var seller = SellerEntity.Create(clientIdObj).Value;
+
             _mockSellerService.Setup(x => x.GetSellerByIdAsync(sellerId))
                 .ReturnsAsync(Result.Success(seller));
 

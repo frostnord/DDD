@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Presenter.DTOs;
 using Presenter.Extensions;
 using UseCases.Interfaces;
+using UseCases.Interfaces.Services;
 
 namespace Presenter.Controllers
 {
@@ -36,7 +37,7 @@ namespace Presenter.Controllers
                 request.LastName,
                 request.Email,
                 request.PhoneNumber);
-            
+
             if (result.IsFailure)
             {
                 return BadRequest(new { Error = result.Error });
@@ -96,7 +97,7 @@ namespace Presenter.Controllers
                 clientRequest.LastName,
                 clientRequest.Email,
                 clientRequest.PhoneNumber);
-                
+
             if (result.IsFailure)
             {
                 return BadRequest(new { Error = result.Error });

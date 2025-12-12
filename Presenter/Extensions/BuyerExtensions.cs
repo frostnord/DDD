@@ -1,19 +1,19 @@
-using Domain.Domain.Customers.Buyer;
+using Domain.Customers.Buyer;
 using Presenter.DTOs;
 
 namespace Presenter.Extensions
 {
     public static class BuyerExtensions
     {
-        public static BuyerDto ToDTO(this Buyer buyer)
+        public static BuyerDto ToDTO(this BuyerEntity buyerEntity)
         {
-            if (buyer == null)
+            if (buyerEntity == null)
                 return null;
 
             return new BuyerDto
             {
-                Id = buyer.Id.Value,
-                ClientId = buyer.ClientId.Value,
+                Id = buyerEntity.Id.Value,
+                ClientId = buyerEntity.ClientId.Value,
                 RegisteredAt = DateTime.UtcNow // В реальной реализации это должно быть свойство в сущности
             };
         }

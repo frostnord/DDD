@@ -1,12 +1,13 @@
 using CSharpFunctionalExtensions;
-using Domain.Domain.Customers.Client;
-using Domain.Domain.Customers.Client.VO;
-using Domain.Domain.ValueObjects;
+using Domain.Customers.Client;
+using Domain.Customers.Client.VO;
+using Domain.ValueObjects;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Presenter.Controllers;
 using Presenter.DTOs;
 using UseCases.Interfaces;
+using UseCases.Interfaces.Services;
 using Xunit;
 
 namespace Test.Controllers
@@ -36,20 +37,20 @@ namespace Test.Controllers
             };
 
             // Создаем клиента через фабричный метод, используя данные из запроса
-            var client = Client.Create(
+            var client = ClientEntity.Create(
                 Name.Create(request.FirstName).Value,
                 Name.Create(request.LastName).Value,
                 ContactInfo.Create(
                     Email.Create(request.Email).Value,
                     PhoneNumber.Create(request.PhoneNumber).Value).Value
             ).Value;
-            
+
             var result = Result.Success(client);
             _mockClientService.Setup(x => x.CreateClientAsync(
-                request.FirstName,
-                request.LastName,
-                request.Email,
-                request.PhoneNumber))
+                    request.FirstName,
+                    request.LastName,
+                    request.Email,
+                    request.PhoneNumber))
                 .ReturnsAsync(result);
 
             // Act
@@ -72,12 +73,12 @@ namespace Test.Controllers
                 PhoneNumber = ""
             };
 
-            var errorResult = Result.Failure<Client>("Validation error");
+            var errorResult = Result.Failure<ClientEntity>("Validation error");
             _mockClientService.Setup(x => x.CreateClientAsync(
-                request.FirstName,
-                request.LastName,
-                request.Email,
-                request.PhoneNumber))
+                    request.FirstName,
+                    request.LastName,
+                    request.Email,
+                    request.PhoneNumber))
                 .ReturnsAsync(errorResult);
 
             // Act
@@ -93,16 +94,16 @@ namespace Test.Controllers
         {
             // Arrange
             var clientId = Guid.NewGuid();
-            
+
             // Создаем клиента через фабричный метод с фиксированными данными
-            var client = Client.Create(
+            var client = ClientEntity.Create(
                 Name.Create("Иван").Value,
                 Name.Create("Иванов").Value,
                 ContactInfo.Create(
                     Email.Create("ivan@example.com").Value,
                     PhoneNumber.Create("+79991234567").Value).Value
             ).Value;
-            
+
             var result = Result.Success(client);
             _mockClientService.Setup(x => x.GetClientByIdAsync(clientId))
                 .ReturnsAsync(result);
@@ -124,7 +125,7 @@ namespace Test.Controllers
         {
             // Arrange
             var clientId = Guid.NewGuid();
-            var errorResult = Result.Failure<Client>("Client not found");
+            var errorResult = Result.Failure<ClientEntity>("Client not found");
             _mockClientService.Setup(x => x.GetClientByIdAsync(clientId))
                 .ReturnsAsync(errorResult);
 
@@ -150,21 +151,21 @@ namespace Test.Controllers
             };
 
             // Создаем клиента через фабричный метод, используя данные из запроса
-            var client = Client.Create(
+            var client = ClientEntity.Create(
                 Name.Create(request.FirstName).Value,
                 Name.Create(request.LastName).Value,
                 ContactInfo.Create(
                     Email.Create(request.Email).Value,
                     PhoneNumber.Create(request.PhoneNumber).Value).Value
             ).Value;
-            
+
             var result = Result.Success(client);
             _mockClientService.Setup(x => x.UpdateClientAsync(
-                clientId,
-                request.FirstName,
-                request.LastName,
-                request.Email,
-                request.PhoneNumber))
+                    clientId,
+                    request.FirstName,
+                    request.LastName,
+                    request.Email,
+                    request.PhoneNumber))
                 .ReturnsAsync(result);
 
             // Act
@@ -184,20 +185,20 @@ namespace Test.Controllers
         {
             // Arrange
             var clientId = Guid.NewGuid();
-            
+
             // Мокаем успешное удаление
             _mockClientService.Setup(x => x.DeleteClientAsync(clientId))
                 .ReturnsAsync(Result.Success());
-            
+
             // Создаем клиента через фабричный метод с фиксированными данными
-            var client = Client.Create(
+            var client = ClientEntity.Create(
                 Name.Create("Иван").Value,
                 Name.Create("Иванов").Value,
                 ContactInfo.Create(
                     Email.Create("ivan@example.com").Value,
                     PhoneNumber.Create("+79991234567").Value).Value
             ).Value;
-            
+
             _mockClientService.Setup(x => x.GetClientByIdAsync(clientId))
                 .ReturnsAsync(Result.Success(client));
 
@@ -212,6 +213,5 @@ namespace Test.Controllers
             Assert.Equal("Иванов", clientDto.LastName);
             Assert.Equal("ivan@example.com", clientDto.Email);
         }
-
     }
 }

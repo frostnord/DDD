@@ -1,13 +1,15 @@
 using System.Reflection;
 using CSharpFunctionalExtensions;
-using Domain.Domain.Property;
-using Domain.Domain.Property.VO;
-using Domain.Domain.ValueObjects;
+using Domain.Property;
+using Domain.Property.VO;
+using Domain.ValueObjects;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Presenter.Controllers;
 using Presenter.DTOs;
+using Presenter.DTOs.PropertyDTO;
 using UseCases.Interfaces;
+using UseCases.Interfaces.Services;
 using Xunit;
 
 namespace Test.Controllers
@@ -16,7 +18,7 @@ namespace Test.Controllers
     {
         private readonly Mock<IPropertyService> _mockPropertyService;
         private readonly PropertyController _controller;
-        
+
         // Константы удалены, используем значения из request
 
         public PropertyControllerTests()
@@ -24,31 +26,36 @@ namespace Test.Controllers
             _mockPropertyService = new Mock<IPropertyService>();
             _controller = new PropertyController(_mockPropertyService.Object);
         }
-        
-        private Property CreateTestProperty(CreatePropertyRequest request, PropertyId propertyId = null)
+
+        private PropertyEntity CreateTestProperty(CreatePropertyRequest request, PropertyId propertyId = null)
         {
-            var address = Address.Create(request.Street, request.City, request.HomeNumber, request.ZipCode, request.Country).Value;
+            var address = Address.Create(request.Street, request.City, request.HomeNumber, request.ZipCode,
+                request.Country).Value;
             var price = Price.Create(request.Price).Value;
             var description = Description.Create(request.Description).Value;
             var propertyType = SmartPropertyType.FromName(request.PropertyType);
             var heatingType = HeatingType.Create(request.HeatingType).Value;
             var propertyCondition = PropertyCondition.Create(request.PropertyCondition).Value;
-            var details = PropertyDetails.Create((int)request.Area, request.NumberOfRooms, request.Floor, request.TotalFloors, propertyType, false, request.HasParking ?? false, request.HeatingType, request.PropertyCondition).Value;
-            
+            var details = PropertyDetails.Create((int)request.Area, request.NumberOfRooms, request.Floor,
+                request.TotalFloors, propertyType, false, request.HasParking ?? false, request.HeatingType,
+                request.PropertyCondition).Value;
+
             if (propertyId != null)
             {
                 // Создаем Property с нужным ID
-                var propertyConstructor = typeof(Property).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).First();
+                var propertyConstructor =
+                    typeof(PropertyEntity).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).First();
                 var status = PropertyStatus.FromName("ForSale");
-                return (Property)propertyConstructor.Invoke(new object[] { propertyId, address, price, description, details, status });
+                return (PropertyEntity)propertyConstructor.Invoke(new object[]
+                    { propertyId, address, price, description, details, status });
             }
             else
             {
-                return Property.Create(address, price, description, details).Value;
+                return PropertyEntity.Create(address, price, description, details).Value;
             }
         }
 
-        private Property CreateTestPropertyWithId(Guid guid, CreatePropertyRequest request)
+        private PropertyEntity CreateTestPropertyWithId(Guid guid, CreatePropertyRequest request)
         {
             var propertyId = PropertyId.Create(guid).Value;
             return CreateTestProperty(request, propertyId);
@@ -78,20 +85,20 @@ namespace Test.Controllers
                 OwnerClientId = Guid.NewGuid(),
                 StartDate = DateTime.UtcNow
             };
- 
+
             // Создаем реальный объект Property для теста
             var propertyId = PropertyId.Create(Guid.NewGuid()).Value;
             var property = CreateTestProperty(request);
-            
+
             var result = Result.Success(property);
             _mockPropertyService.Setup(x => x.CreatePropertyAsync(
-                request.Street, request.City, request.HomeNumber, request.ZipCode, request.Country,
-                request.Price, request.Description,
-                request.NumberOfRooms, request.Floor, request.TotalFloors,
-                request.PropertyType, request.HeatingType, request.PropertyCondition,
-                request.Area, request.HasParking, request.OwnerClientId, request.StartDate))
+                    request.Street, request.City, request.HomeNumber, request.ZipCode, request.Country,
+                    request.Price, request.Description,
+                    request.NumberOfRooms, request.Floor, request.TotalFloors,
+                    request.PropertyType, request.HeatingType, request.PropertyCondition,
+                    request.Area, request.HasParking, request.OwnerClientId, request.StartDate))
                 .ReturnsAsync(result);
-            
+
             // Act
             var actionResult = await _controller.CreateProperty(request);
 
@@ -126,13 +133,13 @@ namespace Test.Controllers
                 StartDate = DateTime.UtcNow
             };
 
-            var errorResult = Result.Failure<Property>("Street is required");
+            var errorResult = Result.Failure<PropertyEntity>("Street is required");
             _mockPropertyService.Setup(x => x.CreatePropertyAsync(
-                request.Street, request.City, request.HomeNumber, request.ZipCode, request.Country,
-                request.Price, request.Description,
-                request.NumberOfRooms, request.Floor, request.TotalFloors,
-                request.PropertyType, request.HeatingType, request.PropertyCondition,
-                request.Area, request.HasParking, request.OwnerClientId, request.StartDate))
+                    request.Street, request.City, request.HomeNumber, request.ZipCode, request.Country,
+                    request.Price, request.Description,
+                    request.NumberOfRooms, request.Floor, request.TotalFloors,
+                    request.PropertyType, request.HeatingType, request.PropertyCondition,
+                    request.Area, request.HasParking, request.OwnerClientId, request.StartDate))
                 .ReturnsAsync(errorResult);
 
             // Act
@@ -169,10 +176,10 @@ namespace Test.Controllers
                 OwnerClientId = Guid.NewGuid(),
                 StartDate = DateTime.UtcNow
             };
-            
+
             // Создаем реальный объект Property для теста
             var property = CreateTestPropertyWithId(propertyId, request);
-            
+
             var result = Result.Success(property);
             _mockPropertyService.Setup(x => x.GetPropertyByIdAsync(propertyId))
                 .ReturnsAsync(result);
@@ -192,7 +199,7 @@ namespace Test.Controllers
         {
             // Arrange
             var propertyId = Guid.NewGuid();
-            var errorResult = Result.Failure<Property>("Property not found");
+            var errorResult = Result.Failure<PropertyEntity>("Property not found");
             _mockPropertyService.Setup(x => x.GetPropertyByIdAsync(propertyId))
                 .ReturnsAsync(errorResult);
 
@@ -280,10 +287,11 @@ namespace Test.Controllers
                 .ReturnsAsync(getPropertyResult);
 
             _mockPropertyService.Setup(x => x.UpdatePropertyAsync(
-                propertyId,
-                request.Street, request.City, request.HomeNumber, request.ZipCode, request.Country,
-                request.Price, request.Description, request.NumberOfRooms, request.Floor, request.TotalFloors,
-                request.PropertyType, request.HeatingType, request.PropertyCondition, request.Area, request.HasParking))
+                    propertyId,
+                    request.Street, request.City, request.HomeNumber, request.ZipCode, request.Country,
+                    request.Price, request.Description, request.NumberOfRooms, request.Floor, request.TotalFloors,
+                    request.PropertyType, request.HeatingType, request.PropertyCondition, request.Area,
+                    request.HasParking))
                 .ReturnsAsync(updateResult);
 
             _mockPropertyService.Setup(x => x.GetPropertyByIdAsync(propertyId))
@@ -311,7 +319,7 @@ namespace Test.Controllers
                 MaxPrice = 200000
             };
 
-            var properties = new List<Property>
+            var properties = new List<PropertyEntity>
             {
                 CreateTestProperty(new CreatePropertyRequest
                 {
@@ -335,9 +343,11 @@ namespace Test.Controllers
                 })
             };
 
-            var result = Result.Success((IEnumerable<Property>)properties);
+            var result = Result.Success((IEnumerable<PropertyEntity>)properties);
             _mockPropertyService.Setup(x => x.SearchPropertiesAsync(
-                query.City, query.PropertyType, query.MinPrice, query.MaxPrice, query.MinArea, query.MaxArea, query.MinRooms, query.MaxRooms, query.MinFloor, query.MaxFloor, query.HeatingType, query.PropertyCondition, query.HasParking))
+                    query.City, query.PropertyType, query.MinPrice, query.MaxPrice, query.MinArea, query.MaxArea,
+                    query.MinRooms, query.MaxRooms, query.MinFloor, query.MaxFloor, query.HeatingType,
+                    query.PropertyCondition, query.HasParking))
                 .ReturnsAsync(result);
 
             // Act

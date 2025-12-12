@@ -1,11 +1,11 @@
 using CSharpFunctionalExtensions;
-using Domain.Domain.Customers.Buyer;
-using UseCases.Commands;
+using Domain.Customers.Buyer;
+using UseCases.Clients.Commands;
 using UseCases.Interfaces.Repositories;
 
 namespace UseCases.Handlers
 {
-    public class CreateBuyerCommandHandler : ICommandHandler<CreateBuyerCommand, Buyer>
+    public class CreateBuyerCommandHandler : ICommandHandler<CreateBuyerCommand, BuyerEntity>
     {
         private readonly IBuyerRepository _buyerRepository;
         private readonly IClientRepository _clientRepository;
@@ -18,29 +18,29 @@ namespace UseCases.Handlers
             _clientRepository = clientRepository;
         }
 
-        public async Task<Result<Buyer>> HandleAsync(CreateBuyerCommand command)
+        public async Task<Result<BuyerEntity>> HandleAsync(CreateBuyerCommand command)
         {
             // Проверяем, существует ли клиент
             var clientResult = await _clientRepository.GetByIdAsync(command.ClientId);
             if (clientResult.IsFailure)
             {
-                return Result.Failure<Buyer>($"Client with ID {command.ClientId.Value} does not exist");
+                return Result.Failure<BuyerEntity>($"Client with ID {command.ClientId.Value} does not exist");
             }
 
-            var buyerResult = Buyer.Create(
+            var buyerResult = BuyerEntity.Create(
                 command.ClientId,
                 command.SearchCriteria
             );
 
             if (buyerResult.IsFailure)
             {
-                return Result.Failure<Buyer>(buyerResult.Error);
+                return Result.Failure<BuyerEntity>(buyerResult.Error);
             }
 
             var saveResult = await _buyerRepository.AddAsync(buyerResult.Value);
             if (saveResult.IsFailure)
             {
-                return Result.Failure<Buyer>(saveResult.Error);
+                return Result.Failure<BuyerEntity>(saveResult.Error);
             }
 
             return Result.Success(buyerResult.Value);

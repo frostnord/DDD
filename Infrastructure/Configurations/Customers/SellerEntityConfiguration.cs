@@ -1,15 +1,15 @@
-using Domain.Domain.Customers.Client.VO;
-using Domain.Domain.Customers.Seller;
-using Domain.Domain.Customers.Seller.VO;
-using Domain.Domain.Property.VO;
+using Domain.Customers.Client.VO;
+using Domain.Customers.Seller;
+using Domain.Customers.Seller.VO;
+using Domain.Property.VO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Infrastructure.Configurations.Customers;
 
-public sealed class SellerEntityConfiguration : IEntityTypeConfiguration<Seller>
+public sealed class SellerEntityConfiguration : IEntityTypeConfiguration<SellerEntity>
 {
-    public void Configure(EntityTypeBuilder<Seller> builder)
+    public void Configure(EntityTypeBuilder<SellerEntity> builder)
     {
         // Таблица
         builder.ToTable("sellers");

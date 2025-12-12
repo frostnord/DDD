@@ -1,6 +1,6 @@
 using CSharpFunctionalExtensions;
-using Domain.Domain.Property;
-using Domain.Domain.Property.VO;
+using Domain.Property;
+using Domain.Property.VO;
 using Microsoft.EntityFrameworkCore;
 using UseCases.Interfaces.Repositories;
 
@@ -15,32 +15,32 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Result<Property>> GetByIdAsync(PropertyId id)
+        public async Task<Result<PropertyEntity>> GetByIdAsync(PropertyId id)
         {
             var property = await _context.Properties
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             return property != null
                 ? Result.Success(property)
-                : Result.Failure<Property>($"Property with ID {id.Value} not found");
+                : Result.Failure<PropertyEntity>($"Property with ID {id.Value} not found");
         }
 
-        public async Task<Result<IEnumerable<Property>>> GetAllAsync()
+        public async Task<Result<IEnumerable<PropertyEntity>>> GetAllAsync()
         {
             var properties = await _context.Properties.ToListAsync();
-            return Result.Success<IEnumerable<Property>>(properties);
+            return Result.Success<IEnumerable<PropertyEntity>>(properties);
         }
 
-        public async Task<Result<Property>> AddAsync(Property property)
+        public async Task<Result<PropertyEntity>> AddAsync(PropertyEntity propertyEntity)
         {
-            await _context.Properties.AddAsync(property);
+            await _context.Properties.AddAsync(propertyEntity);
             await _context.SaveChangesAsync();
-            return Result.Success(property);
+            return Result.Success(propertyEntity);
         }
 
-        public async Task<Result> UpdateAsync(Property property)
+        public async Task<Result> UpdateAsync(PropertyEntity propertyEntity)
         {
-            _context.Properties.Update(property);
+            _context.Properties.Update(propertyEntity);
             await _context.SaveChangesAsync();
             return Result.Success();
         }

@@ -42,12 +42,12 @@ namespace Presenter.DTOs
         [RegularExpression(@"^(\+7|8)(\s|-|\()?([0-9]{3})(\s|-|\))?([0-9]{3})(\s|-)?([0-9]{2})(\s|-)?([0-9]{2})$",
             ErrorMessage = "Некорректный формат российского номера телефона")]
         public string PhoneNumber { get; set; }
-        
+
         /// <summary>
         /// Дата регистрации
         /// </summary>
         public DateTime RegisteredDate { get; set; }
-        
+
         /// <summary>
         /// Дата последнего обновления
         /// </summary>

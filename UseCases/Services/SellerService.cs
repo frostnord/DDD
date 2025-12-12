@@ -1,9 +1,11 @@
 using CSharpFunctionalExtensions;
-using Domain.Domain.Customers.Client.VO;
-using Domain.Domain.Customers.Seller;
-using Domain.Domain.Customers.Seller.VO;
+using Domain.Customers.Client.VO;
+using Domain.Customers.Seller;
+using Domain.Customers.Seller.VO;
+using Domain.Property.VO;
 using UseCases.Interfaces;
 using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 
 namespace UseCases.Services
 {
@@ -18,47 +20,47 @@ namespace UseCases.Services
             _clientRepository = clientRepository;
         }
 
-        public async Task<Result<Seller>> CreateSellerAsync(Guid clientId)
+        public async Task<Result<SellerEntity>> CreateSellerAsync(Guid clientId)
         {
             var clientIdResult = ClientId.Create(clientId);
             if (clientIdResult.IsFailure)
             {
-                return Result.Failure<Seller>(clientIdResult.Error);
+                return Result.Failure<SellerEntity>(clientIdResult.Error);
             }
 
             var clientResult = await _clientRepository.GetByIdAsync(clientIdResult.Value);
             if (clientResult.IsFailure)
             {
-                return Result.Failure<Seller>($"Client with ID {clientId} does not exist");
+                return Result.Failure<SellerEntity>($"Client with ID {clientId} does not exist");
             }
 
-            var sellerResult = Seller.Create(clientIdResult.Value);
+            var sellerResult = SellerEntity.Create(clientIdResult.Value);
             if (sellerResult.IsFailure)
             {
-                return Result.Failure<Seller>(sellerResult.Error);
+                return Result.Failure<SellerEntity>(sellerResult.Error);
             }
 
             var saveResult = await _sellerRepository.AddAsync(sellerResult.Value);
             if (saveResult.IsFailure)
             {
-                return Result.Failure<Seller>(saveResult.Error);
+                return Result.Failure<SellerEntity>(saveResult.Error);
             }
 
             return Result.Success(sellerResult.Value);
         }
 
-        public async Task<Result<Seller>> GetSellerByIdAsync(Guid sellerId)
+        public async Task<Result<SellerEntity>> GetSellerByIdAsync(Guid sellerId)
         {
             var sellerIdResult = SellerId.Create(sellerId);
             if (sellerIdResult.IsFailure)
             {
-                return Result.Failure<Seller>(sellerIdResult.Error);
+                return Result.Failure<SellerEntity>(sellerIdResult.Error);
             }
 
             return await _sellerRepository.GetByIdAsync(sellerIdResult.Value);
         }
 
-        public async Task<Result<IEnumerable<Seller>>> GetAllSellersAsync()
+        public async Task<Result<IEnumerable<SellerEntity>>> GetAllSellersAsync()
         {
             return await _sellerRepository.GetAllAsync();
         }
@@ -110,6 +112,68 @@ namespace UseCases.Services
 
             var deleteResult = await _sellerRepository.DeleteAsync(sellerIdResult.Value);
             return deleteResult;
+        }
+
+        public async Task<Result> AddPropertyToSellerAsync(Guid sellerId, Guid propertyId)
+        {
+            var sellerIdResult = SellerId.Create(sellerId);
+            if (sellerIdResult.IsFailure)
+            {
+                return Result.Failure(sellerIdResult.Error);
+            }
+
+            var propertyIdResult = PropertyId.Create(propertyId);
+            if (propertyIdResult.IsFailure)
+            {
+                return Result.Failure(propertyIdResult.Error);
+            }
+
+            var sellerResult = await _sellerRepository.GetByIdAsync(sellerIdResult.Value);
+            if (sellerResult.IsFailure)
+            {
+                return Result.Failure(sellerResult.Error);
+            }
+
+            var attachResult = sellerResult.Value.AttachProperty(propertyIdResult.Value);
+            if (attachResult.IsFailure)
+            {
+                return Result.Failure(attachResult.Error);
+            }
+
+            // Обновляем продавца в репозитории
+            var updateResult = await _sellerRepository.UpdateAsync(sellerResult.Value);
+            return updateResult;
+        }
+
+        public async Task<Result> RemovePropertyFromSellerAsync(Guid sellerId, Guid propertyId)
+        {
+            var sellerIdResult = SellerId.Create(sellerId);
+            if (sellerIdResult.IsFailure)
+            {
+                return Result.Failure(sellerIdResult.Error);
+            }
+
+            var propertyIdResult = PropertyId.Create(propertyId);
+            if (propertyIdResult.IsFailure)
+            {
+                return Result.Failure(propertyIdResult.Error);
+            }
+
+            var sellerResult = await _sellerRepository.GetByIdAsync(sellerIdResult.Value);
+            if (sellerResult.IsFailure)
+            {
+                return Result.Failure(sellerResult.Error);
+            }
+
+            var detachResult = sellerResult.Value.DetachProperty(propertyIdResult.Value);
+            if (detachResult.IsFailure)
+            {
+                return Result.Failure(detachResult.Error);
+            }
+
+            // Обновляем продавца в репозитории
+            var updateResult = await _sellerRepository.UpdateAsync(sellerResult.Value);
+            return updateResult;
         }
     }
 }

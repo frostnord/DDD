@@ -1,16 +1,16 @@
-using Domain.Domain.Customers.Buyer;
-using Domain.Domain.Customers.Buyer.VO;
-using Domain.Domain.Customers.Client.VO;
-using Domain.Domain.Property.VO;
-using Domain.Domain.ValueObjects;
+using Domain.Customers.Buyer;
+using Domain.Customers.Buyer.VO;
+using Domain.Customers.Client.VO;
+using Domain.Property.VO;
+using Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Infrastructure.Configurations.Customers;
 
-public sealed class BuyerEntityConfiguration : IEntityTypeConfiguration<Buyer>
+public sealed class BuyerEntityConfiguration : IEntityTypeConfiguration<BuyerEntity>
 {
-    public void Configure(EntityTypeBuilder<Buyer> builder)
+    public void Configure(EntityTypeBuilder<BuyerEntity> builder)
     {
         // Таблица
         builder.ToTable("buyers");
@@ -63,7 +63,7 @@ public sealed class BuyerEntityConfiguration : IEntityTypeConfiguration<Buyer>
             criteriaBuilder.Property(c => c.PreferredHeatingType)
                 .HasConversion(v => v.Name, v => HeatingType.FromName(v))
                 .IsRequired()
-                .HasMaxLength(Buyer.MAX_HEATING_TYPE_LENGTH)
+                .HasMaxLength(BuyerEntity.MAX_HEATING_TYPE_LENGTH)
                 .HasColumnName("preferred_heating_type");
 
             criteriaBuilder.Property(c => c.PreferredCondition)

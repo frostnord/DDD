@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Presenter.DTOs;
 using Presenter.Extensions;
 using UseCases.Interfaces;
+using UseCases.Interfaces.Services;
 
 namespace Presenter.Controllers
 {
@@ -31,7 +32,9 @@ namespace Presenter.Controllers
         [HttpPost]
         public async Task<ActionResult<BuyerDto>> CreateBuyer([FromBody] CreateBuyerRequest request)
         {
-            var result = await _buyerService.CreateBuyerAsync(request.ClientId, request.PreferredNumberOfRooms, request.PreferredFloor, request.PreferredTotalFloors, request.PreferredType, request.PreferredHeatingType, request.PreferredCondition, request.PreferParking);
+            var result = await _buyerService.CreateBuyerAsync(request.ClientId, request.PreferredNumberOfRooms,
+                request.PreferredFloor, request.PreferredTotalFloors, request.PreferredType,
+                request.PreferredHeatingType, request.PreferredCondition, request.PreferParking);
 
             if (result.IsFailure)
             {
@@ -86,7 +89,9 @@ namespace Presenter.Controllers
         [HttpPut("{id}")]
         public async Task<ActionResult<BuyerDto>> UpdateBuyer(Guid id, [FromBody] CreateBuyerRequest request)
         {
-            var result = await _buyerService.UpdateBuyerAsync(id, request.ClientId, request.PreferredNumberOfRooms, request.PreferredFloor, request.PreferredTotalFloors, request.PreferredType, request.PreferredHeatingType, request.PreferredCondition, request.PreferParking);
+            var result = await _buyerService.UpdateBuyerAsync(id, request.ClientId, request.PreferredNumberOfRooms,
+                request.PreferredFloor, request.PreferredTotalFloors, request.PreferredType,
+                request.PreferredHeatingType, request.PreferredCondition, request.PreferParking);
             if (result.IsFailure)
             {
                 return BadRequest(new { Error = result.Error });

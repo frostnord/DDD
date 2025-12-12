@@ -1,16 +1,16 @@
-using Domain.Domain.Booking.VO;
-using Domain.Domain.Customers.Client.VO;
-using Domain.Domain.Deal;
-using Domain.Domain.Property.VO;
-using Domain.Domain.ValueObjects;
+using Domain.Booking.VO;
+using Domain.Customers.Client.VO;
+using Domain.Deal;
+using Domain.Property.VO;
+using Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Infrastructure.Configurations.Deals;
 
-public sealed class DealEntityConfiguration : IEntityTypeConfiguration<Deal>
+public sealed class DealEntityConfiguration : IEntityTypeConfiguration<DealEntity>
 {
-    public void Configure(EntityTypeBuilder<Deal> builder)
+    public void Configure(EntityTypeBuilder<DealEntity> builder)
     {
         // Создаем таблицу
         builder.ToTable("deals");

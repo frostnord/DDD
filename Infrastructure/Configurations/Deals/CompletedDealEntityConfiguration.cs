@@ -1,7 +1,7 @@
-using Domain.Domain.Customers.Client.VO;
-using Domain.Domain.Deal;
-using Domain.Domain.Property.VO;
-using Domain.Domain.ValueObjects;
+using Domain.Customers.Client.VO;
+using Domain.Deal;
+using Domain.Property.VO;
+using Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 

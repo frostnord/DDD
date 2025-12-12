@@ -1,4 +1,4 @@
-namespace UseCases.Commands
+namespace UseCases.Clients.Commands
 {
     public interface ICommand;
 

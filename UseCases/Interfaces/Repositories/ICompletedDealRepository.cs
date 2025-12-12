@@ -1,7 +1,7 @@
 using CSharpFunctionalExtensions;
-using Domain.Domain.Customers.Client.VO;
-using Domain.Domain.Deal;
-using Domain.Domain.Property.VO;
+using Domain.Customers.Client.VO;
+using Domain.Deal;
+using Domain.Property.VO;
 
 namespace UseCases.Interfaces.Repositories
 {

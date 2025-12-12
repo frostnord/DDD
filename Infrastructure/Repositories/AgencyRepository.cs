@@ -1,6 +1,6 @@
 using CSharpFunctionalExtensions;
-using Domain.Domain.Agency;
-using Domain.Domain.Agency.VO;
+using Domain.Agency;
+using Domain.Agency.VO;
 using Microsoft.EntityFrameworkCore;
 using UseCases.Interfaces.Repositories;
 
@@ -15,33 +15,33 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Result<Agency>> GetByIdAsync(AgencyId id)
+        public async Task<Result<AgencyEntity>> GetByIdAsync(AgencyId id)
         {
             var agency = await _context.Agencies
                 .FirstOrDefaultAsync(a => a.Id == id);
 
             return agency != null
                 ? Result.Success(agency)
-                : Result.Failure<Agency>($"Agency with ID {id.Value} not found");
+                : Result.Failure<AgencyEntity>($"Agency with ID {id.Value} not found");
         }
 
-        public async Task<Result> SaveAsync(Agency agency)
+        public async Task<Result> SaveAsync(AgencyEntity agencyEntity)
         {
-            if (agency == null)
+            if (agencyEntity == null)
                 return Result.Failure("Agency cannot be null");
 
-            _context.Agencies.Update(agency);
+            _context.Agencies.Update(agencyEntity);
             await _context.SaveChangesAsync();
 
             return Result.Success();
         }
 
-        public async Task<Result> UpdateAsync(Agency agency)
+        public async Task<Result> UpdateAsync(AgencyEntity agencyEntity)
         {
-            if (agency == null)
+            if (agencyEntity == null)
                 return Result.Failure("Agency cannot be null");
 
-            _context.Agencies.Update(agency);
+            _context.Agencies.Update(agencyEntity);
             await _context.SaveChangesAsync();
 
             return Result.Success();

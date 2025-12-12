@@ -1,6 +1,6 @@
 using CSharpFunctionalExtensions;
-using Domain.Domain.Customers.Seller;
-using Domain.Domain.Customers.Seller.VO;
+using Domain.Customers.Seller;
+using Domain.Customers.Seller.VO;
 using Microsoft.EntityFrameworkCore;
 using UseCases.Interfaces.Repositories;
 
@@ -15,32 +15,32 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Result<Seller>> GetByIdAsync(SellerId id)
+        public async Task<Result<SellerEntity>> GetByIdAsync(SellerId id)
         {
             var seller = await _context.Sellers
                 .FirstOrDefaultAsync(s => s.Id == id);
 
             return seller != null
                 ? Result.Success(seller)
-                : Result.Failure<Seller>($"Seller with ID {id.Value} not found");
+                : Result.Failure<SellerEntity>($"Seller with ID {id.Value} not found");
         }
 
-        public async Task<Result<IEnumerable<Seller>>> GetAllAsync()
+        public async Task<Result<IEnumerable<SellerEntity>>> GetAllAsync()
         {
             var sellers = await _context.Sellers.ToListAsync();
-            return Result.Success<IEnumerable<Seller>>(sellers);
+            return Result.Success<IEnumerable<SellerEntity>>(sellers);
         }
 
-        public async Task<Result<Seller>> AddAsync(Seller seller)
+        public async Task<Result<SellerEntity>> AddAsync(SellerEntity sellerEntity)
         {
-            await _context.Sellers.AddAsync(seller);
+            await _context.Sellers.AddAsync(sellerEntity);
             await _context.SaveChangesAsync();
-            return Result.Success(seller);
+            return Result.Success(sellerEntity);
         }
 
-        public async Task<Result> UpdateAsync(Seller seller)
+        public async Task<Result> UpdateAsync(SellerEntity sellerEntity)
         {
-            _context.Sellers.Update(seller);
+            _context.Sellers.Update(sellerEntity);
             await _context.SaveChangesAsync();
             return Result.Success();
         }

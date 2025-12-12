@@ -1,11 +1,11 @@
 using System.Reflection;
 using CSharpFunctionalExtensions;
-using Domain.Domain.Agency.VO;
-using Domain.Domain.Booking;
-using Domain.Domain.Booking.VO;
-using Domain.Domain.Customers.Client.VO;
-using Domain.Domain.Property.VO;
-using Domain.Domain.ValueObjects;
+using Domain.Agency.VO;
+using Domain.Booking;
+using Domain.Booking.VO;
+using Domain.Customers.Client.VO;
+using Domain.Property.VO;
+using Domain.ValueObjects;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Presenter.Controllers;
@@ -19,7 +19,7 @@ namespace Test.Controllers
 {
     public class BookingsControllerTests
     {
-        private readonly Mock<ICommandHandler<CreateBookingCommand, Booking>> _mockCreateBookingHandler;
+        private readonly Mock<ICommandHandler<CreateBookingCommand, BookingEntity>> _mockCreateBookingHandler;
         private readonly Mock<ICommandHandler<ConfirmBookingCommand>> _mockConfirmBookingHandler;
         private readonly Mock<ICommandHandler<CancelBookingCommand>> _mockCancelBookingHandler;
         private readonly Mock<IBookingRepository> _mockBookingRepository;
@@ -27,7 +27,7 @@ namespace Test.Controllers
 
         public BookingsControllerTests()
         {
-            _mockCreateBookingHandler = new Mock<ICommandHandler<CreateBookingCommand, Booking>>();
+            _mockCreateBookingHandler = new Mock<ICommandHandler<CreateBookingCommand, BookingEntity>>();
             _mockConfirmBookingHandler = new Mock<ICommandHandler<ConfirmBookingCommand>>();
             _mockCancelBookingHandler = new Mock<ICommandHandler<CancelBookingCommand>>();
             _mockBookingRepository = new Mock<IBookingRepository>();
@@ -52,7 +52,7 @@ namespace Test.Controllers
                 TotalPrice = 100
             };
 
-            var booking = Booking.Create(
+            var booking = BookingEntity.Create(
                 ClientId.Create(request.ClientId).Value,
                 PropertyId.Create(request.PropertyId).Value,
                 AgencyId.Create(request.AgencyId).Value,
@@ -87,7 +87,7 @@ namespace Test.Controllers
                 TotalPrice = 100
             };
 
-            var errorResult = Result.Failure<Booking>("Validation error");
+            var errorResult = Result.Failure<BookingEntity>("Validation error");
             _mockCreateBookingHandler.Setup(x => x.HandleAsync(It.IsAny<CreateBookingCommand>()))
                 .ReturnsAsync(errorResult);
 
@@ -105,10 +105,12 @@ namespace Test.Controllers
             // Arrange
             var bookingId = Guid.NewGuid();
             var bookingVOId = BookingId.Create(bookingId).Value;
-            
+
             // Создаем бронирование с нужным ID
-            var bookingConstructor = typeof(Booking).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).First();
-            var booking = (Booking)bookingConstructor.Invoke(new object[] { 
+            var bookingConstructor =
+                typeof(BookingEntity).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).First();
+            var booking = (BookingEntity)bookingConstructor.Invoke(new object[]
+            {
                 bookingVOId,
                 ClientId.Create(Guid.NewGuid()).Value,
                 PropertyId.Create(Guid.NewGuid()).Value,
@@ -151,7 +153,7 @@ namespace Test.Controllers
             var bookingId = Guid.NewGuid();
             var bookingVOId = BookingId.Create(bookingId).Value;
 
-            var errorResult = Result.Failure<Booking>("Booking not found");
+            var errorResult = Result.Failure<BookingEntity>("Booking not found");
             _mockBookingRepository.Setup(x => x.GetByIdAsync(bookingVOId))
                 .ReturnsAsync(errorResult);
 
@@ -167,9 +169,9 @@ namespace Test.Controllers
         public async Task GetBookings_ValidRequest_ReturnsOkResult()
         {
             // Arrange
-            var bookings = new List<Booking>
+            var bookings = new List<BookingEntity>
             {
-                Booking.Create(
+                BookingEntity.Create(
                     ClientId.Create(Guid.NewGuid()).Value,
                     PropertyId.Create(Guid.NewGuid()).Value,
                     AgencyId.Create(Guid.NewGuid()).Value,

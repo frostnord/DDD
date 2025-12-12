@@ -1,11 +1,12 @@
 using CSharpFunctionalExtensions;
-using Domain.Domain.Customers.Seller;
-using UseCases.Commands;
+using Domain.Customers.Client.VO;
+using Domain.Customers.Seller;
+using UseCases.Clients.Commands;
 using UseCases.Interfaces.Repositories;
 
 namespace UseCases.Handlers
 {
-    public class CreateSellerCommandHandler : ICommandHandler<CreateSellerCommand, Seller>
+    public class CreateSellerCommandHandler : ICommandHandler<CreateSellerCommand, SellerEntity>
     {
         private readonly ISellerRepository _sellerRepository;
         private readonly IClientRepository _clientRepository;
@@ -18,28 +19,30 @@ namespace UseCases.Handlers
             _clientRepository = clientRepository;
         }
 
-        public async Task<Result<Seller>> HandleAsync(CreateSellerCommand command)
+        public async Task<Result<SellerEntity>> HandleAsync(CreateSellerCommand command)
         {
-            // Проверяем, существует ли клиент
-            var clientResult = await _clientRepository.GetByIdAsync(command.ClientId);
-            if (clientResult.IsFailure)
+            var clientIdResult = ClientId.Create(command.ClientId);
+            if (clientIdResult.IsFailure)
             {
-                return Result.Failure<Seller>($"Client with ID {command.ClientId.Value} does not exist");
+                return Result.Failure<SellerEntity>(clientIdResult.Error);
             }
 
-            var sellerResult = Seller.Create(
-                command.ClientId
-            );
+            var clientResult = await _clientRepository.GetByIdAsync(clientIdResult.Value);
+            if (clientResult.IsFailure)
+            {
+                return Result.Failure<SellerEntity>($"Client with ID {command.ClientId} does not exist");
+            }
 
+            var sellerResult = SellerEntity.Create(clientIdResult.Value);
             if (sellerResult.IsFailure)
             {
-                return Result.Failure<Seller>(sellerResult.Error);
+                return Result.Failure<SellerEntity>(sellerResult.Error);
             }
 
             var saveResult = await _sellerRepository.AddAsync(sellerResult.Value);
             if (saveResult.IsFailure)
             {
-                return Result.Failure<Seller>(saveResult.Error);
+                return Result.Failure<SellerEntity>(saveResult.Error);
             }
 
             return Result.Success(sellerResult.Value);

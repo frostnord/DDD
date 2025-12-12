@@ -1,20 +1,20 @@
-using Domain.Domain.Customers.Seller;
+using Domain.Customers.Seller;
 using Presenter.DTOs;
 
 namespace Presenter.Extensions
 {
     public static class SellerExtensions
     {
-        public static SellerDto ToDTO(this Seller seller)
+        public static SellerDto ToDTO(this SellerEntity sellerEntity)
         {
-            if (seller == null)
+            if (sellerEntity == null)
                 return null;
 
             return new SellerDto
             {
-                Id = seller.Id.Value,
-                ClientId = seller.ClientId.Value,
-                RegisteredAt = DateTime.UtcNow 
+                Id = sellerEntity.Id.Value,
+                ClientId = sellerEntity.ClientId.Value,
+                RegisteredAt = DateTime.UtcNow
             };
         }
     }

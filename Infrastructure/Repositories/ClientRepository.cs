@@ -1,6 +1,6 @@
 using CSharpFunctionalExtensions;
-using Domain.Domain.Customers.Client;
-using Domain.Domain.Customers.Client.VO;
+using Domain.Customers.Client;
+using Domain.Customers.Client.VO;
 using Microsoft.EntityFrameworkCore;
 using UseCases.Interfaces.Repositories;
 
@@ -15,32 +15,32 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Result<Client>> GetByIdAsync(ClientId id)
+        public async Task<Result<ClientEntity>> GetByIdAsync(ClientId id)
         {
             var client = await _context.Clients
                 .FirstOrDefaultAsync(c => c.Id == id);
 
             return client != null
                 ? Result.Success(client)
-                : Result.Failure<Client>($"Client with ID {id.Value} not found");
+                : Result.Failure<ClientEntity>($"Client with ID {id.Value} not found");
         }
 
-        public async Task<Result<IEnumerable<Client>>> GetAllAsync()
+        public async Task<Result<IEnumerable<ClientEntity>>> GetAllAsync()
         {
             var clients = await _context.Clients.ToListAsync();
-            return Result.Success<IEnumerable<Client>>(clients);
+            return Result.Success<IEnumerable<ClientEntity>>(clients);
         }
 
-        public async Task<Result<Client>> AddAsync(Client client)
+        public async Task<Result<ClientEntity>> AddAsync(ClientEntity clientEntity)
         {
-            await _context.Clients.AddAsync(client);
+            await _context.Clients.AddAsync(clientEntity);
             await _context.SaveChangesAsync();
-            return Result.Success(client);
+            return Result.Success(clientEntity);
         }
 
-        public async Task<Result> UpdateAsync(Client client)
+        public async Task<Result> UpdateAsync(ClientEntity clientEntity)
         {
-            _context.Clients.Update(client);
+            _context.Clients.Update(clientEntity);
             await _context.SaveChangesAsync();
             return Result.Success();
         }

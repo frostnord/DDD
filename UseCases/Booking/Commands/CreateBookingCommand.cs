@@ -1,8 +1,9 @@
+using Domain.Booking;
 using UseCases.Clients.Commands;
 
 namespace UseCases.Booking.Commands
 {
-    public class CreateBookingCommand : ICommand<Domain.Domain.Booking.Booking>
+    public class CreateBookingCommand : ICommand<BookingEntity>
     {
         public Guid ClientId { get; set; }
         public Guid PropertyId { get; set; }

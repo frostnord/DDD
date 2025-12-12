@@ -33,7 +33,7 @@ namespace Presenter.DTOs
         /// Номер телефона клиента
         /// </summary>
         [Required(ErrorMessage = "Номер телефона обязателен")]
-        [RegularExpression(@"^(\+7|8)(\s|-|\()?([0-9]{3})(\s|-|\))?([0-9]{3})(\s|-)?([0-9]{2})(\s|-)?([0-9]{2})$", 
+        [RegularExpression(@"^(\+7|8)(\s|-|\()?([0-9]{3})(\s|-|\))?([0-9]{3})(\s|-)?([0-9]{2})(\s|-)?([0-9]{2})$",
             ErrorMessage = "Некорректный формат российского номера телефона")]
         public string PhoneNumber { get; set; }
     }

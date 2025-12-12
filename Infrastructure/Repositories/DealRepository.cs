@@ -1,7 +1,7 @@
 using CSharpFunctionalExtensions;
-using Domain.Domain.Customers.Client.VO;
-using Domain.Domain.Deal;
-using Domain.Domain.Property.VO;
+using Domain.Customers.Client.VO;
+using Domain.Deal;
+using Domain.Property.VO;
 using Microsoft.EntityFrameworkCore;
 using UseCases.Interfaces.Repositories;
 
@@ -16,44 +16,44 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Result<Deal>> GetByIdAsync(DealId id)
+        public async Task<Result<DealEntity>> GetByIdAsync(DealId id)
         {
             var deal = await _context.Deals
                 .FirstOrDefaultAsync(d => d.Id == id);
 
             return deal != null
                 ? Result.Success(deal)
-                : Result.Failure<Deal>($"Deal with ID {id.Value} not found");
+                : Result.Failure<DealEntity>($"Deal with ID {id.Value} not found");
         }
 
-        public async Task<Result<IEnumerable<Deal>>> GetByClientIdAsync(ClientId clientId)
+        public async Task<Result<IEnumerable<DealEntity>>> GetByClientIdAsync(ClientId clientId)
         {
             var deals = await _context.Deals
                 .Where(d => d.ClientId == clientId)
                 .ToListAsync();
 
-            return Result.Success<IEnumerable<Deal>>(deals);
+            return Result.Success<IEnumerable<DealEntity>>(deals);
         }
 
-        public async Task<Result<IEnumerable<Deal>>> GetByPropertyIdAsync(PropertyId propertyId)
+        public async Task<Result<IEnumerable<DealEntity>>> GetByPropertyIdAsync(PropertyId propertyId)
         {
             var deals = await _context.Deals
                 .Where(d => d.PropertyId == propertyId)
                 .ToListAsync();
 
-            return Result.Success<IEnumerable<Deal>>(deals);
+            return Result.Success<IEnumerable<DealEntity>>(deals);
         }
 
-        public async Task<Result<Deal>> AddAsync(Deal deal)
+        public async Task<Result<DealEntity>> AddAsync(DealEntity dealEntity)
         {
-            await _context.Deals.AddAsync(deal);
+            await _context.Deals.AddAsync(dealEntity);
             await _context.SaveChangesAsync();
-            return Result.Success(deal);
+            return Result.Success(dealEntity);
         }
 
-        public async Task<Result> UpdateAsync(Deal deal)
+        public async Task<Result> UpdateAsync(DealEntity dealEntity)
         {
-            _context.Deals.Update(deal);
+            _context.Deals.Update(dealEntity);
             await _context.SaveChangesAsync();
             return Result.Success();
         }

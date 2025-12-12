@@ -14,7 +14,7 @@ namespace Presenter.DTOs
         /// Идентификатор клиента, связанного с покупателем
         /// </summary>
         public Guid ClientId { get; set; }
-        
+
         /// <summary>
         /// Дата регистрации
         /// </summary>

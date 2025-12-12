@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Presenter.DTOs;
 using Presenter.Extensions;
 using UseCases.Interfaces;
+using UseCases.Interfaces.Services;
 
 namespace Presenter.Controllers
 {
@@ -91,10 +92,5 @@ namespace Presenter.Controllers
 
             return Ok(getSellerResult.Value.ToDTO());
         }
-        
     }
 }
-             
-
-
-
