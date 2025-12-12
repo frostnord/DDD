@@ -2,8 +2,9 @@ using Domain.Customers.Client.VO;
 using Domain.Deal;
 using Domain.Property.VO;
 using Domain.ValueObjects;
+using UseCases.Interfaces.Commands;
 
-namespace UseCases.Clients.Commands
+namespace UseCases.Deal
 {
     public class CreateCompleteDealCommand : ICommand<CompletedDeal>
     {

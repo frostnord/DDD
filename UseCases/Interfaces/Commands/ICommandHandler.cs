@@ -1,6 +1,6 @@
 using CSharpFunctionalExtensions;
 
-namespace UseCases.Clients.Commands
+namespace UseCases.Interfaces.Commands
 {
     public interface ICommandHandler<in TCommand> where TCommand : ICommand
     {

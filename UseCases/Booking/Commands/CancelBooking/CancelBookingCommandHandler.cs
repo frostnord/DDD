@@ -1,10 +1,9 @@
 using CSharpFunctionalExtensions;
 using Domain.Booking.VO;
-using UseCases.Booking.Commands;
-using UseCases.Clients.Commands;
+using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Repositories;
 
-namespace UseCases.Handlers
+namespace UseCases.Booking.Commands.CancelBooking
 {
     public class CancelBookingCommandHandler : ICommandHandler<CancelBookingCommand>
     {

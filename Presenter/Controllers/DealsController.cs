@@ -1,6 +1,7 @@
 using Domain.Deal;
 using Microsoft.AspNetCore.Mvc;
-using UseCases.Clients.Commands;
+using UseCases.Deal;
+using UseCases.Interfaces.Commands;
 
 namespace Presenter.Controllers
 {

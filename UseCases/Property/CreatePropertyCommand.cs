@@ -1,8 +1,9 @@
 using Domain.Property;
 using Domain.Property.VO;
 using Domain.ValueObjects;
+using UseCases.Interfaces.Commands;
 
-namespace UseCases.Clients.Commands
+namespace UseCases.Property
 {
     public class CreatePropertyCommand : ICommand<PropertyEntity>
     {

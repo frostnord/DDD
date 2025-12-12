@@ -1,6 +1,6 @@
-using UseCases.Clients.Commands;
+using UseCases.Interfaces.Commands;
 
-namespace UseCases.Booking.Commands
+namespace UseCases.Booking.Commands.CancelBooking
 {
     public class CancelBookingCommand : ICommand
     {

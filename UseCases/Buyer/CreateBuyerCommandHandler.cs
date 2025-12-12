@@ -1,9 +1,9 @@
 using CSharpFunctionalExtensions;
 using Domain.Customers.Buyer;
-using UseCases.Clients.Commands;
+using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Repositories;
 
-namespace UseCases.Handlers
+namespace UseCases.Buyer
 {
     public class CreateBuyerCommandHandler : ICommandHandler<CreateBuyerCommand, BuyerEntity>
     {

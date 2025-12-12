@@ -1,9 +1,9 @@
 using CSharpFunctionalExtensions;
 using Domain.Deal;
-using UseCases.Clients.Commands;
+using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Repositories;
 
-namespace UseCases.Handlers
+namespace UseCases.Deal
 {
     public class CreateCompleteDealCommandHandler : ICommandHandler<CreateCompleteDealCommand, CompletedDeal>
     {

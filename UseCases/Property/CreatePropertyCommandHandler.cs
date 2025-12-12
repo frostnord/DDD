@@ -1,9 +1,9 @@
 using CSharpFunctionalExtensions;
 using Domain.Property;
-using UseCases.Clients.Commands;
+using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Repositories;
 
-namespace UseCases.Handlers
+namespace UseCases.Property
 {
     public class CreatePropertyCommandHandler : ICommandHandler<CreatePropertyCommand, PropertyEntity>
     {

@@ -11,7 +11,10 @@ using Moq;
 using Presenter.Controllers;
 using Presenter.DTOs;
 using UseCases.Booking.Commands;
-using UseCases.Clients.Commands;
+using UseCases.Booking.Commands.CancelBooking;
+using UseCases.Booking.Commands.ConfirmBooking;
+using UseCases.Booking.Commands.CreateBooking;
+using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Repositories;
 using Xunit;
 

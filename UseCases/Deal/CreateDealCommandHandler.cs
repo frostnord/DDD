@@ -1,10 +1,10 @@
 using CSharpFunctionalExtensions;
 using Domain.Deal;
 using Domain.Property.VO;
-using UseCases.Clients.Commands;
+using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Repositories;
 
-namespace UseCases.Handlers
+namespace UseCases.Deal
 {
     public class CreateDealCommandHandler : ICommandHandler<CreateDealCommand, DealEntity>
     {

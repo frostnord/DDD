@@ -2,7 +2,8 @@ using Domain.Customers.Client.VO;
 using Domain.Deal;
 using Domain.Property.VO;
 using Microsoft.AspNetCore.Mvc;
-using UseCases.Clients.Commands;
+using UseCases.Deal;
+using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Repositories;
 
 namespace Presenter.Controllers

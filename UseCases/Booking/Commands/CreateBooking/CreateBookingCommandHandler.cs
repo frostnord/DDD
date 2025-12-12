@@ -5,11 +5,10 @@ using Domain.Booking.VO;
 using Domain.Customers.Client.VO;
 using Domain.Property.VO;
 using Domain.ValueObjects;
-using UseCases.Booking.Commands;
-using UseCases.Clients.Commands;
+using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Repositories;
 
-namespace UseCases.Handlers
+namespace UseCases.Booking.Commands.CreateBooking
 {
     public class CreateBookingCommandHandler : ICommandHandler<CreateBookingCommand, Domain.Booking.BookingEntity>
     {

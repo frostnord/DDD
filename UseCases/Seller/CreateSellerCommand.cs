@@ -1,6 +1,7 @@
 using Domain.Customers.Seller;
+using UseCases.Interfaces.Commands;
 
-namespace UseCases.Clients.Commands
+namespace UseCases.Seller
 {
     public class CreateSellerCommand : ICommand<SellerEntity>
     {

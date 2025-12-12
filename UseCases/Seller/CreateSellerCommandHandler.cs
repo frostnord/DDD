@@ -1,10 +1,10 @@
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
 using Domain.Customers.Seller;
-using UseCases.Clients.Commands;
+using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Repositories;
 
-namespace UseCases.Handlers
+namespace UseCases.Seller
 {
     public class CreateSellerCommandHandler : ICommandHandler<CreateSellerCommand, SellerEntity>
     {
