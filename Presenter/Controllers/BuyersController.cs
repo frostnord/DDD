@@ -1,5 +1,3 @@
-using CSharpFunctionalExtensions;
-using Domain.Domain.Customers.Buyer;
 using Microsoft.AspNetCore.Mvc;
 using Presenter.DTOs;
 using Presenter.Extensions;

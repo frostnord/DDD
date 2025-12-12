@@ -82,14 +82,12 @@ namespace Domain.Domain.Property
         /// <param name="price">Цена объекта недвижимости</param>
         /// <param name="description">Описание объекта недвижимости</param>
         /// <param name="details">Детали объекта недвижимости</param>
-        /// <param name="ownerRecord">Запись о первом владельце</param>
         /// <returns>Result с экземпляром Property при успешной валидации или ошибкой при провале валидации</returns>
         public static Result<Property> Create(
             Address address,
             Price price,
             Description description,
-            PropertyDetails details,
-            OwnershipRecord ownerRecord)
+            PropertyDetails details)
         {
             var validationErrors = new List<string>();
 
@@ -106,33 +104,38 @@ namespace Domain.Domain.Property
             if (details == null)
                 validationErrors.Add("Детали недвижимости не могут быть пустыми");
 
-            if (ownerRecord == null)
-                validationErrors.Add("Запись о владельце не может быть пустой");
-
             var id = PropertyId.Create(Guid.NewGuid()).Value;
 
             // AddEvent(new PropertyCreatedEvent(Id));
 
             // Возврат результата валидации
-            return validationErrors.Count > 0
-                ? Result.Failure<Property>(string.Join("; ", validationErrors))
-                : Result.Success(CreateWithOwner(id, address, price, description, details, ownerRecord));
+            if (validationErrors.Count > 0)
+                return Result.Failure<Property>(string.Join("; ", validationErrors));
+
+            // Создание Property без владельца
+            var status = PropertyStatus.FromName("ForSale");
+            var property = new Property(id, address, price, description, details, status);
+            return Result.Success(property);
         }
+
+        // Метод CreateWithOwner больше не используется, так как логика создания вынесена в PropertyFactory
+
 
         /// <summary>
-        /// Внутренний метод создания Property с владельцем
+        /// Устанавливает первого владельца недвижимости
         /// </summary>
-        /// <param name="id"></param>
         /// <param name="ownerRecord">Запись о владельце</param>
-        /// <returns>Экземпляр Property</returns>
-        private static Property CreateWithOwner(PropertyId id, Address address, Price price, Description description,
-            PropertyDetails details, OwnershipRecord ownerRecord)
+        /// <exception cref="ArgumentNullException">Вызывается, если запись пуста</exception>
+        public void SetFirstOwner(OwnershipRecord ownerRecord)
         {
-            var property = new Property(id, address, price, description, details, PropertyStatus.ForSale);
-            property._ownershipHistory.AddRecord(ownerRecord);
-            return property;
-        }
+            if (ownerRecord == null)
+            {
+                throw new ArgumentNullException(nameof(ownerRecord), "Запись о владельце не может быть пустой");
+            }
 
+            _ownershipHistory.AddRecord(ownerRecord);
+            UpdatedAt = DateTime.UtcNow;
+        }
 
         /// <summary>
         /// Добавляет запись в историю владения

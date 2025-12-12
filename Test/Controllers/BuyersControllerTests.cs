@@ -1,4 +1,8 @@
 using CSharpFunctionalExtensions;
+using Domain.Domain.Customers.Buyer;
+using Domain.Domain.Customers.Client.VO;
+using Domain.Domain.Property.VO;
+using Domain.Domain.ValueObjects;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Presenter.Controllers;
@@ -26,27 +30,35 @@ namespace Test.Controllers
             var clientId = Guid.NewGuid();
             var request = new CreateBuyerRequest
             {
-                ClientId = clientId
+                ClientId = clientId,
+                PreferredNumberOfRooms = 2,
+                PreferredFloor = 3,
+                PreferredTotalFloors = 9,
+                PreferredType = "Apartment",
+                PreferredHeatingType = "Central",
+                PreferredCondition = "Хорошее",
+                PreferParking = true
             };
 
-            // Создаем покупателя через фабричный метод, используя ClientId из запроса
-            var buyerId = Domain.Domain.Customers.Buyer.VO.BuyerId.Create(Guid.NewGuid()).Value;
-            var clientIdObj = Domain.Domain.Customers.Client.VO.ClientId.Create(clientId).Value;
+            var clientIdVO = ClientId.Create(clientId).Value;
             
-            // Создаем критерии поиска по умолчанию
-            var numberOfRooms = Domain.Domain.ValueObjects.NumberOfRooms.Create(2).Value;
-            var floor = Domain.Domain.ValueObjects.Floor.Create(3).Value;
-            var totalFloors = Domain.Domain.ValueObjects.TotalFloors.Create(9).Value;
-            var propertyType = Domain.Domain.ValueObjects.SmartPropertyType.FromName("Apartment");
-            var heatingType = Domain.Domain.Property.VO.HeatingType.Create("Central").Value;
-            var condition = Domain.Domain.Property.VO.PropertyCondition.Create("Хорошее").Value;
-            var searchCriteria = Domain.Domain.Customers.Client.VO.ClientSearchCriteria.Create(
-                numberOfRooms, floor, totalFloors, propertyType, true, heatingType, condition).Value;
-            
-            var buyer = Domain.Domain.Customers.Buyer.Buyer.Create(clientIdObj, searchCriteria).Value;
+            var buyer = Buyer.Create(clientIdVO,
+                ClientSearchCriteria.Create(
+                    NumberOfRooms.Create(request.PreferredNumberOfRooms).Value,
+                    Floor.Create(request.PreferredFloor).Value,
+                    TotalFloors.Create(request.PreferredTotalFloors).Value,
+                    SmartPropertyType.FromName(request.PreferredType),
+                    request.PreferParking,
+                    HeatingType.Create(request.PreferredHeatingType).Value,
+                    PropertyCondition.Create(request.PreferredCondition).Value
+                ).Value
+            ).Value;
             
             var result = Result.Success(buyer);
-            _mockBuyerService.Setup(x => x.CreateBuyerAsync(request.ClientId, request.PreferredNumberOfRooms, request.PreferredFloor, request.PreferredTotalFloors, request.PreferredType, request.PreferredHeatingType, request.PreferredCondition, request.PreferParking))
+            _mockBuyerService.Setup(x => x.CreateBuyerAsync(request.ClientId,
+                request.PreferredNumberOfRooms, request.PreferredFloor, request.PreferredTotalFloors,
+                request.PreferredType, request.PreferredHeatingType, request.PreferredCondition,
+                request.PreferParking))
                 .ReturnsAsync(result);
 
             // Act
@@ -64,20 +76,21 @@ namespace Test.Controllers
             var clientId = Guid.Empty; // Невалидный ClientId
             var request = new CreateBuyerRequest
             {
-                ClientId = clientId
+                ClientId = clientId,
+                PreferredNumberOfRooms = 2,
+                PreferredFloor = 3,
+                PreferredTotalFloors = 9,
+                PreferredType = "Apartment",
+                PreferredHeatingType = "Central",
+                PreferredCondition = "Хорошее",
+                PreferParking = true
             };
 
-            var numberOfRooms = Domain.Domain.ValueObjects.NumberOfRooms.Create(2).Value;
-            var floor = Domain.Domain.ValueObjects.Floor.Create(3).Value;
-            var totalFloors = Domain.Domain.ValueObjects.TotalFloors.Create(9).Value;
-            var propertyType = Domain.Domain.ValueObjects.SmartPropertyType.FromName("Apartment");
-            var heatingType = Domain.Domain.Property.VO.HeatingType.Create("Central").Value;
-            var condition = Domain.Domain.Property.VO.PropertyCondition.Create("Хорошее").Value;
-            var searchCriteria = Domain.Domain.Customers.Client.VO.ClientSearchCriteria.Create(
-                numberOfRooms, floor, totalFloors, propertyType, true, heatingType, condition).Value;
-            
-            var errorResult = Result.Failure<Domain.Domain.Customers.Buyer.Buyer>("Validation error");
-            _mockBuyerService.Setup(x => x.CreateBuyerAsync(request.ClientId, request.PreferredNumberOfRooms, request.PreferredFloor, request.PreferredTotalFloors, request.PreferredType, request.PreferredHeatingType, request.PreferredCondition, request.PreferParking))
+            var errorResult = Result.Failure<Buyer>("Validation error");
+            _mockBuyerService.Setup(x => x.CreateBuyerAsync(request.ClientId,
+                request.PreferredNumberOfRooms, request.PreferredFloor, request.PreferredTotalFloors,
+                request.PreferredType, request.PreferredHeatingType, request.PreferredCondition,
+                request.PreferParking))
                 .ReturnsAsync(errorResult);
 
             // Act
@@ -93,22 +106,21 @@ namespace Test.Controllers
         {
             // Arrange
             var buyerId = Guid.NewGuid();
-            
-            // Создаем покупателя через фабричный метод с фиксированными данными
             var clientId = Guid.NewGuid();
-            var clientIdObj = Domain.Domain.Customers.Client.VO.ClientId.Create(clientId).Value;
             
-            // Создаем критерии поиска по умолчанию
-            var numberOfRooms = Domain.Domain.ValueObjects.NumberOfRooms.Create(2).Value;
-            var floor = Domain.Domain.ValueObjects.Floor.Create(3).Value;
-            var totalFloors = Domain.Domain.ValueObjects.TotalFloors.Create(9).Value;
-            var propertyType = Domain.Domain.ValueObjects.SmartPropertyType.FromName("Apartment");
-            var heatingType = Domain.Domain.Property.VO.HeatingType.Create("Central").Value;
-            var condition = Domain.Domain.Property.VO.PropertyCondition.Create("Хорошее").Value;
-            var searchCriteria = Domain.Domain.Customers.Client.VO.ClientSearchCriteria.Create(
-                numberOfRooms, floor, totalFloors, propertyType, true, heatingType, condition).Value;
+            var clientIdVO = ClientId.Create(clientId).Value;
             
-            var buyer = Domain.Domain.Customers.Buyer.Buyer.Create(clientIdObj, searchCriteria).Value;
+            var buyer = Buyer.Create(clientIdVO,
+                ClientSearchCriteria.Create(
+                    NumberOfRooms.Create(2).Value,
+                    Floor.Create(3).Value,
+                    TotalFloors.Create(9).Value,
+                    SmartPropertyType.FromName("Apartment"),
+                    true,
+                    HeatingType.Create("Central").Value,
+                    PropertyCondition.Create("Хорошее").Value
+                ).Value
+            ).Value;
             
             var result = Result.Success(buyer);
             _mockBuyerService.Setup(x => x.GetBuyerByIdAsync(buyerId))
@@ -129,7 +141,7 @@ namespace Test.Controllers
         {
             // Arrange
             var buyerId = Guid.NewGuid();
-            var errorResult = Result.Failure<Domain.Domain.Customers.Buyer.Buyer>("Buyer not found");
+            var errorResult = Result.Failure<Buyer>("Buyer not found");
             _mockBuyerService.Setup(x => x.GetBuyerByIdAsync(buyerId))
                 .ReturnsAsync(errorResult);
 
@@ -159,24 +171,27 @@ namespace Test.Controllers
                 PreferParking = true
             };
 
-            // Создаем критерии поиска из данных запроса
-            var numberOfRooms = Domain.Domain.ValueObjects.NumberOfRooms.Create(request.PreferredNumberOfRooms).Value;
-            var floor = Domain.Domain.ValueObjects.Floor.Create(request.PreferredFloor).Value;
-            var totalFloors = Domain.Domain.ValueObjects.TotalFloors.Create(request.PreferredTotalFloors).Value;
-            var propertyType = Domain.Domain.ValueObjects.SmartPropertyType.FromName(request.PreferredType);
-            var heatingType = Domain.Domain.Property.VO.HeatingType.Create(request.PreferredHeatingType).Value;
-            var condition = Domain.Domain.Property.VO.PropertyCondition.Create(request.PreferredCondition).Value;
-            var searchCriteria = Domain.Domain.Customers.Client.VO.ClientSearchCriteria.Create(
-                numberOfRooms, floor, totalFloors, propertyType, request.PreferParking, heatingType, condition).Value;
+            var clientIdVO = ClientId.Create(request.ClientId).Value;
             
-            // Создаем покупателя через фабричный метод, используя ClientId и критерии из запроса
-            var clientIdObj = Domain.Domain.Customers.Client.VO.ClientId.Create(clientId).Value;
-            var buyer = Domain.Domain.Customers.Buyer.Buyer.Create(clientIdObj, searchCriteria).Value;
+            var buyer = Buyer.Create(clientIdVO,
+                ClientSearchCriteria.Create(
+                    NumberOfRooms.Create(request.PreferredNumberOfRooms).Value,
+                    Floor.Create(request.PreferredFloor).Value,
+                    TotalFloors.Create(request.PreferredTotalFloors).Value,
+                    SmartPropertyType.FromName(request.PreferredType),
+                    request.PreferParking,
+                    HeatingType.Create(request.PreferredHeatingType).Value,
+                    PropertyCondition.Create(request.PreferredCondition).Value
+                ).Value
+            ).Value;
             
             var result = Result.Success(buyer);
-            _mockBuyerService.Setup(x => x.UpdateBuyerAsync(buyerId, request.ClientId, request.PreferredNumberOfRooms, request.PreferredFloor, request.PreferredTotalFloors, request.PreferredType, request.PreferredHeatingType, request.PreferredCondition, request.PreferParking))
+            _mockBuyerService.Setup(x => x.UpdateBuyerAsync(buyerId, request.ClientId,
+                request.PreferredNumberOfRooms, request.PreferredFloor, request.PreferredTotalFloors,
+                request.PreferredType, request.PreferredHeatingType, request.PreferredCondition,
+                request.PreferParking))
                 .ReturnsAsync(result);
-            
+
             // Мокаем вызов GetBuyerByIdAsync, который используется в контроллере после обновления
             _mockBuyerService.Setup(x => x.GetBuyerByIdAsync(buyerId))
                 .ReturnsAsync(Result.Success(buyer));
@@ -196,26 +211,25 @@ namespace Test.Controllers
         {
             // Arrange
             var buyerId = Guid.NewGuid();
+            var clientId = Guid.NewGuid();
             
             // Мокаем успешное удаление
             _mockBuyerService.Setup(x => x.DeleteBuyerAsync(buyerId))
                 .ReturnsAsync(Result.Success());
             
-            // Создаем покупателя через фабричный метод с фиксированными данными
-            var clientId = Guid.NewGuid();
-            var clientIdObj = Domain.Domain.Customers.Client.VO.ClientId.Create(clientId).Value;
+            var clientIdVO = ClientId.Create(clientId).Value;
             
-            // Создаем критерии поиска по умолчанию
-            var numberOfRooms = Domain.Domain.ValueObjects.NumberOfRooms.Create(2).Value;
-            var floor = Domain.Domain.ValueObjects.Floor.Create(3).Value;
-            var totalFloors = Domain.Domain.ValueObjects.TotalFloors.Create(9).Value;
-            var propertyType = Domain.Domain.ValueObjects.SmartPropertyType.FromName("Apartment");
-            var heatingType = Domain.Domain.Property.VO.HeatingType.Create("Central").Value;
-            var condition = Domain.Domain.Property.VO.PropertyCondition.Create("Хорошее").Value;
-            var searchCriteria = Domain.Domain.Customers.Client.VO.ClientSearchCriteria.Create(
-                numberOfRooms, floor, totalFloors, propertyType, true, heatingType, condition).Value;
-            
-            var buyer = Domain.Domain.Customers.Buyer.Buyer.Create(clientIdObj, searchCriteria).Value;
+            var buyer = Buyer.Create(clientIdVO,
+                ClientSearchCriteria.Create(
+                    NumberOfRooms.Create(2).Value,
+                    Floor.Create(3).Value,
+                    TotalFloors.Create(9).Value,
+                    SmartPropertyType.FromName("Apartment"),
+                    true,
+                    HeatingType.Create("Central").Value,
+                    PropertyCondition.Create("Хорошее").Value
+                ).Value
+            ).Value;
             
             _mockBuyerService.Setup(x => x.GetBuyerByIdAsync(buyerId))
                 .ReturnsAsync(Result.Success(buyer));
@@ -228,6 +242,51 @@ namespace Test.Controllers
             var buyerDto = Assert.IsType<BuyerDto>(okResult.Value);
             // Проверяем, что возвращаемые данные соответствуют ожидаемым
             Assert.Equal(clientId, buyerDto.ClientId);
+        }
+
+        [Fact]
+        public async Task GetBuyers_ReturnsOkResultWithListOfBuyers()
+        {
+            // Arrange
+            var buyers = new List<Buyer>
+            {
+                Buyer.Create(
+                    ClientId.Create(Guid.NewGuid()).Value,
+                    ClientSearchCriteria.Create(
+                        NumberOfRooms.Create(2).Value,
+                        Floor.Create(3).Value,
+                        TotalFloors.Create(9).Value,
+                        SmartPropertyType.FromName("Apartment"),
+                        true,
+                        HeatingType.Create("Central").Value,
+                        PropertyCondition.Create("Хорошее").Value
+                    ).Value
+                ).Value,
+                Buyer.Create(
+                    ClientId.Create(Guid.NewGuid()).Value,
+                    ClientSearchCriteria.Create(
+                        NumberOfRooms.Create(3).Value,
+                        Floor.Create(5).Value,
+                        TotalFloors.Create(12).Value,
+                        SmartPropertyType.FromName("House"),
+                        false,
+                        HeatingType.Create("Autonomous").Value,
+                        PropertyCondition.Create("Отличное").Value
+                    ).Value
+                ).Value
+            }.AsEnumerable();
+
+            var result = Result.Success(buyers);
+            _mockBuyerService.Setup(x => x.GetAllBuyersAsync())
+                .ReturnsAsync(result);
+
+            // Act
+            var actionResult = await _controller.GetBuyers();
+
+            // Assert
+            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
+            var buyerDtos = Assert.IsAssignableFrom<IEnumerable<BuyerDto>>(okResult.Value);
+            Assert.Equal(2, buyerDtos.Count());
         }
     }
 }

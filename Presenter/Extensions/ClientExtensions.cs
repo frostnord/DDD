@@ -1,5 +1,4 @@
 using Domain.Domain.Customers.Client;
-using Domain.Domain.ValueObjects;
 using Presenter.DTOs;
 
 namespace Presenter.Extensions

@@ -1,0 +1,14 @@
+using UseCases.Clients.Commands;
+
+namespace UseCases.Booking.Commands
+{
+    public class CreateBookingCommand : ICommand<Domain.Domain.Booking.Booking>
+    {
+        public Guid ClientId { get; set; }
+        public Guid PropertyId { get; set; }
+        public Guid AgencyId { get; set; }
+        public DateTime StartDate { get; set; }
+        public DateTime EndDate { get; set; }
+        public decimal TotalPrice { get; set; }
+    }
+}

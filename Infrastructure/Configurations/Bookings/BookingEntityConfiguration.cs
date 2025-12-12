@@ -1,5 +1,8 @@
+using Domain.Domain.Agency.VO;
 using Domain.Domain.Booking;
 using Domain.Domain.Booking.VO;
+using Domain.Domain.Customers.Client.VO;
+using Domain.Domain.Property.VO;
 using Domain.Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -50,19 +53,19 @@ public sealed class BookingEntityConfiguration : IEntityTypeConfiguration<Bookin
         });
 
         // Ссылки на агрегаты (ограничиваем каскадное удаление)
-        builder.HasOne(x => x.Client)
-            .WithMany()
-            .HasForeignKey("client_id")
-            .OnDelete(DeleteBehavior.Restrict);
+        builder.Property(x => x.ClientId)
+            .IsRequired()
+            .HasConversion(toDb => toDb.Value, fromDb => ClientId.Create(fromDb).Value)
+            .HasColumnName("client_id");
 
-        builder.HasOne(x => x.Property)
-            .WithMany()
-            .HasForeignKey("property_id")
-            .OnDelete(DeleteBehavior.Restrict);
+        builder.Property(x => x.PropertyId)
+            .IsRequired()
+            .HasConversion(toDb => toDb.Value, fromDb => PropertyId.Create(fromDb).Value)
+            .HasColumnName("property_id");
 
-        builder.HasOne(x => x.Agency)
-            .WithMany()
-            .HasForeignKey("agency_id")
-            .OnDelete(DeleteBehavior.Restrict);
+        builder.Property(x => x.AgencyId)
+            .IsRequired()
+            .HasConversion(toDb => toDb.Value, fromDb => AgencyId.Create(fromDb).Value)
+            .HasColumnName("agency_id");
     }
 }

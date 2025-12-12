@@ -1,3 +1,4 @@
+using Domain.Domain.Agency;
 using Domain.Domain.Booking;
 using Domain.Domain.Customers.Buyer;
 using Domain.Domain.Customers.Client;
@@ -10,6 +11,10 @@ namespace Infrastructure;
 
 public class AppDbContext : DbContext
 {
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+    {
+    }
+
     // DbSets (агрегаты)
     public DbSet<Property> Properties => Set<Property>();
     public DbSet<Buyer> Buyers => Set<Buyer>();
@@ -18,6 +23,7 @@ public class AppDbContext : DbContext
     public DbSet<Deal> Deals => Set<Deal>();
     public DbSet<Client> Clients => Set<Client>();
     public DbSet<Booking> Bookings => Set<Booking>();
+    public DbSet<Agency> Agencies => Set<Agency>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

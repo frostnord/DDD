@@ -1,6 +1,8 @@
 using CSharpFunctionalExtensions;
+using Domain.Domain.Agency.VO;
 using Domain.Domain.Booking.VO;
-using Domain.Domain.Customers.Client;
+using Domain.Domain.Customers.Client.VO;
+using Domain.Domain.Property.VO;
 using Domain.Domain.ValueObjects;
 
 namespace Domain.Domain.Booking
@@ -13,19 +15,19 @@ namespace Domain.Domain.Booking
         // Id уже определен в базовом классе CSharpFunctionalExtensions.Entity<TId>
 
         /// <summary>
-        /// Клиент, совершающий бронирование
+        /// Идентификатор клиента, совершающего бронирование
         /// </summary>
-        public Client Client { get; private set; }
+        public ClientId ClientId { get; private set; }
 
         /// <summary>
-        /// Объект недвижимости, который бронируется
+        /// Идентификатор объекта недвижимости, который бронируется
         /// </summary>
-        public Property.Property Property { get; private set; }
+        public PropertyId PropertyId { get; private set; }
 
         /// <summary>
-        /// Агентство, осуществляющее бронирование
+        /// Идентификатор агентства, осуществляющего бронирование
         /// </summary>
-        public Agency.Agency Agency { get; private set; }
+        public AgencyId AgencyId { get; private set; }
 
         /// <summary>
         /// Период бронирования
@@ -51,25 +53,25 @@ namespace Domain.Domain.Booking
         /// <summary>
         /// Создает новый экземпляр бронирования через фабричный метод
         /// </summary>
-        /// <param name="client">Клиент, совершающий бронирование</param>
-        /// <param name="property">Объект недвижимости, который бронируется</param>
-        /// <param name="agency">Агентство, осуществляющее бронирование</param>
+        /// <param name="clientId">Идентификатор клиента, совершающего бронирование</param>
+        /// <param name="propertyId">Идентификатор объекта недвижимости, который бронируется</param>
+        /// <param name="agencyId">Идентификатор агентства, осуществляющего бронирование</param>
         /// <param name="bookingPeriod">Период бронирования</param>
         /// <param name="totalPrice">Общая цена бронирования</param>
         /// <returns>Результат с бронированием или ошибкой</returns>
-        public static Result<Booking> Create(Client client, Property.Property property, Agency.Agency agency,
+        public static Result<Booking> Create(ClientId clientId, PropertyId propertyId, AgencyId agencyId,
             Period bookingPeriod, Price totalPrice)
         {
             var validationErrors = new List<string>();
 
-            if (client == null)
-                validationErrors.Add("Клиент не может быть пустым");
+            if (clientId == null)
+                validationErrors.Add("Идентификатор клиента не может быть пустым");
 
-            if (property == null)
-                validationErrors.Add("Объект недвижимости не может быть пустым");
+            if (propertyId == null)
+                validationErrors.Add("Идентификатор объекта недвижимости не может быть пустым");
 
-            if (agency == null)
-                validationErrors.Add("Агентство не может быть пустым");
+            if (agencyId == null)
+                validationErrors.Add("Идентификатор агентства не может быть пустым");
 
             if (bookingPeriod == null)
                 validationErrors.Add("Период бронирования не может быть пустым");
@@ -77,19 +79,13 @@ namespace Domain.Domain.Booking
             if (totalPrice == null)
                 validationErrors.Add("Общая цена не может быть пустой");
 
-            // Проверка, что цена соответствует стоимости недвижимости
-            if (totalPrice != null && property != null && totalPrice.Value != property.Price.Value)
-            {
-                validationErrors.Add("Общая цена должна соответствовать стоимости недвижимости");
-            }
-
             if (validationErrors.Count > 0)
             {
                 return Result.Failure<Booking>(string.Join("; ", validationErrors));
             }
 
             var id = BookingId.Create(Guid.NewGuid()).Value;
-            var booking = new Booking(id, client, property, agency, bookingPeriod, totalPrice);
+            var booking = new Booking(id, clientId, propertyId, agencyId, bookingPeriod, totalPrice);
             return Result.Success(booking);
         }
 
@@ -97,18 +93,18 @@ namespace Domain.Domain.Booking
         /// Создает новый экземпляр бронирования
         /// </summary>
         /// <param name="id">Уникальный идентификатор бронирования</param>
-        /// <param name="client">Клиент, совершающий бронирование</param>
-        /// <param name="property">Объект недвижимости, который бронируется</param>
-        /// <param name="agency">Агентство, осуществляющее бронирование</param>
+        /// <param name="clientId">Идентификатор клиента, совершающего бронирование</param>
+        /// <param name="propertyId">Идентификатор объекта недвижимости, который бронируется</param>
+        /// <param name="agencyId">Идентификатор агентства, осуществляющего бронирование</param>
         /// <param name="bookingPeriod">Период бронирования</param>
         /// <param name="totalPrice">Общая цена бронирования</param>
-        private Booking(BookingId id, Client client, Property.Property property, Agency.Agency agency,
+        private Booking(BookingId id, ClientId clientId, PropertyId propertyId, AgencyId agencyId,
             Period bookingPeriod, Price totalPrice)
             : base(id)
         {
-            Client = client;
-            Property = property;
-            Agency = agency;
+            ClientId = clientId;
+            PropertyId = propertyId;
+            AgencyId = agencyId;
             BookingPeriod = bookingPeriod;
             TotalPrice = totalPrice;
             CreatedAt = DateTime.UtcNow;

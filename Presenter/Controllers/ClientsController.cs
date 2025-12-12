@@ -1,11 +1,6 @@
-using CSharpFunctionalExtensions;
-using Domain.Domain.Customers.Client;
-using Domain.Domain.Customers.Client.VO;
-using Domain.Domain.ValueObjects;
 using Microsoft.AspNetCore.Mvc;
 using Presenter.DTOs;
 using Presenter.Extensions;
-using UseCases.Commands;
 using UseCases.Interfaces;
 
 namespace Presenter.Controllers
