@@ -8,9 +8,9 @@ namespace UseCases.Deal
 {
     public class CreateDealCommand : ICommand<DealEntity>
     {
-        public ClientId ClientId { get; set; }
-        public PropertyId PropertyId { get; set; }
-        public BookingId? BookingId { get; set; }
+        public Guid ClientId { get; set; }
+        public Guid PropertyId { get; set; }
+        public Guid? BookingId { get; set; }
         public DealDetails Details { get; set; }
     }
 }

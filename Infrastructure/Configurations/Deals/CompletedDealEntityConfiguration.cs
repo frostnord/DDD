@@ -7,9 +7,9 @@ using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Infrastructure.Configurations.Deals;
 
-public sealed class CompletedDealEntityConfiguration : IEntityTypeConfiguration<CompletedDeal>
+public sealed class CompletedDealEntityConfiguration : IEntityTypeConfiguration<CompletedDealEntity>
 {
-    public void Configure(EntityTypeBuilder<CompletedDeal> builder)
+    public void Configure(EntityTypeBuilder<CompletedDealEntity> builder)
     {
         builder.ToTable("completed_deals");
 

@@ -8,7 +8,7 @@ namespace Domain.Deal
     /// <summary>
     /// Сущность совершенной сделки (без привязки владения к конкретной стороне)
     /// </summary>
-    public class CompletedDeal : Entity<CompletedDealId>
+    public class CompletedDealEntity : Entity<CompletedDealId>
     {
         /// <summary>
         /// Клиент-покупатель
@@ -50,7 +50,7 @@ namespace Domain.Deal
         /// </summary>
         public DateTime? UpdatedAt { get; private set; }
 
-        private CompletedDeal(CompletedDealId id, ClientId buyerClientId, ClientId sellerClientId,
+        private CompletedDealEntity(CompletedDealId id, ClientId buyerClientId, ClientId sellerClientId,
             PropertyId propertyId, DateTime dealDate, Price dealAmount, DealType dealType)
             : base(id)
         {
@@ -73,7 +73,7 @@ namespace Domain.Deal
         /// <param name="dealAmount">Сумма сделки</param>
         /// <param name="dealType">Тип сделки</param>
         /// <returns>Результат с совершенной сделкой или ошибкой</returns>
-        public static Result<CompletedDeal> Create(ClientId buyerClientId, ClientId sellerClientId,
+        public static Result<CompletedDealEntity> Create(ClientId buyerClientId, ClientId sellerClientId,
             PropertyId propertyId, DateTime dealDate, Price dealAmount, DealType dealType)
         {
             var validationErrors = new List<string>();
@@ -103,10 +103,10 @@ namespace Domain.Deal
 
             if (validationErrors.Count > 0)
             {
-                return Result.Failure<CompletedDeal>(string.Join("; ", validationErrors));
+                return Result.Failure<CompletedDealEntity>(string.Join("; ", validationErrors));
             }
 
-            var deal = new CompletedDeal(id, buyerClientId, sellerClientId, propertyId, dealDate, dealAmount, dealType);
+            var deal = new CompletedDealEntity(id, buyerClientId, sellerClientId, propertyId, dealDate, dealAmount, dealType);
             return Result.Success(deal);
         }
     }
