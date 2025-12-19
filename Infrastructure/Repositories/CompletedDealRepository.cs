@@ -16,44 +16,44 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Result<CompletedDeal>> GetByIdAsync(CompletedDealId id)
+        public async Task<Result<CompletedDealEntity>> GetByIdAsync(CompletedDealId id)
         {
             var deal = await _context.CompletedDeals
                 .FirstOrDefaultAsync(d => d.Id == id);
 
             return deal != null
                 ? Result.Success(deal)
-                : Result.Failure<CompletedDeal>($"Completed deal with ID {id.Value} not found");
+                : Result.Failure<CompletedDealEntity>($"Completed deal with ID {id.Value} not found");
         }
 
-        public async Task<Result<IEnumerable<CompletedDeal>>> GetByClientIdAsync(ClientId clientId)
+        public async Task<Result<IEnumerable<CompletedDealEntity>>> GetByClientIdAsync(ClientId clientId)
         {
             var deals = await _context.CompletedDeals
                 .Where(d => d.BuyerClientId == clientId || d.SellerClientId == clientId)
                 .ToListAsync();
 
-            return Result.Success<IEnumerable<CompletedDeal>>(deals);
+            return Result.Success<IEnumerable<CompletedDealEntity>>(deals);
         }
 
-        public async Task<Result<IEnumerable<CompletedDeal>>> GetByPropertyIdAsync(PropertyId propertyId)
+        public async Task<Result<IEnumerable<CompletedDealEntity>>> GetByPropertyIdAsync(PropertyId propertyId)
         {
             var deals = await _context.CompletedDeals
                 .Where(d => d.PropertyId == propertyId)
                 .ToListAsync();
 
-            return Result.Success<IEnumerable<CompletedDeal>>(deals);
+            return Result.Success<IEnumerable<CompletedDealEntity>>(deals);
         }
 
-        public async Task<Result<CompletedDeal>> AddAsync(CompletedDeal deal)
+        public async Task<Result<CompletedDealEntity>> AddAsync(CompletedDealEntity dealEntity)
         {
-            await _context.CompletedDeals.AddAsync(deal);
+            await _context.CompletedDeals.AddAsync(dealEntity);
             await _context.SaveChangesAsync();
-            return Result.Success(deal);
+            return Result.Success(dealEntity);
         }
 
-        public async Task<Result> UpdateAsync(CompletedDeal deal)
+        public async Task<Result> UpdateAsync(CompletedDealEntity dealEntity)
         {
-            _context.CompletedDeals.Update(deal);
+            _context.CompletedDeals.Update(dealEntity);
             await _context.SaveChangesAsync();
             return Result.Success();
         }
@@ -74,6 +74,12 @@ namespace Infrastructure.Repositories
         public async Task<bool> ExistsAsync(CompletedDealId id)
         {
             return await _context.CompletedDeals.AnyAsync(d => d.Id == id);
+        }
+
+        public async Task<Result<IEnumerable<CompletedDealEntity>>> GetAllAsync()
+        {
+            var deals = await _context.CompletedDeals.ToListAsync();
+            return Result.Success<IEnumerable<CompletedDealEntity>>(deals);
         }
     }
 }

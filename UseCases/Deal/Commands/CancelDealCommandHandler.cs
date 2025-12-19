@@ -8,7 +8,7 @@ namespace UseCases.Deal.Commands
     {
         public Guid DealId { get; set; }
     }
-    
+
     public class CancelDealCommandHandler : ICommandHandler<CancelDealCommand>
     {
         private readonly IDealService _dealService;

@@ -9,7 +9,7 @@ namespace UseCases.Deal.Commands
     {
         public Guid DealId { get; set; }
     }
-    
+
     public class ConfirmDealCommandHandler : ICommandHandler<ConfirmDealCommand>
     {
         private readonly IDealRepository _dealRepository;
@@ -34,7 +34,7 @@ namespace UseCases.Deal.Commands
             }
 
             var deal = dealResult.Value;
-            
+
             // Проверяем возможность перехода в статус подтверждения
             if (!deal.Status.CanTransitionTo(DealStatus.Confirmed))
             {
@@ -42,7 +42,7 @@ namespace UseCases.Deal.Commands
             }
 
             deal.Confirm();
-            
+
             var updateResult = await _dealRepository.UpdateAsync(deal);
             if (updateResult.IsFailure)
             {

@@ -1,34 +1,56 @@
-using Domain.Customers.Client.VO;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using Domain.Deal;
-using Domain.Property.VO;
 using Microsoft.AspNetCore.Mvc;
-using UseCases.Deal;
+using Presenter.DTOs.CompletedDealDTO;
+using Presenter.Extensions;
+using UseCases.CompleteDeal;
 using UseCases.Interfaces.Commands;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 
 namespace Presenter.Controllers
 {
+    /// <summary>
+    /// Контроллер для управления завершенными сделками
+    /// Реализует CRUD операции для сущности CompletedDeal
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class CompletedDealsController : ControllerBase
     {
-        private readonly ICommandHandler<CreateCompleteDealCommand, CompletedDeal>
-            _createCompleteDealHandler;
-
-        private readonly ICompletedDealRepository _completedDealRepository;
+        private readonly ICommandHandler<CreateCompleteDealCommand, CompletedDealEntity> _createCompleteDealHandler;
+        private readonly ICompletedDealService _completedDealService;
 
         public CompletedDealsController(
-            ICommandHandler<CreateCompleteDealCommand, CompletedDeal> createCompleteDealHandler,
-            ICompletedDealRepository completedDealRepository)
+            ICommandHandler<CreateCompleteDealCommand, CompletedDealEntity> createCompleteDealHandler,
+            ICompletedDealService completedDealService)
         {
             _createCompleteDealHandler = createCompleteDealHandler;
-            _completedDealRepository = completedDealRepository;
+            _completedDealService = completedDealService;
         }
 
+        /// <summary>
+        /// Создает новую завершенную сделку
+        /// </summary>
+        /// <param name="request">Данные для создания завершенной сделки</param>
+        /// <returns>Созданная завершенная сделка</returns>
+        /// <response code="201">Завершенная сделка успешно создана</response>
+        /// <response code="400">Ошибка валидации данных</response>
+
         [HttpPost]
-        public async Task<ActionResult<CompletedDeal>> CreateCompletedDeal(
-            [FromBody] CreateCompleteDealCommand command)
+        public async Task<ActionResult<CompletedDealDto>> CreateCompletedDeal([FromBody] CreateCompletedDealRequest request)
         {
+            var command = new CreateCompleteDealCommand
+            {
+                BuyerClientId = request.BuyerClientId,
+                SellerClientId = request.SellerClientId,
+                PropertyId = request.PropertyId,
+                DealDate = request.DealDate,
+                DealAmount = request.DealAmount,
+                DealType = request.DealType
+            };
+
             var result = await _createCompleteDealHandler.HandleAsync(command);
 
             if (result.IsFailure)
@@ -39,106 +61,95 @@ namespace Presenter.Controllers
             return CreatedAtAction(
                 nameof(GetCompletedDeal),
                 new { id = result.Value.Id.Value },
-                result.Value);
+                result.Value.ToDto());
         }
 
+        /// <summary>
+        /// Получает завершенную сделку по ID
+        /// </summary>
+        /// <param name="id">Идентификатор завершенной сделки</param>
+        /// <returns>Завершенная сделка</returns>
+        /// <response code="200">Завершенная сделка найдена</response>
+        /// <response code="404">Завершенная сделка не найдена</response>
         [HttpGet("{id}")]
-        public async Task<ActionResult<CompletedDeal>> GetCompletedDeal(Guid id)
+        public async Task<ActionResult<CompletedDealDto>> GetCompletedDeal(Guid id)
         {
-            var dealId = CompletedDealId.Create(id);
-            if (dealId.IsFailure)
-            {
-                return BadRequest(new { Error = "Invalid deal ID" });
-            }
-
-            var result = await _completedDealRepository.GetByIdAsync(dealId.Value);
+            var result = await _completedDealService.GetByIdAsync(id);
             if (result.IsFailure)
             {
                 return NotFound(new { Error = result.Error });
             }
 
-            return Ok(result.Value);
+            return Ok(result.Value.ToDto());
         }
 
+        /// <summary>
+        /// Получает все завершенные сделки
+        /// </summary>
+        /// <returns>Список всех завершенных сделок</returns>
+        /// <response code="200">Список завершенных сделок успешно получен</response>
+        /// <response code="400">Ошибка получения списка</response>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CompletedDeal>>> GetAllCompletedDeals()
+        public async Task<ActionResult<IEnumerable<CompletedDealDto>>> GetAllCompletedDeals()
         {
-            // В реальной реализации нужно будет добавить метод в репозиторий для получения всех сделок
-            // Пока что возвращаем пустой список
-            return Ok(new List<CompletedDeal>());
-        }
-
-        [HttpGet("by-client/{clientId}")]
-        public async Task<ActionResult<IEnumerable<CompletedDeal>>> GetCompletedDealsByClient(
-            Guid clientId)
-        {
-            var clientIdVO = ClientId.Create(clientId);
-            if (clientIdVO.IsFailure)
-            {
-                return BadRequest(new { Error = "Invalid client ID" });
-            }
-
-            var result = await _completedDealRepository.GetByClientIdAsync(clientIdVO.Value);
-            if (result.IsFailure)
-            {
-                return NotFound(new { Error = result.Error });
-            }
-
-            return Ok(result.Value);
-        }
-
-        [HttpGet("by-property/{propertyId}")]
-        public async Task<ActionResult<IEnumerable<CompletedDeal>>> GetCompletedDealsByProperty(
-            Guid propertyId)
-        {
-            var propertyIdVO = PropertyId.Create(propertyId);
-            if (propertyIdVO.IsFailure)
-            {
-                return BadRequest(new { Error = "Invalid property ID" });
-            }
-
-            var result = await _completedDealRepository.GetByPropertyIdAsync(propertyIdVO.Value);
-            if (result.IsFailure)
-            {
-                return NotFound(new { Error = result.Error });
-            }
-
-            return Ok(result.Value);
-        }
-
-        [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateCompletedDeal(Guid id, [FromBody] CompletedDeal updatedDeal)
-        {
-            var dealId = CompletedDealId.Create(id);
-            if (dealId.IsFailure)
-            {
-                return BadRequest(new { Error = "Invalid deal ID" });
-            }
-
-            if (updatedDeal.Id.Value != id)
-            {
-                return BadRequest(new { Error = "Deal ID in the URL does not match the ID in the body" });
-            }
-
-            var result = await _completedDealRepository.UpdateAsync(updatedDeal);
+            var result = await _completedDealService.GetAllAsync();
             if (result.IsFailure)
             {
                 return BadRequest(new { Error = result.Error });
             }
 
-            return NoContent();
+            return Ok(result.Value.Select(d => d.ToDto()));
         }
 
+        /// <summary>
+        /// Получает завершенные сделки по ID клиента
+        /// </summary>
+        /// <param name="clientId">Идентификатор клиента</param>
+        /// <returns>Список завершенных сделок клиента</returns>
+        /// <response code="200">Список завершенных сделок клиента успешно получен</response>
+        /// <response code="400">Ошибка получения списка</response>
+        [HttpGet("by-client/{clientId}")]
+        public async Task<ActionResult<IEnumerable<CompletedDealDto>>> GetCompletedDealsByClient(Guid clientId)
+        {
+            var result = await _completedDealService.GetByClientIdAsync(clientId);
+            if (result.IsFailure)
+            {
+                return BadRequest(new { Error = result.Error });
+            }
+
+            return Ok(result.Value.Select(d => d.ToDto()));
+        }
+
+        /// <summary>
+        /// Получает завершенные сделки по ID объекта недвижимости
+        /// </summary>
+        /// <param name="propertyId">Идентификатор объекта недвижимости</param>
+        /// <returns>Список завершенных сделок по объекту недвижимости</returns>
+        /// <response code="200">Список завершенных сделок успешно получен</response>
+        /// <response code="400">Ошибка получения списка</response>
+        [HttpGet("by-property/{propertyId}")]
+        public async Task<ActionResult<IEnumerable<CompletedDealDto>>> GetCompletedDealsByProperty(Guid propertyId)
+        {
+            var result = await _completedDealService.GetByPropertyIdAsync(propertyId);
+            if (result.IsFailure)
+            {
+                return BadRequest(new { Error = result.Error });
+            }
+
+            return Ok(result.Value.Select(d => d.ToDto()));
+        }
+
+        /// <summary>
+        /// Удаляет завершенную сделку по ID
+        /// </summary>
+        /// <param name="id">Идентификатор завершенной сделки</param>
+        /// <returns></returns>
+        /// <response code="204">Завершенная сделка успешно удалена</response>
+        /// <response code="404">Завершенная сделка не найдена</response>
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteCompletedDeal(Guid id)
         {
-            var dealId = CompletedDealId.Create(id);
-            if (dealId.IsFailure)
-            {
-                return BadRequest(new { Error = "Invalid deal ID" });
-            }
-
-            var result = await _completedDealRepository.DeleteAsync(dealId.Value);
+            var result = await _completedDealService.DeleteAsync(id);
             if (result.IsFailure)
             {
                 return NotFound(new { Error = result.Error });

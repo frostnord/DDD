@@ -1,15 +1,14 @@
 using CSharpFunctionalExtensions;
-using Domain.Deal;
-using UseCases.Interfaces;
 using UseCases.Interfaces.Commands;
+using UseCases.Interfaces.Services;
 
-namespace UseCases.Deal
+namespace UseCases.CompleteDeal
 {
     public class CompleteDealCommand : ICommand
     {
         public Guid DealId { get; set; }
     }
-    
+
     public class CompleteDealCommandHandler : ICommandHandler<CompleteDealCommand>
     {
         private readonly IDealService _dealService;

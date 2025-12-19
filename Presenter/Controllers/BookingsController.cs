@@ -11,8 +11,13 @@ using UseCases.Booking.Commands.CreateBooking;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Repositories;
 
+
 namespace Presenter.Controllers
 {
+    /// <summary>
+    /// Контроллер для управления бронированиями
+    /// Реализует CRUD-операции и бизнес-процессы, связанные с бронированиями недвижимости
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class BookingsController : ControllerBase
@@ -22,6 +27,13 @@ namespace Presenter.Controllers
         private readonly ICommandHandler<CancelBookingCommand> _cancelBookingHandler;
         private readonly IBookingRepository _bookingRepository;
 
+        /// <summary>
+        /// Конструктор контроллера бронирований
+        /// </summary>
+        /// <param name="createBookingHandler">Обработчик команды создания бронирования</param>
+        /// <param name="confirmBookingHandler">Обработчик команды подтверждения бронирования</param>
+        /// <param name="cancelBookingHandler">Обработчик команды отмены бронирования</param>
+        /// <param name="bookingRepository">Репозиторий для работы с бронированиями</param>
         public BookingsController(
             ICommandHandler<CreateBookingCommand, BookingEntity> createBookingHandler,
             ICommandHandler<ConfirmBookingCommand> confirmBookingHandler,
@@ -34,6 +46,11 @@ namespace Presenter.Controllers
             _bookingRepository = bookingRepository;
         }
 
+        /// <summary>
+        /// Создание нового бронирования
+        /// </summary>
+        /// <param name="request">Запрос на создание бронирования с необходимыми данными</param>
+        /// <returns>Созданное бронирование с кодом 201 Created</returns>
         [HttpPost]
         public async Task<ActionResult<BookingDto>> CreateBooking([FromBody] CreateBookingRequest request)
         {
@@ -60,6 +77,11 @@ namespace Presenter.Controllers
                 result.Value.ToDTO());
         }
 
+        /// <summary>
+        /// Получение бронирования по идентификатору
+        /// </summary>
+        /// <param name="id">Идентификатор бронирования</param>
+        /// <returns>Бронирование с указанным идентификатором</returns>
         [HttpGet("{id}")]
         public async Task<ActionResult<BookingDto>> GetBooking(Guid id)
         {
@@ -85,6 +107,11 @@ namespace Presenter.Controllers
             return Ok(bookingDto);
         }
 
+        /// <summary>
+        /// Получение списка всех бронирований
+        /// </summary>
+        /// <param name="query">Параметры поиска и фильтрации бронирований</param>
+        /// <returns>Список всех бронирований</returns>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<BookingDto>>> GetBookings([FromQuery] SearchBookingsQuery query)
         {
@@ -93,6 +120,11 @@ namespace Presenter.Controllers
             return Ok(bookingDtos);
         }
 
+        /// <summary>
+        /// Подтверждение бронирования
+        /// </summary>
+        /// <param name="id">Идентификатор бронирования для подтверждения</param>
+        /// <returns>Результат подтверждения бронирования</returns>
         [HttpPut("{id}/confirm")]
         public async Task<ActionResult> ConfirmBooking(Guid id)
         {
@@ -107,6 +139,11 @@ namespace Presenter.Controllers
             return Ok(new { Message = "Booking confirmed successfully" });
         }
 
+        /// <summary>
+        /// Отмена бронирования
+        /// </summary>
+        /// <param name="id">Идентификатор бронирования для отмены</param>
+        /// <returns>Результат отмены бронирования</returns>
         [HttpPut("{id}/cancel")]
         public async Task<ActionResult> CancelBooking(Guid id)
         {

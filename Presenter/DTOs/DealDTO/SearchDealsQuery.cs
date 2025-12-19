@@ -9,11 +9,11 @@ namespace Presenter.DTOs.DealDTO
         /// Фильтр по идентификатору клиента
         /// </summary>
         public Guid? ClientId { get; set; }
-        
+
         /// <summary>
         /// Фильтр по идентификатору объекта недвижимости
         /// </summary>
         public Guid? PropertyId { get; set; }
-        
+
     }
 }

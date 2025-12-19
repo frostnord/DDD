@@ -38,6 +38,7 @@ namespace Presenter.Controllers
         /// <param name="completeDealHandler">Обработчик команды завершения сделки</param>
         /// <param name="cancelDealHandler">Обработчик команды отмены сделки</param>
         /// <param name="dealRepository">Репозиторий для работы с сущностями сделок</param>
+        /// <param name="dealService">Сервис для работы с сущностями сделок</param>
         public DealsController(
             ICommandHandler<CreateDealCommand, DealEntity> createDealHandler,
             ICommandHandler<ConfirmDealCommand> confirmDealHandler,
@@ -109,13 +110,15 @@ namespace Presenter.Controllers
             var dealDto = dealResult.Value.ToDTO();
             return Ok(dealDto);
         }
-        
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="query"></param>
-        /// <returns></returns>
 
+        /// <summary>
+        /// Возвращает список сделок с возможностью фильтрации по клиенту или недвижимости
+        /// </summary>
+        /// <param name="query">Параметры поиска сделок</param>
+        /// <returns>Список сделок</returns>
+        /// <response code="200">Возвращает список сделок</response>
+        /// <response code="400">Если параметры запроса некорректны</response>
+        
         [HttpGet]
         public async Task<ActionResult<IEnumerable<DealDto>>> GetDeals([FromQuery] SearchDealsQuery query)
         {
@@ -129,7 +132,7 @@ namespace Presenter.Controllers
                 {
                     return BadRequest(new { Error = dealsResult.Error });
                 }
-                
+
                 deals = dealsResult.Value;
             }
             else if (query.PropertyId.HasValue)
@@ -139,7 +142,7 @@ namespace Presenter.Controllers
                 {
                     return BadRequest(new { Error = dealsResult.Error });
                 }
-                
+
                 deals = dealsResult.Value;
             }
             else
@@ -147,9 +150,9 @@ namespace Presenter.Controllers
                 return BadRequest(new { Error = "Нужен id клиента или недвижимости" });
 
             }
-            
+
             var dealDtos = deals.Select(d => d.ToDTO()).ToList();
-            
+
             return Ok(new
             {
                 Items = dealDtos,
@@ -220,3 +223,5 @@ namespace Presenter.Controllers
         }
     }
 }
+
+       

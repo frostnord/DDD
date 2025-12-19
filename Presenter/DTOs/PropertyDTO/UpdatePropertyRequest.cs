@@ -14,9 +14,9 @@ namespace Presenter.DTOs.PropertyDTO
 
         [Required] public string Country { get; set; }
 
-        [Required] [Range(0, double.MaxValue)] public decimal Price { get; set; }
+        [Required][Range(0, double.MaxValue)] public decimal Price { get; set; }
 
-        [Required] [StringLength(1000)] public string Description { get; set; }
+        [Required][StringLength(1000)] public string Description { get; set; }
 
         [Required] public int NumberOfRooms { get; set; }
 
