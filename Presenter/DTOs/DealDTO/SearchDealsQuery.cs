@@ -1,6 +1,4 @@
-using System.ComponentModel.DataAnnotations;
-
-namespace Presenter.DTOs
+namespace Presenter.DTOs.DealDTO
 {
     /// <summary>
     /// Параметры поиска и фильтрации сделок

@@ -5,11 +5,15 @@ using Domain.Deal;
 using Domain.Property.VO;
 using Microsoft.AspNetCore.Mvc;
 using Presenter.DTOs;
+using Presenter.DTOs.DealDTO;
 using Presenter.Extensions;
+using UseCases.CompleteDeal;
 using UseCases.Deal;
+using UseCases.Deal.Commands;
 using UseCases.Interfaces;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 
 namespace Presenter.Controllers
 {

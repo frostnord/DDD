@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Presenter.DTOs;
+using Presenter.DTOs.SellerDTO;
 using Presenter.Extensions;
 using UseCases.Interfaces;
 using UseCases.Interfaces.Services;

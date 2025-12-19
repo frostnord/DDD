@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Presenter.DTOs
+namespace Presenter.DTOs.DealDTO
 {
     /// <summary>
     /// Запрос на обновление статуса сделки

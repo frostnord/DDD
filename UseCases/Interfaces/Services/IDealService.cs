@@ -1,9 +1,7 @@
 using CSharpFunctionalExtensions;
-using Domain.Customers.Client.VO;
 using Domain.Deal;
-using Domain.Property.VO;
 
-namespace UseCases.Interfaces
+namespace UseCases.Interfaces.Services
 {
     public interface IDealService
     {

@@ -1,4 +1,4 @@
-namespace Presenter.DTOs
+namespace Presenter.DTOs.BookingDTO
 {
     public class SearchBookingsQuery
     {

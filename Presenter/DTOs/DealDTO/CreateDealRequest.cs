@@ -1,7 +1,7 @@
-using Domain.Deal;
 using System.ComponentModel.DataAnnotations;
+using Domain.Deal;
 
-namespace Presenter.DTOs
+namespace Presenter.DTOs.DealDTO
 {
     /// <summary>
     /// Запрос на создание сделки

@@ -6,7 +6,7 @@ using Domain.Property.VO;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Repositories;
 
-namespace UseCases.Deal
+namespace UseCases.Deal.Commands
 {
     public class CreateDealCommandHandler : ICommandHandler<CreateDealCommand, DealEntity>
     {

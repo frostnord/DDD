@@ -19,7 +19,7 @@ public class AppDbContext : DbContext
     public DbSet<PropertyEntity> Properties => Set<PropertyEntity>();
     public DbSet<BuyerEntity> Buyers => Set<BuyerEntity>();
     public DbSet<SellerEntity> Sellers => Set<SellerEntity>();
-    public DbSet<CompletedDeal> CompletedDeals => Set<CompletedDeal>();
+    public DbSet<CompletedDealEntity> CompletedDeals => Set<CompletedDealEntity>();
     public DbSet<DealEntity> Deals => Set<DealEntity>();
     public DbSet<ClientEntity> Clients => Set<ClientEntity>();
     public DbSet<BookingEntity> Bookings => Set<BookingEntity>();

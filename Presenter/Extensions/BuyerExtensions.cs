@@ -1,5 +1,6 @@
 using Domain.Customers.Buyer;
 using Presenter.DTOs;
+using Presenter.DTOs.BuyerDTO;
 
 namespace Presenter.Extensions
 {

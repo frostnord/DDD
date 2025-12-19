@@ -1,17 +1,17 @@
-namespace Presenter.DTOs
+namespace Presenter.DTOs.BuyerDTO
 {
     /// <summary>
-    /// DTO для представления продавца
+    /// DTO для представления покупателя
     /// </summary>
-    public class SellerDto
+    public class BuyerDto
     {
         /// <summary>
-        /// Идентификатор продавца
+        /// Идентификатор покупателя
         /// </summary>
         public Guid Id { get; set; }
 
         /// <summary>
-        /// Идентификатор клиента, связанного с продавцом
+        /// Идентификатор клиента, связанного с покупателем
         /// </summary>
         public Guid ClientId { get; set; }
 

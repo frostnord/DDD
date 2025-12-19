@@ -1,5 +1,6 @@
 using Domain.Customers.Client;
 using Presenter.DTOs;
+using Presenter.DTOs.ClientDTO;
 
 namespace Presenter.Extensions
 {

@@ -1,5 +1,6 @@
 using Domain.Deal;
 using Presenter.DTOs;
+using Presenter.DTOs.DealDTO;
 
 namespace Presenter.Extensions
 {

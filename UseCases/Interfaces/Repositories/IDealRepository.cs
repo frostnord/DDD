@@ -10,6 +10,7 @@ namespace UseCases.Interfaces.Repositories
         Task<Result<DealEntity>> GetByIdAsync(DealId id);
         Task<Result<IEnumerable<DealEntity>>> GetByClientIdAsync(ClientId clientId);
         Task<Result<IEnumerable<DealEntity>>> GetByPropertyIdAsync(PropertyId propertyId);
+        Task<Result<IEnumerable<DealEntity>>> GetAllAsync();
         Task<Result<DealEntity>> AddAsync(DealEntity dealEntity);
         Task<Result> UpdateAsync(DealEntity dealEntity);
         Task<Result> DeleteAsync(DealId id);

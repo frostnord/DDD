@@ -1,7 +1,6 @@
 using Domain.Deal;
-using Domain.ValueObjects;
 
-namespace Presenter.DTOs
+namespace Presenter.DTOs.DealDTO
 {
     /// <summary>
     /// DTO для представления информации о сделке

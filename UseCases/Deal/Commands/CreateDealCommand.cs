@@ -1,10 +1,7 @@
-using Domain.Booking.VO;
-using Domain.Customers.Client.VO;
 using Domain.Deal;
-using Domain.Property.VO;
 using UseCases.Interfaces.Commands;
 
-namespace UseCases.Deal
+namespace UseCases.Deal.Commands
 {
     public class CreateDealCommand : ICommand<DealEntity>
     {

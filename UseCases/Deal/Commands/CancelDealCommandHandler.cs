@@ -1,9 +1,8 @@
 using CSharpFunctionalExtensions;
-using Domain.Deal;
-using UseCases.Interfaces;
 using UseCases.Interfaces.Commands;
+using UseCases.Interfaces.Services;
 
-namespace UseCases.Deal
+namespace UseCases.Deal.Commands
 {
     public class CancelDealCommand : ICommand
     {

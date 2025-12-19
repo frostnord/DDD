@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 
 namespace Domain.Utilities;
 
@@ -13,11 +14,13 @@ public abstract class Enumeration<TEnum> : IEquatable<Enumeration<TEnum>>, IComp
 
     static Enumeration()
     {
+        RuntimeHelpers.RunClassConstructor(typeof(TEnum).TypeHandle);
+
         var values = typeof(TEnum)
             .GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.DeclaredOnly)
             .Where(f => f.FieldType == typeof(TEnum))
             .Select(f => f.GetValue(null))
-            .Cast<TEnum>()
+            .OfType<TEnum>()
             .ToList();
 
         _byValue = values.ToDictionary(e => e.Value);

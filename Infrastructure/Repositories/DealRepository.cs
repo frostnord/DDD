@@ -75,5 +75,11 @@ namespace Infrastructure.Repositories
         {
             return await _context.Deals.AnyAsync(d => d.Id == id);
         }
+
+        public async Task<Result<IEnumerable<DealEntity>>> GetAllAsync()
+        {
+            var deals = await _context.Deals.ToListAsync();
+            return Result.Success<IEnumerable<DealEntity>>(deals);
+        }
     }
 }

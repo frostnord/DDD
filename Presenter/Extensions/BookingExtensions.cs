@@ -1,5 +1,6 @@
 using Domain.Booking;
 using Presenter.DTOs;
+using Presenter.DTOs.BookingDTO;
 
 namespace Presenter.Extensions
 {

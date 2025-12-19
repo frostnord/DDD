@@ -2,6 +2,7 @@ using Domain.Booking;
 using Domain.Booking.VO;
 using Microsoft.AspNetCore.Mvc;
 using Presenter.DTOs;
+using Presenter.DTOs.BookingDTO;
 using Presenter.Extensions;
 using UseCases.Booking.Commands;
 using UseCases.Booking.Commands.CancelBooking;

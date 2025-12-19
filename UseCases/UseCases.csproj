@@ -12,7 +12,6 @@
 
     <ItemGroup>
       <Folder Include="Clients\Commands\" />
-      <Folder Include="Deal\Commands\" />
     </ItemGroup>
 
 </Project>

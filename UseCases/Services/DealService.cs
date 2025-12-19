@@ -5,6 +5,7 @@ using Domain.Deal;
 using Domain.Property.VO;
 using UseCases.Interfaces;
 using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 
 namespace UseCases.Services
 {

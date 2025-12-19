@@ -3,7 +3,7 @@ using Domain.Deal;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Repositories;
 
-namespace UseCases.Deal
+namespace UseCases.Deal.Commands
 {
     public class ConfirmDealCommand : ICommand
     {

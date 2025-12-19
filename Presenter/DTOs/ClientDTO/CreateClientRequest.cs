@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Presenter.DTOs
+namespace Presenter.DTOs.ClientDTO
 {
     /// <summary>
     /// DTO для запроса создания клиента
