@@ -7,17 +7,30 @@ using UseCases.Interfaces.Services;
 
 namespace Presenter.Controllers
 {
+    /// <summary>
+    /// Контроллер для управления объектами недвижимости в системе управления недвижимостью.
+    /// Предоставляет конечные точки для создания, получения, обновления и удаления объектов недвижимости.
+    /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     public class PropertyController : ControllerBase
     {
         private readonly IPropertyService _propertyService;
 
+        /// <summary>
+        /// Инициализирует новый экземпляр класса PropertyController.
+        /// </summary>
+        /// <param name="propertyService">Сервис для обработки бизнес-логики, связанной с недвижимостью</param>
         public PropertyController(IPropertyService propertyService)
         {
             _propertyService = propertyService;
         }
 
+        /// <summary>
+        /// Создает новый объект недвижимости.
+        /// </summary>
+        /// <param name="request">Запрос, содержащий данные об объекте недвижимости</param>
+        /// <returns>Созданный объект недвижимости с HTTP 201 при успешном выполнении, иначе HTTP 400 с деталями ошибки</returns>
         [HttpPost]
         public async Task<ActionResult<PropertyDto>> CreateProperty([FromBody] CreatePropertyRequest request)
         {
@@ -52,6 +65,11 @@ namespace Presenter.Controllers
                 result.Value.ToDTO());
         }
 
+        /// <summary>
+        /// Получает объект недвижимости по его уникальному идентификатору.
+        /// </summary>
+        /// <param name="id">Уникальный идентификатор объекта недвижимости</param>
+        /// <returns>Запрошенный объект недвижимости с HTTP 20 если найден, иначе HTTP 404 с деталями ошибки</returns>
         [HttpGet("{id}")]
         public async Task<ActionResult<PropertyDto>> GetProperty(Guid id)
         {
@@ -64,6 +82,11 @@ namespace Presenter.Controllers
             return Ok(result.Value.ToDTO());
         }
 
+        /// <summary>
+        /// Получает все объекты недвижимости с опциональной фильтрацией.
+        /// </summary>
+        /// <param name="query">Параметры запроса для фильтрации объектов недвижимости</param>
+        /// <returns>Список объектов недвижимости, соответствующих критериям фильтрации, с HTTP 200 при успешном выполнении, иначе HTTP 400 с деталями ошибки</returns>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<PropertyDto>>> GetProperties([FromQuery] SearchPropertiesQuery query)
         {
@@ -80,6 +103,12 @@ namespace Presenter.Controllers
             return Ok(properties);
         }
 
+        /// <summary>
+        /// Обновляет существующий объект недвижимости по его уникальному идентификатору.
+        /// </summary>
+        /// <param name="id">Уникальный идентификатор объекта недвижимости для обновления</param>
+        /// <param name="request">Запрос, содержащий обновленные данные объекта недвижимости</param>
+        /// <returns>Обновленный объект недвижимости с HTTP 20 при успешном выполнении, иначе HTTP 400 или 404 с деталями ошибки</returns>
         [HttpPut("{id}")]
         public async Task<ActionResult<PropertyDto>> UpdateProperty(Guid id, [FromBody] UpdatePropertyRequest request)
         {
@@ -109,6 +138,11 @@ namespace Presenter.Controllers
             return Ok(getResult.Value.ToDTO());
         }
 
+        /// <summary>
+        /// Удаляет объект недвижимости по его уникальному идентификатору.
+        /// </summary>
+        /// <param name="id">Уникальный идентификатор объекта недвижимости для удаления</param>
+        /// <returns>HTTP 204 при успешном удалении, иначе HTTP 404 с деталями ошибки</returns>
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteProperty(Guid id)
         {
