@@ -75,9 +75,9 @@ namespace Infrastructure.Repositories
             return await _context.Bookings.AnyAsync(b => b.Id == id);
         }
 
-        public async Task<IEnumerable<BookingEntity>> GetAllAsync()
+        public async Task<Result<IEnumerable<BookingEntity>>> GetAllAsync()
         {
-            return await _context.Bookings.ToListAsync();
+            return Result.Success<IEnumerable<BookingEntity>>(await _context.Bookings.ToListAsync());
         }
     }
 }
