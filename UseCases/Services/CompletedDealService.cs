@@ -2,7 +2,6 @@ using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
 using Domain.Deal;
 using Domain.Property.VO;
-using Domain.ValueObjects;
 using UseCases.Interfaces.Repositories;
 using UseCases.Interfaces.Services;
 
@@ -15,64 +14,6 @@ public class CompletedDealService : ICompletedDealService
     public CompletedDealService(ICompletedDealRepository completedDealRepository)
     {
         _completedDealRepository = completedDealRepository;
-    }
-
-    public async Task<Result<CompletedDealEntity>> CreateAsync(
-        Guid buyerClientId,
-        Guid sellerClientId,
-        Guid propertyId,
-        DateTime dealDate,
-        decimal dealAmount,
-        string dealType)
-    {
-        var buyerIdResult = ClientId.Create(buyerClientId);
-        if (buyerIdResult.IsFailure)
-        {
-            return Result.Failure<CompletedDealEntity>(buyerIdResult.Error);
-        }
-
-        var sellerIdResult = ClientId.Create(sellerClientId);
-        if (sellerIdResult.IsFailure)
-        {
-            return Result.Failure<CompletedDealEntity>(sellerIdResult.Error);
-        }
-
-        var propertyIdResult = PropertyId.Create(propertyId);
-        if (propertyIdResult.IsFailure)
-        {
-            return Result.Failure<CompletedDealEntity>(propertyIdResult.Error);
-        }
-
-        var priceResult = Price.Create(dealAmount);
-        if (priceResult.IsFailure)
-        {
-            return Result.Failure<CompletedDealEntity>(priceResult.Error);
-        }
-
-        DealType dealTypeValue;
-        try
-        {
-            dealTypeValue = DealType.FromName(dealType);
-        }
-        catch (ArgumentException)
-        {
-            return Result.Failure<CompletedDealEntity>($"Тип сделки '{dealType}' не поддерживается.");
-        }
-
-        var completedDealResult = CompletedDealEntity.Create(
-            buyerIdResult.Value,
-            sellerIdResult.Value,
-            propertyIdResult.Value,
-            dealDate,
-            priceResult.Value,
-            dealTypeValue);
-
-        if (completedDealResult.IsFailure)
-        {
-            return Result.Failure<CompletedDealEntity>(completedDealResult.Error);
-        }
-
-        return await _completedDealRepository.AddAsync(completedDealResult.Value);
     }
 
     public async Task<Result<CompletedDealEntity>> GetByIdAsync(Guid completedDealId)

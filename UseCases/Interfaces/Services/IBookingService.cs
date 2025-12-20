@@ -10,6 +10,8 @@ namespace UseCases.Interfaces.Services
 
         Task<Result<BookingEntity>> GetBookingByIdAsync(Guid bookingId);
         Task<Result<IEnumerable<BookingEntity>>> GetAllBookingsAsync();
+        Task<Result<IEnumerable<BookingEntity>>> GetByClientIdAsync(Guid clientId);
+        Task<Result<IEnumerable<BookingEntity>>> GetByPropertyIdAsync(Guid propertyId);
 
         Task<Result> UpdateBookingAsync(Guid bookingId, Guid propertyId, Guid clientId, DateTime bookingDate,
             DateTime startTime, DateTime endTime);
