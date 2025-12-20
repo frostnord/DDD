@@ -4,9 +4,5 @@ using UseCases.Interfaces.Commands;
 
 namespace UseCases.Buyer
 {
-    public class CreateBuyerCommand : ICommand<BuyerEntity>
-    {
-        public ClientId ClientId { get; set; }
-        public ClientSearchCriteria SearchCriteria { get; set; }
-    }
+    public sealed record CreateBuyerCommand(ClientId ClientId, ClientSearchCriteria SearchCriteria) : ICommand<BuyerEntity>;
 }

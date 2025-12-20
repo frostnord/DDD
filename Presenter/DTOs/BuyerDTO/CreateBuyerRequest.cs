@@ -11,41 +11,41 @@ namespace Presenter.DTOs.BuyerDTO
         /// Идентификатор клиента
         /// </summary>
         [Required(ErrorMessage = "Идентификатор клиента обязателен")]
-        public Guid ClientId { get; set; }
+        public Guid ClientId { get; init; }
 
         /// <summary>
         /// Предпочтительное количество комнат
         /// </summary>
-        public int PreferredNumberOfRooms { get; set; } = 2;
+        public int PreferredNumberOfRooms { get; init; } 
 
         /// <summary>
         /// Предпочтительный этаж
         /// </summary>
-        public int PreferredFloor { get; set; } = 3;
+        public int PreferredFloor { get; init; }
 
         /// <summary>
         /// Предпочтительное общее количество этажей в здании
         /// </summary>
-        public int PreferredTotalFloors { get; set; } = 9;
+        public int PreferredTotalFloors { get; init; } 
 
         /// <summary>
         /// Предпочтительный тип недвижимости
         /// </summary>
-        public string PreferredType { get; set; } = "Apartment";
+        public string PreferredType { get; init; }
 
         /// <summary>
         /// Наличие предпочтения по парковке
         /// </summary>
-        public bool? PreferParking { get; set; } = true;
+        public bool? PreferParking { get; init; } 
 
         /// <summary>
         /// Предпочтительный тип отопления
         /// </summary>
-        public string PreferredHeatingType { get; set; } = "Central";
+        public string PreferredHeatingType { get; init; } 
 
         /// <summary>
         /// Предпочтительное состояние недвижимости
         /// </summary>
-        public string PreferredCondition { get; set; } = "Хорошее";
+        public string PreferredCondition { get; init; } 
     }
 }
