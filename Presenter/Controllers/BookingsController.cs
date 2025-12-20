@@ -1,4 +1,5 @@
 using System.Net;
+using CSharpFunctionalExtensions;
 using Domain.Booking;
 using Domain.Booking.VO;
 using Microsoft.AspNetCore.Mvc;
@@ -83,20 +84,17 @@ namespace Presenter.Controllers
         }
 
         /// <summary>
-        /// Получение бронирования по идентификатору
+        /// Возвращает бронирование по его идентификатору
         /// </summary>
         /// <param name="id">Идентификатор бронирования</param>
-        /// <returns>Бронирование с указанным идентификатором</returns>
+        /// <returns>Информация о бронировании</returns>
+        /// <response code="200">Возвращает информацию о бронировании</response>
+        /// <response code="400">Если идентификатор бронирования некорректен</response>
+        /// <response code="404">Если бронирование не найдено</response>
         [HttpGet("{id}")]
         public async Task<Envelope> GetBooking(Guid id)
         {
-            var bookingIdResult = BookingId.Create(id);
-            if (bookingIdResult.IsFailure)
-            {
-                return new Envelope(HttpStatusCode.BadRequest, error: "Invalid booking ID");
-            }
-
-            var bookingResult = await _bookingRepository.GetByIdAsync(bookingIdResult.Value);
+            var bookingResult = await _bookingService.GetBookingByIdAsync(id);
             if (bookingResult.IsFailure)
             {
                 return new Envelope(HttpStatusCode.NotFound, error: "Booking not found");
@@ -113,34 +111,49 @@ namespace Presenter.Controllers
         }
 
         /// <summary>
-        /// Получение списка всех бронирований
+        /// Возвращает список бронирований с возможностью фильтрации по клиенту или недвижимости
         /// </summary>
-        /// <param name="query">Параметры поиска и фильтрации бронирований</param>
-        /// <returns>Список всех бронирований</returns>
+        /// <param name="query">Параметры поиска бронирований</param>
+        /// <returns>Список бронирований</returns>
+        /// <response code="200">Возвращает список бронирований</response>
+        /// <response code="400">Если параметры запроса некорректны</response>
         [HttpGet]
         public async Task<Envelope> GetBookings([FromQuery] SearchBookingsQuery query)
         {
             IEnumerable<BookingEntity> booking;
-            
+
+            // Если заданы фильтры по клиенту или недвижимости, используем соответствующие методы сервиса
             if (query.ClientId.HasValue)
             {
                 var bookingResult = await _bookingService.GetByClientIdAsync(query.ClientId.Value);
+                if (bookingResult.IsFailure)
+                {
+                    return new Envelope(HttpStatusCode.BadRequest, error: bookingResult.Error);
+                }
+
                 booking = bookingResult.Value;
             }
             else if (query.PropertyId.HasValue)
             {
                 var bookingResult = await _bookingService.GetByPropertyIdAsync(query.PropertyId.Value);
+                if (bookingResult.IsFailure)
+                {
+                    return new Envelope(HttpStatusCode.BadRequest, error: bookingResult.Error);
+                }
+
                 booking = bookingResult.Value;
             }
             else
             {
                 return new Envelope(HttpStatusCode.BadRequest, error: "Нужен id клиента или недвижимости");
-                // var bookingResult = await _bookingService.GetAllBookingsAsync(); 
-                // booking = bookingResult.Value;
             }
-            
+
             var bookingDtos = booking.Select(b => b.ToDTO()).ToList();
-            return new Envelope(bookingDtos);
+
+            return new Envelope(new
+            {
+                Items = bookingDtos,
+            });
         }
 
         /// <summary>

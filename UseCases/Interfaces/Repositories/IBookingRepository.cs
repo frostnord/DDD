@@ -22,7 +22,7 @@ namespace UseCases.Interfaces.Repositories
         /// Получает все бронирования
         /// </summary>
         /// <returns>Список всех бронирований</returns>
-        Task<IEnumerable<BookingEntity>> GetAllAsync();
+        Task<Result<IEnumerable<BookingEntity>>> GetAllAsync();
 
         /// <summary>
         /// Получает все бронирования клиента по его идентификатору
