@@ -1,7 +1,9 @@
+using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Presenter.DTOs;
 using Presenter.DTOs.ClientDTO;
 using Presenter.Extensions;
+using Presenter.Utilities;
 using UseCases.Interfaces;
 using UseCases.Interfaces.Services;
 
@@ -31,7 +33,7 @@ namespace Presenter.Controllers
         /// <param name="request">Данные для создания клиента</param>
         /// <returns>Созданный клиент</returns>
         [HttpPost]
-        public async Task<ActionResult<ClientDto>> CreateClient([FromBody] CreateClientRequest request)
+        public async Task<Envelope> CreateClient([FromBody] CreateClientRequest request)
         {
             var result = await _clientService.CreateClientAsync(
                 request.FirstName,
@@ -41,13 +43,10 @@ namespace Presenter.Controllers
 
             if (result.IsFailure)
             {
-                return BadRequest(new { Error = result.Error });
+                return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            return CreatedAtAction(
-                nameof(GetClient),
-                new { id = result.Value.Id.Value },
-                result.Value.ToDTO());
+            return new Envelope(HttpStatusCode.Created, result.Value.ToDTO());
         }
 
         /// <summary>
@@ -56,15 +55,15 @@ namespace Presenter.Controllers
         /// <param name="id">Идентификатор клиента</param>
         /// <returns>Клиент</returns>
         [HttpGet("{id}")]
-        public async Task<ActionResult<ClientDto>> GetClient(Guid id)
+        public async Task<Envelope> GetClient(Guid id)
         {
             var result = await _clientService.GetClientByIdAsync(id);
             if (result.IsFailure)
             {
-                return BadRequest(new { Error = result.Error });
+                return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            return Ok(result.Value.ToDTO());
+            return new Envelope(result.Value.ToDTO());
         }
 
         /// <summary>
@@ -72,15 +71,15 @@ namespace Presenter.Controllers
         /// </summary>
         /// <returns>Список клиентов</returns>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ClientDto>>> GetClients()
+        public async Task<Envelope> GetClients()
         {
             var result = await _clientService.GetAllClientsAsync();
             if (result.IsFailure)
             {
-                return BadRequest(new { Error = result.Error });
+                return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            return Ok(result.Value.Select(client => client.ToDTO()));
+            return new Envelope(result.Value.Select(client => client.ToDTO()));
         }
 
         /// <summary>
@@ -90,7 +89,7 @@ namespace Presenter.Controllers
         /// <param name="clientRequest">Данные для обновления клиента</param>
         /// <returns>Обновленный клиент</returns>
         [HttpPut("{id}")]
-        public async Task<ActionResult<ClientDto>> UpdateClient(Guid id, [FromBody] CreateClientRequest clientRequest)
+        public async Task<Envelope> UpdateClient(Guid id, [FromBody] CreateClientRequest clientRequest)
         {
             var result = await _clientService.UpdateClientAsync(
                 id,
@@ -101,10 +100,10 @@ namespace Presenter.Controllers
 
             if (result.IsFailure)
             {
-                return BadRequest(new { Error = result.Error });
+                return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            return Ok(result.Value.ToDTO());
+            return new Envelope(result.Value.ToDTO());
         }
 
         /// <summary>
@@ -113,22 +112,22 @@ namespace Presenter.Controllers
         /// <param name="id">Идентификатор клиента</param>
         /// <returns>Удаленный клиент</returns>
         [HttpDelete("{id}")]
-        public async Task<ActionResult<ClientDto>> DeleteClient(Guid id)
+        public async Task<Envelope> DeleteClient(Guid id)
         {
             var result = await _clientService.DeleteClientAsync(id);
             if (result.IsFailure)
             {
-                return BadRequest(new { Error = result.Error });
+                return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
             // Для возврата удаленного клиента, нужно сначала получить его
             var getClientResult = await _clientService.GetClientByIdAsync(id);
             if (getClientResult.IsFailure)
             {
-                return NotFound(new { Error = getClientResult.Error });
+                return new Envelope(HttpStatusCode.NotFound, error: getClientResult.Error);
             }
 
-            return Ok(getClientResult.Value.ToDTO());
+            return new Envelope(getClientResult.Value.ToDTO());
         }
     }
 }

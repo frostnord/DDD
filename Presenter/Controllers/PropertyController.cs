@@ -1,7 +1,9 @@
+using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Presenter.DTOs;
 using Presenter.DTOs.PropertyDTO;
 using Presenter.Extensions;
+using Presenter.Utilities;
 using UseCases.Interfaces;
 using UseCases.Interfaces.Services;
 
@@ -32,7 +34,7 @@ namespace Presenter.Controllers
         /// <param name="request">Запрос, содержащий данные об объекте недвижимости</param>
         /// <returns>Созданный объект недвижимости с HTTP 201 при успешном выполнении, иначе HTTP 400 с деталями ошибки</returns>
         [HttpPost]
-        public async Task<ActionResult<PropertyDto>> CreateProperty([FromBody] CreatePropertyRequest request)
+        public async Task<Envelope> CreateProperty([FromBody] CreatePropertyRequest request)
         {
             var result = await _propertyService.CreatePropertyAsync(
                 request.Street,
@@ -56,13 +58,10 @@ namespace Presenter.Controllers
 
             if (result.IsFailure)
             {
-                return BadRequest(new { Error = result.Error });
+                return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            return CreatedAtAction(
-                nameof(GetProperty),
-                new { id = result.Value.Id.Value },
-                result.Value.ToDTO());
+            return new Envelope(HttpStatusCode.Created, result.Value.ToDTO());
         }
 
         /// <summary>
@@ -71,15 +70,15 @@ namespace Presenter.Controllers
         /// <param name="id">Уникальный идентификатор объекта недвижимости</param>
         /// <returns>Запрошенный объект недвижимости с HTTP 20 если найден, иначе HTTP 404 с деталями ошибки</returns>
         [HttpGet("{id}")]
-        public async Task<ActionResult<PropertyDto>> GetProperty(Guid id)
+        public async Task<Envelope> GetProperty(Guid id)
         {
             var result = await _propertyService.GetPropertyByIdAsync(id);
             if (result.IsFailure)
             {
-                return NotFound(new { Error = result.Error });
+                return new Envelope(HttpStatusCode.NotFound, error: result.Error);
             }
 
-            return Ok(result.Value.ToDTO());
+            return new Envelope(result.Value.ToDTO());
         }
 
         /// <summary>
@@ -88,7 +87,7 @@ namespace Presenter.Controllers
         /// <param name="query">Параметры запроса для фильтрации объектов недвижимости</param>
         /// <returns>Список объектов недвижимости, соответствующих критериям фильтрации, с HTTP 200 при успешном выполнении, иначе HTTP 400 с деталями ошибки</returns>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<PropertyDto>>> GetProperties([FromQuery] SearchPropertiesQuery query)
+        public async Task<Envelope> GetProperties([FromQuery] SearchPropertiesQuery query)
         {
             var result = await _propertyService.SearchPropertiesAsync(
                 query.City, query.PropertyType, query.MinPrice, query.MaxPrice, query.MinArea, query.MaxArea,
@@ -96,11 +95,11 @@ namespace Presenter.Controllers
                 query.PropertyCondition, query.HasParking);
             if (result.IsFailure)
             {
-                return BadRequest(new { Error = result.Error });
+                return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
             var properties = result.Value.Select(p => p.ToDTO()).ToList();
-            return Ok(properties);
+            return new Envelope(properties);
         }
 
         /// <summary>
@@ -110,13 +109,13 @@ namespace Presenter.Controllers
         /// <param name="request">Запрос, содержащий обновленные данные объекта недвижимости</param>
         /// <returns>Обновленный объект недвижимости с HTTP 20 при успешном выполнении, иначе HTTP 400 или 404 с деталями ошибки</returns>
         [HttpPut("{id}")]
-        public async Task<ActionResult<PropertyDto>> UpdateProperty(Guid id, [FromBody] UpdatePropertyRequest request)
+        public async Task<Envelope> UpdateProperty(Guid id, [FromBody] UpdatePropertyRequest request)
         {
             // Для обновления сначала получаем свойство, обновляем его и сохраняем
             var getPropertyResult = await _propertyService.GetPropertyByIdAsync(id);
             if (getPropertyResult.IsFailure)
             {
-                return NotFound(new { Error = getPropertyResult.Error });
+                return new Envelope(HttpStatusCode.NotFound, error: getPropertyResult.Error);
             }
 
             var updateResult = await _propertyService.UpdatePropertyAsync(id, request.Street, request.City,
@@ -125,17 +124,17 @@ namespace Presenter.Controllers
                 request.PropertyCondition, request.Area, request.HasParking);
             if (updateResult.IsFailure)
             {
-                return BadRequest(new { Error = updateResult.Error });
+                return new Envelope(HttpStatusCode.BadRequest, error: updateResult.Error);
             }
 
             // После обновления получаем обновленное свойство
             var getResult = await _propertyService.GetPropertyByIdAsync(id);
             if (getResult.IsFailure)
             {
-                return NotFound(new { Error = getResult.Error });
+                return new Envelope(HttpStatusCode.NotFound, error: getResult.Error);
             }
 
-            return Ok(getResult.Value.ToDTO());
+            return new Envelope(getResult.Value.ToDTO());
         }
 
         /// <summary>
@@ -144,15 +143,15 @@ namespace Presenter.Controllers
         /// <param name="id">Уникальный идентификатор объекта недвижимости для удаления</param>
         /// <returns>HTTP 204 при успешном удалении, иначе HTTP 404 с деталями ошибки</returns>
         [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteProperty(Guid id)
+        public async Task<Envelope> DeleteProperty(Guid id)
         {
             var result = await _propertyService.DeletePropertyAsync(id);
             if (result.IsFailure)
             {
-                return NotFound(new { Error = result.Error });
+                return new Envelope(HttpStatusCode.NotFound, error: result.Error);
             }
 
-            return NoContent();
+            return new Envelope(HttpStatusCode.NoContent, null);
         }
     }
 }

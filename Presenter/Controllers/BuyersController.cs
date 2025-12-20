@@ -1,7 +1,9 @@
+using System.Net;
 using Microsoft.AspNetCore.Mvc;
 using Presenter.DTOs;
 using Presenter.DTOs.BuyerDTO;
 using Presenter.Extensions;
+using Presenter.Utilities;
 using UseCases.Interfaces;
 using UseCases.Interfaces.Services;
 
@@ -31,7 +33,7 @@ namespace Presenter.Controllers
         /// <param name="request">Данные для создания покупателя</param>
         /// <returns>Созданный покупатель</returns>
         [HttpPost]
-        public async Task<ActionResult<BuyerDto>> CreateBuyer([FromBody] CreateBuyerRequest request)
+        public async Task<Envelope> CreateBuyer([FromBody] CreateBuyerRequest request)
         {
             var result = await _buyerService.CreateBuyerAsync(request.ClientId, request.PreferredNumberOfRooms,
                 request.PreferredFloor, request.PreferredTotalFloors, request.PreferredType,
@@ -39,13 +41,10 @@ namespace Presenter.Controllers
 
             if (result.IsFailure)
             {
-                return BadRequest(new { Error = result.Error });
+                return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            return CreatedAtAction(
-                nameof(GetBuyer),
-                new { id = result.Value.Id.Value },
-                result.Value.ToDTO());
+            return new Envelope(HttpStatusCode.Created, result.Value.ToDTO());
         }
 
         /// <summary>
@@ -54,15 +53,15 @@ namespace Presenter.Controllers
         /// <param name="id">Идентификатор покупателя</param>
         /// <returns>Покупатель</returns>
         [HttpGet("{id}")]
-        public async Task<ActionResult<BuyerDto>> GetBuyer(Guid id)
+        public async Task<Envelope> GetBuyer(Guid id)
         {
             var result = await _buyerService.GetBuyerByIdAsync(id);
             if (result.IsFailure)
             {
-                return BadRequest(new { Error = result.Error });
+                return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            return Ok(result.Value.ToDTO());
+            return new Envelope(result.Value.ToDTO());
         }
 
         /// <summary>
@@ -70,15 +69,15 @@ namespace Presenter.Controllers
         /// </summary>
         /// <returns>Список покупателей</returns>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<BuyerDto>>> GetBuyers()
+        public async Task<Envelope> GetBuyers()
         {
             var result = await _buyerService.GetAllBuyersAsync();
             if (result.IsFailure)
             {
-                return BadRequest(new { Error = result.Error });
+                return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            return Ok(result.Value.Select(buyer => buyer.ToDTO()));
+            return new Envelope(result.Value.Select(buyer => buyer.ToDTO()));
         }
 
         /// <summary>
@@ -88,24 +87,24 @@ namespace Presenter.Controllers
         /// <param name="request">Данные для обновления покупателя</param>
         /// <returns>Обновленный покупатель</returns>
         [HttpPut("{id}")]
-        public async Task<ActionResult<BuyerDto>> UpdateBuyer(Guid id, [FromBody] CreateBuyerRequest request)
+        public async Task<Envelope> UpdateBuyer(Guid id, [FromBody] CreateBuyerRequest request)
         {
             var result = await _buyerService.UpdateBuyerAsync(id, request.ClientId, request.PreferredNumberOfRooms,
                 request.PreferredFloor, request.PreferredTotalFloors, request.PreferredType,
                 request.PreferredHeatingType, request.PreferredCondition, request.PreferParking);
             if (result.IsFailure)
             {
-                return BadRequest(new { Error = result.Error });
+                return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
             // Возвращаем обновленного покупателя
             var updatedBuyerResult = await _buyerService.GetBuyerByIdAsync(id);
             if (updatedBuyerResult.IsFailure)
             {
-                return BadRequest(new { Error = updatedBuyerResult.Error });
+                return new Envelope(HttpStatusCode.BadRequest, error: updatedBuyerResult.Error);
             }
 
-            return Ok(updatedBuyerResult.Value.ToDTO());
+            return new Envelope(updatedBuyerResult.Value.ToDTO());
         }
 
         /// <summary>
@@ -114,21 +113,21 @@ namespace Presenter.Controllers
         /// <param name="id">Идентификатор покупателя</param>
         /// <returns>Удаленный покупатель</returns>
         [HttpDelete("{id}")]
-        public async Task<ActionResult<BuyerDto>> DeleteBuyer(Guid id)
+        public async Task<Envelope> DeleteBuyer(Guid id)
         {
             var getBuyerResult = await _buyerService.GetBuyerByIdAsync(id);
             if (getBuyerResult.IsFailure)
             {
-                return BadRequest(new { Error = getBuyerResult.Error });
+                return new Envelope(HttpStatusCode.BadRequest, error: getBuyerResult.Error);
             }
 
             var result = await _buyerService.DeleteBuyerAsync(id);
             if (result.IsFailure)
             {
-                return BadRequest(new { Error = result.Error });
+                return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            return Ok(getBuyerResult.Value.ToDTO());
+            return new Envelope(getBuyerResult.Value.ToDTO());
         }
     }
 }

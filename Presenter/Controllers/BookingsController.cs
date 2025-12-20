@@ -1,9 +1,11 @@
+using System.Net;
 using Domain.Booking;
 using Domain.Booking.VO;
 using Microsoft.AspNetCore.Mvc;
 using Presenter.DTOs;
 using Presenter.DTOs.BookingDTO;
 using Presenter.Extensions;
+using Presenter.Utilities;
 using UseCases.Booking.Commands;
 using UseCases.Booking.Commands.CancelBooking;
 using UseCases.Booking.Commands.ConfirmBooking;
@@ -52,7 +54,7 @@ namespace Presenter.Controllers
         /// <param name="request">Запрос на создание бронирования с необходимыми данными</param>
         /// <returns>Созданное бронирование с кодом 201 Created</returns>
         [HttpPost]
-        public async Task<ActionResult<BookingDto>> CreateBooking([FromBody] CreateBookingRequest request)
+        public async Task<Envelope> CreateBooking([FromBody] CreateBookingRequest request)
         {
             var command = new CreateBookingCommand
             {
@@ -68,13 +70,11 @@ namespace Presenter.Controllers
 
             if (result.IsFailure)
             {
-                return BadRequest(new { Error = result.Error });
+                return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            return CreatedAtAction(
-                nameof(GetBooking),
-                new { id = result.Value.Id.Value },
-                result.Value.ToDTO());
+            var bookingDto = result.Value.ToDTO();
+            return new Envelope(HttpStatusCode.Created, bookingDto);
         }
 
         /// <summary>
@@ -83,28 +83,28 @@ namespace Presenter.Controllers
         /// <param name="id">Идентификатор бронирования</param>
         /// <returns>Бронирование с указанным идентификатором</returns>
         [HttpGet("{id}")]
-        public async Task<ActionResult<BookingDto>> GetBooking(Guid id)
+        public async Task<Envelope> GetBooking(Guid id)
         {
             var bookingIdResult = BookingId.Create(id);
             if (bookingIdResult.IsFailure)
             {
-                return BadRequest(new { Error = "Invalid booking ID" });
+                return new Envelope(HttpStatusCode.BadRequest, error: "Invalid booking ID");
             }
 
             var bookingResult = await _bookingRepository.GetByIdAsync(bookingIdResult.Value);
             if (bookingResult.IsFailure)
             {
-                return NotFound(new { Error = "Booking not found" });
+                return new Envelope(HttpStatusCode.NotFound, error: "Booking not found");
             }
 
             // Проверка на null для дополнительной безопасности
             if (bookingResult.Value == null)
             {
-                return NotFound(new { Error = "Booking not found" });
+                return new Envelope(HttpStatusCode.NotFound, error: "Booking not found");
             }
 
             var bookingDto = bookingResult.Value.ToDTO();
-            return Ok(bookingDto);
+            return new Envelope(bookingDto);
         }
 
         /// <summary>
@@ -113,11 +113,11 @@ namespace Presenter.Controllers
         /// <param name="query">Параметры поиска и фильтрации бронирований</param>
         /// <returns>Список всех бронирований</returns>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<BookingDto>>> GetBookings([FromQuery] SearchBookingsQuery query)
+        public async Task<Envelope> GetBookings([FromQuery] SearchBookingsQuery query)
         {
             var bookings = await _bookingRepository.GetAllAsync();
             var bookingDtos = bookings.Select(b => b.ToDTO()).ToList();
-            return Ok(bookingDtos);
+            return new Envelope(bookingDtos);
         }
 
         /// <summary>
@@ -126,17 +126,17 @@ namespace Presenter.Controllers
         /// <param name="id">Идентификатор бронирования для подтверждения</param>
         /// <returns>Результат подтверждения бронирования</returns>
         [HttpPut("{id}/confirm")]
-        public async Task<ActionResult> ConfirmBooking(Guid id)
+        public async Task<Envelope> ConfirmBooking(Guid id)
         {
             var command = new ConfirmBookingCommand { BookingId = id };
             var result = await _confirmBookingHandler.HandleAsync(command);
 
             if (result.IsFailure)
             {
-                return BadRequest(new { Error = result.Error });
+                return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            return Ok(new { Message = "Booking confirmed successfully" });
+            return new Envelope(new { Message = "Booking confirmed successfully" });
         }
 
         /// <summary>
@@ -145,17 +145,17 @@ namespace Presenter.Controllers
         /// <param name="id">Идентификатор бронирования для отмены</param>
         /// <returns>Результат отмены бронирования</returns>
         [HttpPut("{id}/cancel")]
-        public async Task<ActionResult> CancelBooking(Guid id)
+        public async Task<Envelope> CancelBooking(Guid id)
         {
             var command = new CancelBookingCommand { BookingId = id };
             var result = await _cancelBookingHandler.HandleAsync(command);
 
             if (result.IsFailure)
             {
-                return BadRequest(new { Error = result.Error });
+                return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            return Ok(new { Message = "Booking cancelled successfully" });
+            return new Envelope(new { Message = "Booking cancelled successfully" });
         }
     }
 }

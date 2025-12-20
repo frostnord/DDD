@@ -1,3 +1,4 @@
+using System.Net;
 using CSharpFunctionalExtensions;
 using Domain.Booking.VO;
 using Domain.Customers.Client.VO;
@@ -7,6 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 using Presenter.DTOs;
 using Presenter.DTOs.DealDTO;
 using Presenter.Extensions;
+using Presenter.Utilities;
 using UseCases.CompleteDeal;
 using UseCases.Deal;
 using UseCases.Deal.Commands;
@@ -14,6 +16,7 @@ using UseCases.Interfaces;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Repositories;
 using UseCases.Interfaces.Services;
+using IResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace Presenter.Controllers
 {
@@ -37,14 +40,13 @@ namespace Presenter.Controllers
         /// <param name="confirmDealHandler">Обработчик команды подтверждения сделки</param>
         /// <param name="completeDealHandler">Обработчик команды завершения сделки</param>
         /// <param name="cancelDealHandler">Обработчик команды отмены сделки</param>
-        /// <param name="dealRepository">Репозиторий для работы с сущностями сделок</param>
         /// <param name="dealService">Сервис для работы с сущностями сделок</param>
         public DealsController(
             ICommandHandler<CreateDealCommand, DealEntity> createDealHandler,
             ICommandHandler<ConfirmDealCommand> confirmDealHandler,
             ICommandHandler<CompleteDealCommand> completeDealHandler,
             ICommandHandler<CancelDealCommand> cancelDealHandler,
-            IDealRepository dealRepository, IDealService dealService)
+            IDealService dealService)
         {
             _createDealHandler = createDealHandler;
             _confirmDealHandler = confirmDealHandler;
@@ -61,7 +63,7 @@ namespace Presenter.Controllers
         /// <response code="201">Возвращает созданную сделку</response>
         /// <response code="400">Если данные для создания сделки некорректны</response>
         [HttpPost]
-        public async Task<ActionResult<DealDto>> CreateDeal([FromBody] CreateDealRequest request)
+        public async Task<Envelope> CreateDeal([FromBody] CreateDealRequest request)
         {
             var command = new CreateDealCommand
             {
@@ -75,12 +77,11 @@ namespace Presenter.Controllers
 
             if (result.IsFailure)
             {
-                return BadRequest(new { Error = result.Error });
+                return new Envelope(HttpStatusCode.BadRequest, result.Error);
             }
 
-            return CreatedAtAction(
-                nameof(GetDeal),
-                new { id = result.Value.Id.Value },
+            return new Envelope(
+                HttpStatusCode.Created,
                 result.Value.ToDTO());
         }
 
@@ -93,22 +94,22 @@ namespace Presenter.Controllers
         /// <response code="400">Если идентификатор сделки некорректен</response>
         /// <response code="404">Если сделка не найдена</response>
         [HttpGet("{id}")]
-        public async Task<ActionResult<DealDto>> GetDeal(Guid id)
+        public async Task<Envelope> GetDeal(Guid id)
         {
             var dealResult = await _dealService.GetByIdAsync(id);
             if (dealResult.IsFailure)
             {
-                return NotFound(new { Error = "Deal not found" });
+                return new Envelope(HttpStatusCode.NotFound, error: "Deal not found");
             }
 
             // Проверка на null для дополнительной безопасности
             if (dealResult.Value == null)
             {
-                return NotFound(new { Error = "Deal not found" });
+                return new Envelope(HttpStatusCode.NotFound, error: "Deal not found");
             }
 
             var dealDto = dealResult.Value.ToDTO();
-            return Ok(dealDto);
+            return new Envelope(dealDto);
         }
 
         /// <summary>
@@ -120,7 +121,7 @@ namespace Presenter.Controllers
         /// <response code="400">Если параметры запроса некорректны</response>
         
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<DealDto>>> GetDeals([FromQuery] SearchDealsQuery query)
+        public async Task<Envelope> GetDeals([FromQuery] SearchDealsQuery query)
         {
             IEnumerable<DealEntity> deals;
 
@@ -130,7 +131,7 @@ namespace Presenter.Controllers
                 var dealsResult = await _dealService.GetByClientIdAsync(query.ClientId.Value);
                 if (dealsResult.IsFailure)
                 {
-                    return BadRequest(new { Error = dealsResult.Error });
+                    return new Envelope(HttpStatusCode.BadRequest, error: dealsResult.Error);
                 }
 
                 deals = dealsResult.Value;
@@ -140,20 +141,19 @@ namespace Presenter.Controllers
                 var dealsResult = await _dealService.GetByPropertyIdAsync(query.PropertyId.Value);
                 if (dealsResult.IsFailure)
                 {
-                    return BadRequest(new { Error = dealsResult.Error });
+                    return new Envelope(HttpStatusCode.BadRequest, error: dealsResult.Error);
                 }
 
                 deals = dealsResult.Value;
             }
             else
             {
-                return BadRequest(new { Error = "Нужен id клиента или недвижимости" });
-
+                return new Envelope(HttpStatusCode.BadRequest, error: "Нужен id клиента или недвижимости");
             }
 
             var dealDtos = deals.Select(d => d.ToDTO()).ToList();
 
-            return Ok(new
+            return new Envelope(new
             {
                 Items = dealDtos,
             });
@@ -167,17 +167,17 @@ namespace Presenter.Controllers
         /// <response code="200">Если сделка успешно подтверждена</response>
         /// <response code="400">Если идентификатор сделки некорректен или произошла ошибка при подтверждении</response>
         [HttpPut("{id}/confirm")]
-        public async Task<ActionResult> ConfirmDeal(Guid id)
+        public async Task<Envelope> ConfirmDeal(Guid id)
         {
             var command = new ConfirmDealCommand { DealId = id };
             var result = await _confirmDealHandler.HandleAsync(command);
 
             if (result.IsFailure)
             {
-                return BadRequest(new { Error = result.Error });
+                return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            return Ok(new { Message = "Deal confirmed successfully" });
+            return new Envelope(new { Message = "Deal confirmed successfully" });
         }
 
         /// <summary>
@@ -188,17 +188,17 @@ namespace Presenter.Controllers
         /// <response code="200">Если сделка успешно завершена</response>
         /// <response code="400">Если идентификатор сделки некорректен или произошла ошибка при завершении</response>
         [HttpPut("{id}/complete")]
-        public async Task<ActionResult> CompleteDeal(Guid id)
+        public async Task<Envelope> CompleteDeal(Guid id)
         {
             var command = new CompleteDealCommand { DealId = id };
             var result = await _completeDealHandler.HandleAsync(command);
 
             if (result.IsFailure)
             {
-                return BadRequest(new { Error = result.Error });
+                return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            return Ok(new { Message = "Deal completed successfully" });
+            return new Envelope(new { Message = "Deal completed successfully" });
         }
 
         /// <summary>
@@ -209,17 +209,17 @@ namespace Presenter.Controllers
         /// <response code="200">Если сделка успешно отменена</response>
         /// <response code="400">Если идентификатор сделки некорректен или произошла ошибка при отмене</response>
         [HttpPut("{id}/cancel")]
-        public async Task<ActionResult> CancelDeal(Guid id)
+        public async Task<Envelope> CancelDeal(Guid id)
         {
             var command = new CancelDealCommand { DealId = id };
             var result = await _cancelDealHandler.HandleAsync(command);
 
             if (result.IsFailure)
             {
-                return BadRequest(new { Error = result.Error });
+                return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            return Ok(new { Message = "Deal cancelled successfully" });
+            return new Envelope(new { Message = "Deal cancelled successfully" });
         }
     }
 }

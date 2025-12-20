@@ -1,10 +1,11 @@
-using System;
+using System.Net;
 using System.Collections.Generic;
 using System.Linq;
 using Domain.Deal;
 using Microsoft.AspNetCore.Mvc;
 using Presenter.DTOs.CompletedDealDTO;
 using Presenter.Extensions;
+using Presenter.Utilities;
 using UseCases.CompleteDeal;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Services;
@@ -39,7 +40,7 @@ namespace Presenter.Controllers
         /// <response code="400">Ошибка валидации данных</response>
 
         [HttpPost]
-        public async Task<ActionResult<CompletedDealDto>> CreateCompletedDeal([FromBody] CreateCompletedDealRequest request)
+        public async Task<Envelope> CreateCompletedDeal([FromBody] CreateCompletedDealRequest request)
         {
             var command = new CreateCompleteDealCommand
             {
@@ -55,13 +56,10 @@ namespace Presenter.Controllers
 
             if (result.IsFailure)
             {
-                return BadRequest(new { Error = result.Error });
+                return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            return CreatedAtAction(
-                nameof(GetCompletedDeal),
-                new { id = result.Value.Id.Value },
-                result.Value.ToDto());
+            return new Envelope(HttpStatusCode.Created, result.Value.ToDto());
         }
 
         /// <summary>
@@ -72,15 +70,15 @@ namespace Presenter.Controllers
         /// <response code="200">Завершенная сделка найдена</response>
         /// <response code="404">Завершенная сделка не найдена</response>
         [HttpGet("{id}")]
-        public async Task<ActionResult<CompletedDealDto>> GetCompletedDeal(Guid id)
+        public async Task<Envelope> GetCompletedDeal(Guid id)
         {
             var result = await _completedDealService.GetByIdAsync(id);
             if (result.IsFailure)
             {
-                return NotFound(new { Error = result.Error });
+                return new Envelope(HttpStatusCode.NotFound, error: result.Error);
             }
 
-            return Ok(result.Value.ToDto());
+            return new Envelope(result.Value.ToDto());
         }
 
         /// <summary>
@@ -90,15 +88,15 @@ namespace Presenter.Controllers
         /// <response code="200">Список завершенных сделок успешно получен</response>
         /// <response code="400">Ошибка получения списка</response>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CompletedDealDto>>> GetAllCompletedDeals()
+        public async Task<Envelope> GetAllCompletedDeals()
         {
             var result = await _completedDealService.GetAllAsync();
             if (result.IsFailure)
             {
-                return BadRequest(new { Error = result.Error });
+                return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            return Ok(result.Value.Select(d => d.ToDto()));
+            return new Envelope(result.Value.Select(d => d.ToDto()));
         }
 
         /// <summary>
@@ -109,15 +107,15 @@ namespace Presenter.Controllers
         /// <response code="200">Список завершенных сделок клиента успешно получен</response>
         /// <response code="400">Ошибка получения списка</response>
         [HttpGet("by-client/{clientId}")]
-        public async Task<ActionResult<IEnumerable<CompletedDealDto>>> GetCompletedDealsByClient(Guid clientId)
+        public async Task<Envelope> GetCompletedDealsByClient(Guid clientId)
         {
             var result = await _completedDealService.GetByClientIdAsync(clientId);
             if (result.IsFailure)
             {
-                return BadRequest(new { Error = result.Error });
+                return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            return Ok(result.Value.Select(d => d.ToDto()));
+            return new Envelope(result.Value.Select(d => d.ToDto()));
         }
 
         /// <summary>
@@ -128,15 +126,15 @@ namespace Presenter.Controllers
         /// <response code="200">Список завершенных сделок успешно получен</response>
         /// <response code="400">Ошибка получения списка</response>
         [HttpGet("by-property/{propertyId}")]
-        public async Task<ActionResult<IEnumerable<CompletedDealDto>>> GetCompletedDealsByProperty(Guid propertyId)
+        public async Task<Envelope> GetCompletedDealsByProperty(Guid propertyId)
         {
             var result = await _completedDealService.GetByPropertyIdAsync(propertyId);
             if (result.IsFailure)
             {
-                return BadRequest(new { Error = result.Error });
+                return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            return Ok(result.Value.Select(d => d.ToDto()));
+            return new Envelope(result.Value.Select(d => d.ToDto()));
         }
 
         /// <summary>
@@ -147,15 +145,15 @@ namespace Presenter.Controllers
         /// <response code="204">Завершенная сделка успешно удалена</response>
         /// <response code="404">Завершенная сделка не найдена</response>
         [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteCompletedDeal(Guid id)
+        public async Task<Envelope> DeleteCompletedDeal(Guid id)
         {
             var result = await _completedDealService.DeleteAsync(id);
             if (result.IsFailure)
             {
-                return NotFound(new { Error = result.Error });
+                return new Envelope(HttpStatusCode.NotFound, error: result.Error);
             }
 
-            return NoContent();
+            return new Envelope(HttpStatusCode.NoContent, null);
         }
     }
 }
