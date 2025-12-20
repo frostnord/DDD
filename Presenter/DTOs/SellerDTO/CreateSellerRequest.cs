@@ -11,6 +11,6 @@ namespace Presenter.DTOs.SellerDTO
         /// Идентификатор клиента
         /// </summary>
         [Required(ErrorMessage = "Идентификатор клиента обязателен")]
-        public Guid ClientId { get; set; }
+        public Guid ClientId { get; init; }
     }
 }
