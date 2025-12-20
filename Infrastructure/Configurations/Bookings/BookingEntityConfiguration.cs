@@ -1,4 +1,3 @@
-using Domain.Agency.VO;
 using Domain.Booking;
 using Domain.Booking.VO;
 using Domain.Customers.Client.VO;
@@ -61,10 +60,5 @@ public sealed class BookingEntityConfiguration : IEntityTypeConfiguration<Bookin
             .IsRequired()
             .HasConversion(toDb => toDb.Value, fromDb => PropertyId.Create(fromDb).Value)
             .HasColumnName("property_id");
-
-        builder.Property(x => x.AgencyId)
-            .IsRequired()
-            .HasConversion(toDb => toDb.Value, fromDb => AgencyId.Create(fromDb).Value)
-            .HasColumnName("agency_id");
     }
 }

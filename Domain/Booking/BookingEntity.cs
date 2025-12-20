@@ -1,5 +1,4 @@
 using CSharpFunctionalExtensions;
-using Domain.Agency.VO;
 using Domain.Booking.VO;
 using Domain.Customers.Client.VO;
 using Domain.Property.VO;
@@ -23,11 +22,6 @@ public class BookingEntity : Entity<BookingId>
     /// Идентификатор объекта недвижимости, который бронируется
     /// </summary>
     public PropertyId PropertyId { get; private set; }
-
-    /// <summary>
-    /// Идентификатор агентства, осуществляющего бронирование
-    /// </summary>
-    public AgencyId AgencyId { get; private set; }
 
     /// <summary>
     /// Период бронирования
@@ -59,7 +53,7 @@ public class BookingEntity : Entity<BookingId>
     /// <param name="bookingPeriod">Период бронирования</param>
     /// <param name="totalPrice">Общая цена бронирования</param>
     /// <returns>Результат с бронированием или ошибкой</returns>
-    public static Result<BookingEntity> Create(ClientId clientId, PropertyId propertyId, AgencyId agencyId,
+    public static Result<BookingEntity> Create(ClientId clientId, PropertyId propertyId,
         Period bookingPeriod, Price totalPrice)
     {
         var validationErrors = new List<string>();
@@ -69,9 +63,6 @@ public class BookingEntity : Entity<BookingId>
 
         if (propertyId == null)
             validationErrors.Add("Идентификатор объекта недвижимости не может быть пустым");
-
-        if (agencyId == null)
-            validationErrors.Add("Идентификатор агентства не может быть пустым");
 
         if (bookingPeriod == null)
             validationErrors.Add("Период бронирования не может быть пустым");
@@ -85,7 +76,7 @@ public class BookingEntity : Entity<BookingId>
         }
 
         var id = BookingId.Create(Guid.NewGuid()).Value;
-        var booking = new BookingEntity(id, clientId, propertyId, agencyId, bookingPeriod, totalPrice);
+        var booking = new BookingEntity(id, clientId, propertyId, bookingPeriod, totalPrice);
         return Result.Success(booking);
     }
 
@@ -98,13 +89,12 @@ public class BookingEntity : Entity<BookingId>
     /// <param name="agencyId">Идентификатор агентства, осуществляющего бронирование</param>
     /// <param name="bookingPeriod">Период бронирования</param>
     /// <param name="totalPrice">Общая цена бронирования</param>
-    protected BookingEntity(BookingId id, ClientId clientId, PropertyId propertyId, AgencyId agencyId,
+    protected BookingEntity(BookingId id, ClientId clientId, PropertyId propertyId, 
         Period bookingPeriod, Price totalPrice)
         : base(id)
     {
         ClientId = clientId;
         PropertyId = propertyId;
-        AgencyId = agencyId;
         BookingPeriod = bookingPeriod;
         TotalPrice = totalPrice;
         CreatedAt = DateTime.UtcNow;

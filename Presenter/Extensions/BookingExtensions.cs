@@ -16,7 +16,6 @@ namespace Presenter.Extensions
                 Id = bookingEntity.Id.Value,
                 ClientId = bookingEntity.ClientId.Value,
                 PropertyId = bookingEntity.PropertyId.Value,
-                AgencyId = bookingEntity.AgencyId.Value,
                 StartDate = bookingEntity.BookingPeriod.StartDate,
                 EndDate = bookingEntity.BookingPeriod.EndDate,
                 TotalPrice = bookingEntity.TotalPrice.Value,

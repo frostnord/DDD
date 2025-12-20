@@ -56,7 +56,6 @@ namespace Presenter
             services.AddScoped<ISellerRepository, SellerRepository>();
             services.AddScoped<IBookingRepository, BookingRepository>();
             services.AddScoped<ICompletedDealRepository, CompletedDealRepository>();
-            services.AddScoped<IAgencyRepository, AgencyRepository>();
 
             // Регистрация сервисов
             services.AddScoped<IClientService, ClientService>();

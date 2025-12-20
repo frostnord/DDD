@@ -1,4 +1,3 @@
-using Domain.Agency;
 using Domain.Booking;
 using Domain.Customers.Buyer;
 using Domain.Customers.Client;
@@ -23,7 +22,6 @@ public class AppDbContext : DbContext
     public DbSet<DealEntity> Deals => Set<DealEntity>();
     public DbSet<ClientEntity> Clients => Set<ClientEntity>();
     public DbSet<BookingEntity> Bookings => Set<BookingEntity>();
-    public DbSet<AgencyEntity> Agencies => Set<AgencyEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
