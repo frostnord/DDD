@@ -12,6 +12,7 @@ using UseCases.Booking.Commands.ConfirmBooking;
 using UseCases.Booking.Commands.CreateBooking;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 
 
 namespace Presenter.Controllers
@@ -28,6 +29,7 @@ namespace Presenter.Controllers
         private readonly ICommandHandler<ConfirmBookingCommand> _confirmBookingHandler;
         private readonly ICommandHandler<CancelBookingCommand> _cancelBookingHandler;
         private readonly IBookingRepository _bookingRepository;
+        private readonly IBookingService _bookingService;
 
         /// <summary>
         /// Конструктор контроллера бронирований
@@ -36,16 +38,20 @@ namespace Presenter.Controllers
         /// <param name="confirmBookingHandler">Обработчик команды подтверждения бронирования</param>
         /// <param name="cancelBookingHandler">Обработчик команды отмены бронирования</param>
         /// <param name="bookingRepository">Репозиторий для работы с бронированиями</param>
+        /// <param name="bookingService">Сервис</param>
+        /// 
         public BookingsController(
             ICommandHandler<CreateBookingCommand, BookingEntity> createBookingHandler,
             ICommandHandler<ConfirmBookingCommand> confirmBookingHandler,
             ICommandHandler<CancelBookingCommand> cancelBookingHandler,
-            IBookingRepository bookingRepository)
+            IBookingRepository bookingRepository,
+            IBookingService bookingService)
         {
             _createBookingHandler = createBookingHandler;
             _confirmBookingHandler = confirmBookingHandler;
             _cancelBookingHandler = cancelBookingHandler;
             _bookingRepository = bookingRepository;
+            _bookingService = bookingService;
         }
 
         /// <summary>
@@ -56,15 +62,14 @@ namespace Presenter.Controllers
         [HttpPost]
         public async Task<Envelope> CreateBooking([FromBody] CreateBookingRequest request)
         {
-            var command = new CreateBookingCommand
-            {
-                ClientId = request.ClientId,
-                PropertyId = request.PropertyId,
-                AgencyId = request.AgencyId,
-                StartDate = request.StartDate,
-                EndDate = request.EndDate,
-                TotalPrice = request.TotalPrice
-            };
+            var command = new CreateBookingCommand(
+                request.ClientId,
+                request.PropertyId,
+                request.AgencyId,
+                request.StartDate,
+                request.EndDate,
+                request.TotalPrice
+            );
 
             var result = await _createBookingHandler.HandleAsync(command);
 
@@ -115,8 +120,26 @@ namespace Presenter.Controllers
         [HttpGet]
         public async Task<Envelope> GetBookings([FromQuery] SearchBookingsQuery query)
         {
-            var bookings = await _bookingRepository.GetAllAsync();
-            var bookingDtos = bookings.Select(b => b.ToDTO()).ToList();
+            IEnumerable<BookingEntity> booking;
+            
+            if (query.ClientId.HasValue)
+            {
+                var bookingResult = await _bookingService.GetByClientIdAsync(query.ClientId.Value);
+                booking = bookingResult.Value;
+            }
+            else if (query.PropertyId.HasValue)
+            {
+                var bookingResult = await _bookingService.GetByPropertyIdAsync(query.PropertyId.Value);
+                booking = bookingResult.Value;
+            }
+            else
+            {
+                return new Envelope(HttpStatusCode.BadRequest, error: "Нужен id клиента или недвижимости");
+                // var bookingResult = await _bookingService.GetAllBookingsAsync(); 
+                // booking = bookingResult.Value;
+            }
+            
+            var bookingDtos = booking.Select(b => b.ToDTO()).ToList();
             return new Envelope(bookingDtos);
         }
 
@@ -128,7 +151,7 @@ namespace Presenter.Controllers
         [HttpPut("{id}/confirm")]
         public async Task<Envelope> ConfirmBooking(Guid id)
         {
-            var command = new ConfirmBookingCommand { BookingId = id };
+            var command = new ConfirmBookingCommand ( id );
             var result = await _confirmBookingHandler.HandleAsync(command);
 
             if (result.IsFailure)
@@ -147,7 +170,7 @@ namespace Presenter.Controllers
         [HttpPut("{id}/cancel")]
         public async Task<Envelope> CancelBooking(Guid id)
         {
-            var command = new CancelBookingCommand { BookingId = id };
+            var command = new CancelBookingCommand ( id );
             var result = await _cancelBookingHandler.HandleAsync(command);
 
             if (result.IsFailure)
