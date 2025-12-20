@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using CSharpFunctionalExtensions;
+using System.Text.Json.Serialization;
 
 namespace Domain.ValueObjects
 {
@@ -20,6 +21,7 @@ namespace Domain.ValueObjects
         /// Создает новый экземпляр имени
         /// </summary>
         /// <param name="value">Полное имя</param>
+        [JsonConstructor]
         private Name(string value)
         {
             Value = value;

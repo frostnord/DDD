@@ -1,4 +1,5 @@
 using CSharpFunctionalExtensions;
+using System.Text.Json.Serialization;
 
 namespace Domain.ValueObjects
 {
@@ -16,6 +17,7 @@ namespace Domain.ValueObjects
         /// Создает новый экземпляр общего количества этажей
         /// </summary>
         /// <param name="value">Общее количество этажей</param>
+        [JsonConstructor]
         private TotalFloors(int value)
         {
             Value = value;

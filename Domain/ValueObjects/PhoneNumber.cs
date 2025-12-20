@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using CSharpFunctionalExtensions;
+using System.Text.Json.Serialization;
 
 namespace Domain.ValueObjects;
 
@@ -28,6 +29,7 @@ public class PhoneNumber : ValueObject
     /// Создает новый экземпляр номера телефона
     /// </summary>
     /// <param name="value">Номер телефона</param>
+    [JsonConstructor]
     private PhoneNumber(string value)
     {
         Value = value;

@@ -7,11 +7,17 @@ using Infrastructure;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using UseCases.Booking.Commands;
-using UseCases.Clients.Commands;
-using UseCases.Handlers;
+using UseCases.Booking.Commands.CreateBooking;
+using UseCases.Buyer;
+using UseCases.CompleteDeal;
+using UseCases.Deal;
+using UseCases.Deal.Commands;
 using UseCases.Interfaces;
+using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Repositories;
 using UseCases.Interfaces.Services;
+using UseCases.Property;
+using UseCases.Seller;
 using UseCases.Services;
 
 namespace Presenter
@@ -32,8 +38,11 @@ namespace Presenter
             services.AddScoped<ICommandHandler<CreateSellerCommand, SellerEntity>, CreateSellerCommandHandler>();
             services.AddScoped<ICommandHandler<CreateBookingCommand, BookingEntity>, CreateBookingCommandHandler>();
             services
-                .AddScoped<ICommandHandler<CreateCompleteDealCommand, CompletedDeal>,
+                .AddScoped<ICommandHandler<CreateCompleteDealCommand, CompletedDealEntity>,
                     CreateCompleteDealCommandHandler>();
+            services.AddScoped<ICommandHandler<ConfirmDealCommand>, ConfirmDealCommandHandler>();
+            services.AddScoped<ICommandHandler<CompleteDealCommand>, CompleteDealCommandHandler>();
+            services.AddScoped<ICommandHandler<CancelDealCommand>, CancelDealCommandHandler>();
 
             // Регистрация репозиториев
             services.AddScoped<IPropertyRepository, PropertyRepository>();
@@ -49,6 +58,8 @@ namespace Presenter
             services.AddScoped<IClientService, ClientService>();
             services.AddScoped<ISellerService, SellerService>();
             services.AddScoped<IBuyerService, BuyerService>();
+            services.AddScoped<IDealService, DealService>();
+            services.AddScoped<ICompletedDealService, CompletedDealService>();
 
             return services;
         }

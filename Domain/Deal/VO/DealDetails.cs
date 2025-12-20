@@ -1,5 +1,6 @@
 using CSharpFunctionalExtensions;
 using Domain.ValueObjects;
+using System.Text.Json.Serialization;
 
 namespace Domain.Deal
 {
@@ -35,6 +36,7 @@ namespace Domain.Deal
         /// <param name="dealAmount">Сумма сделки</param>
         /// <param name="dealType">Тип сделки</param>
         /// <param name="comments">Комментарии к сделке</param>
+        [JsonConstructor]
         private DealDetails(DateTime dealDate, Price dealAmount, string dealType, string comments)
         {
             DealDate = dealDate;

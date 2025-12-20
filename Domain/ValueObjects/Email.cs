@@ -1,5 +1,6 @@
 using System.Text.RegularExpressions;
 using CSharpFunctionalExtensions;
+using System.Text.Json.Serialization;
 
 namespace Domain.ValueObjects;
 
@@ -30,6 +31,7 @@ public class Email : ValueObject
     /// Приватный конструктор для создания экземпляра Email
     /// </summary>
     /// <param name="value">Строковое значение email</param>
+    [JsonConstructor]
     private Email(string value)
     {
         Value = value.Trim();
