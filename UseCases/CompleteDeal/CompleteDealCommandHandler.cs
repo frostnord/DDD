@@ -4,11 +4,6 @@ using UseCases.Interfaces.Services;
 
 namespace UseCases.CompleteDeal
 {
-    public class CompleteDealCommand : ICommand
-    {
-        public Guid DealId { get; set; }
-    }
-
     public class CompleteDealCommandHandler : ICommandHandler<CompleteDealCommand>
     {
         private readonly IDealService _dealService;

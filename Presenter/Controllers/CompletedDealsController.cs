@@ -42,15 +42,13 @@ namespace Presenter.Controllers
         [HttpPost]
         public async Task<Envelope> CreateCompletedDeal([FromBody] CreateCompletedDealRequest request)
         {
-            var command = new CreateCompleteDealCommand
-            {
-                BuyerClientId = request.BuyerClientId,
-                SellerClientId = request.SellerClientId,
-                PropertyId = request.PropertyId,
-                DealDate = request.DealDate,
-                DealAmount = request.DealAmount,
-                DealType = request.DealType
-            };
+            var command = new CreateCompleteDealCommand(
+                request.BuyerClientId,
+                request.SellerClientId,
+                request.PropertyId,
+                request.DealDate,
+                request.DealAmount,
+                request.DealType);
 
             var result = await _createCompleteDealHandler.HandleAsync(command);
 
