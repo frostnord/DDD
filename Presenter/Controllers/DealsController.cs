@@ -66,12 +66,12 @@ namespace Presenter.Controllers
         public async Task<Envelope> CreateDeal([FromBody] CreateDealRequest request)
         {
             var command = new CreateDealCommand
-            {
-                ClientId = request.ClientId,
-                PropertyId = request.PropertyId,
-                BookingId = request.BookingId,
-                Details = request.Details
-            };
+            (
+                request.ClientId,
+                request.PropertyId,
+                request.BookingId,
+                request.Details
+            );
 
             var result = await _createDealHandler.HandleAsync(command);
 
@@ -169,7 +169,7 @@ namespace Presenter.Controllers
         [HttpPut("{id}/confirm")]
         public async Task<Envelope> ConfirmDeal(Guid id)
         {
-            var command = new ConfirmDealCommand { DealId = id };
+            var command = new ConfirmDealCommand (id );
             var result = await _confirmDealHandler.HandleAsync(command);
 
             if (result.IsFailure)
@@ -190,7 +190,7 @@ namespace Presenter.Controllers
         [HttpPut("{id}/complete")]
         public async Task<Envelope> CompleteDeal(Guid id)
         {
-            var command = new CompleteDealCommand { DealId = id };
+            var command = new CompleteDealCommand (id );
             var result = await _completeDealHandler.HandleAsync(command);
 
             if (result.IsFailure)
@@ -211,7 +211,7 @@ namespace Presenter.Controllers
         [HttpPut("{id}/cancel")]
         public async Task<Envelope> CancelDeal(Guid id)
         {
-            var command = new CancelDealCommand { DealId = id };
+            var command = new CancelDealCommand (id);
             var result = await _cancelDealHandler.HandleAsync(command);
 
             if (result.IsFailure)

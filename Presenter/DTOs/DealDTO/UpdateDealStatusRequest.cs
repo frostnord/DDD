@@ -12,6 +12,6 @@ namespace Presenter.DTOs.DealDTO
         /// </summary>
         [Required(ErrorMessage = "Статус сделки обязателен")]
         [RegularExpression("^(Confirmed|Completed|Cancelled)$", ErrorMessage = "Недопустимый статус сделки")]
-        public string Status { get; set; }
+        public string Status { get; init; }
     }
 }

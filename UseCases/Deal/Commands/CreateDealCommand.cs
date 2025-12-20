@@ -3,11 +3,10 @@ using UseCases.Interfaces.Commands;
 
 namespace UseCases.Deal.Commands
 {
-    public class CreateDealCommand : ICommand<DealEntity>
-    {
-        public Guid ClientId { get; set; }
-        public Guid PropertyId { get; set; }
-        public Guid? BookingId { get; set; }
-        public DealDetails Details { get; set; }
-    }
+    public record CreateDealCommand(
+        Guid ClientId,
+        Guid PropertyId,
+        Guid? BookingId,
+        DealDetails Details
+    ) : ICommand<DealEntity>;
 }

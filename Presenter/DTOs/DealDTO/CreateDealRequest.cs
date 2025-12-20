@@ -12,23 +12,23 @@ namespace Presenter.DTOs.DealDTO
         /// Идентификатор клиента, участвующего в сделке
         /// </summary>
         [Required(ErrorMessage = "Идентификатор клиента обязателен")]
-        public Guid ClientId { get; set; }
+        public Guid ClientId { get; init; }
 
         /// <summary>
         /// Идентификатор объекта недвижимости, участвующего в сделке
         /// </summary>
         [Required(ErrorMessage = "Идентификатор объекта недвижимости обязателен")]
-        public Guid PropertyId { get; set; }
+        public Guid PropertyId { get; init; }
 
         /// <summary>
         /// Идентификатор бронирования, связанного со сделкой (опционально)
         /// </summary>
-        public Guid? BookingId { get; set; }
+        public Guid? BookingId { get; init; }
 
         /// <summary>
         /// Детали сделки
         /// </summary>
         [Required(ErrorMessage = "Детали сделки обязательны")]
-        public DealDetails Details { get; set; }
+        public DealDetails Details { get; init; }
     }
 }

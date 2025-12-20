@@ -5,11 +5,6 @@ using UseCases.Interfaces.Repositories;
 
 namespace UseCases.Deal.Commands
 {
-    public class ConfirmDealCommand : ICommand
-    {
-        public Guid DealId { get; set; }
-    }
-
     public class ConfirmDealCommandHandler : ICommandHandler<ConfirmDealCommand>
     {
         private readonly IDealRepository _dealRepository;
