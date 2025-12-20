@@ -31,7 +31,6 @@ public sealed class BookingEntityConfiguration : IEntityTypeConfiguration<Bookin
             .HasColumnName("created_at");
 
         builder.Property(x => x.UpdatedAt)
-            .IsRequired(false)
             .HasColumnName("updated_at");
 
         // Общая цена бронирования (VO Price)

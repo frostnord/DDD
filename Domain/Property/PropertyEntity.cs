@@ -1,6 +1,7 @@
 using CSharpFunctionalExtensions;
 using Domain.Property.VO;
 using Domain.ValueObjects;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Property
 {
@@ -29,6 +30,7 @@ namespace Domain.Property
         /// <summary>
         /// История владения объектом недвижимости (только для чтения)
         /// </summary>
+        [NotMapped]
         public IReadOnlyList<OwnershipRecord> OwnershipHistory => _ownershipHistory.Records;
 
         /// <summary>
@@ -63,7 +65,7 @@ namespace Domain.Property
         /// <param name="description">Описание объекта недвижимости</param>
         /// <param name="details">Детали объекта недвижимости</param>
         /// <param name="status">Статус недвижимости</param>
-        private PropertyEntity(PropertyId id, Address address, Price price, Description description, PropertyDetails details,
+        protected PropertyEntity(PropertyId id, Address address, Price price, Description description, PropertyDetails details,
             PropertyStatus status) : base(id)
         {
             Address = address;
@@ -72,6 +74,12 @@ namespace Domain.Property
             Details = details;
             CreatedAt = DateTime.UtcNow;
             Status = status;
+            _ownershipHistory = new OwnershipHistory();
+        }
+        
+        // EF Core конструктор
+        protected PropertyEntity()
+        {
             _ownershipHistory = new OwnershipHistory();
         }
 

@@ -50,7 +50,7 @@ namespace Domain.Agency
         /// <param name="licenseNumber">Номер лицензии агентства</param>
         /// <exception cref="ArgumentException">Вызывается, если данные агентства некорректны</exception>
         /// <exception cref="ArgumentNullException">Вызывается, если контактная информация пуста</exception>
-        private AgencyEntity(AgencyId id, Name name, ContactInfo contactInfo, LicenseNumber licenseNumber)
+        protected AgencyEntity(AgencyId id, Name name, ContactInfo contactInfo, LicenseNumber licenseNumber)
             : base(id)
         {
             Name = name;
@@ -58,6 +58,12 @@ namespace Domain.Agency
             LicenseNumber = licenseNumber;
             Properties = new List<Property.PropertyEntity>();
             CreatedAt = DateTime.UtcNow;
+        }
+        
+        // EF Core конструктор
+        protected AgencyEntity()
+        {
+            Properties = new List<Property.PropertyEntity>();
         }
 
         /// <summary>

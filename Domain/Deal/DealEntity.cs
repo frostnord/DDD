@@ -60,7 +60,7 @@ namespace Domain.Deal
         /// <param name="propertyId">Идентификатор объекта недвижимости</param>
         /// <param name="bookingId">Идентификатор бронирования (опционально)</param>
         /// <param name="details">Детали сделки</param>
-        private DealEntity(DealId id, ClientId clientId, PropertyId propertyId, BookingId? bookingId, DealDetails details)
+        protected DealEntity(DealId id, ClientId clientId, PropertyId propertyId, BookingId? bookingId, DealDetails details)
             : base(id)
         {
             ClientId = clientId;
@@ -69,6 +69,12 @@ namespace Domain.Deal
             Details = details;
             Status = DealStatus.Created;
             CreatedAt = DateTime.UtcNow;
+            _documents = new List<Document>();
+        }
+        
+        // EF Core конструктор
+        protected DealEntity()
+        {
             _documents = new List<Document>();
         }
 

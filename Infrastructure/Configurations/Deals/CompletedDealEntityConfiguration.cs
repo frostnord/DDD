@@ -56,7 +56,6 @@ public sealed class CompletedDealEntityConfiguration : IEntityTypeConfiguration<
             .HasColumnName("created_at");
 
         builder.Property(x => x.UpdatedAt)
-            .IsRequired(false)
             .HasColumnName("updated_at");
     }
 }

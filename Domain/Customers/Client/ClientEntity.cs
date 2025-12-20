@@ -18,7 +18,7 @@ namespace Domain.Customers.Client
         public ContactInfo ContactInfo { get; private set; }
 
         public DateTime RegisteredDate { get; set; }
-        public DateTime UpdatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
 
         /// <param name="id"></param>
         /// <param name="firstName">Имя клиента</param>
@@ -34,6 +34,11 @@ namespace Domain.Customers.Client
 
             // CompletedDeals = new List<CompletedDeal>().AsReadOnly();
             // BookingIds = new List<Guid>().AsReadOnly();
+        }
+        
+        // EF Core конструктор
+        protected ClientEntity()
+        {
         }
 
         /// <summary>

@@ -51,6 +51,6 @@ namespace Presenter.DTOs.ClientDTO
         /// <summary>
         /// Дата последнего обновления
         /// </summary>
-        public DateTime UpdatedAt { get; set; }
+        public DateTime? UpdatedAt { get; set; }
     }
 }

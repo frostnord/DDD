@@ -40,7 +40,6 @@ public sealed class PropertyEntityConfiguration : IEntityTypeConfiguration<Prope
             .HasColumnName("created_at");
 
         builder.Property(x => x.UpdatedAt)
-            .IsRequired(false)
             .HasColumnName("updated_at");
 
         // Конфигурация статуса недвижимости (smart-enum)

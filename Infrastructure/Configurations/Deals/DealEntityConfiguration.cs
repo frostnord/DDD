@@ -75,7 +75,6 @@ public sealed class DealEntityConfiguration : IEntityTypeConfiguration<DealEntit
             .HasColumnName("created_at");
 
         builder.Property(x => x.UpdatedAt)
-            .IsRequired(false)
             .HasColumnName("updated_at");
 
         // Настройка документов как отдельной таблицы
@@ -83,7 +82,6 @@ public sealed class DealEntityConfiguration : IEntityTypeConfiguration<DealEntit
         {
             documentBuilder.ToTable("deal_documents");
 
-            documentBuilder.Property<int>("Id").UseIdentityColumn().HasColumnName("id");
             documentBuilder.WithOwner().HasForeignKey("deal_id");
 
             documentBuilder.Property(d => d.Id)

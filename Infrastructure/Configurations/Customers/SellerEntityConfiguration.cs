@@ -43,7 +43,7 @@ public sealed class SellerEntityConfiguration : IEntityTypeConfiguration<SellerE
                 .HasColumnName("property_id");
 
             // Составной ключ для уникальности
-            nav.HasKey("seller_id", "property_id");
+            nav.HasKey("seller_id", "Value");
         });
     }
 }

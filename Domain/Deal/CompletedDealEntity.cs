@@ -50,7 +50,7 @@ namespace Domain.Deal
         /// </summary>
         public DateTime? UpdatedAt { get; private set; }
 
-        private CompletedDealEntity(CompletedDealId id, ClientId buyerClientId, ClientId sellerClientId,
+        protected CompletedDealEntity(CompletedDealId id, ClientId buyerClientId, ClientId sellerClientId,
             PropertyId propertyId, DateTime dealDate, Price dealAmount, DealType dealType)
             : base(id)
         {
@@ -61,6 +61,11 @@ namespace Domain.Deal
             DealAmount = dealAmount;
             DealType = dealType;
             CreatedAt = DateTime.UtcNow;
+        }
+        
+        // EF Core конструктор
+        protected CompletedDealEntity()
+        {
         }
 
         /// <summary>

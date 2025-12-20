@@ -98,7 +98,7 @@ public class BookingEntity : Entity<BookingId>
     /// <param name="agencyId">Идентификатор агентства, осуществляющего бронирование</param>
     /// <param name="bookingPeriod">Период бронирования</param>
     /// <param name="totalPrice">Общая цена бронирования</param>
-    private BookingEntity(BookingId id, ClientId clientId, PropertyId propertyId, AgencyId agencyId,
+    protected BookingEntity(BookingId id, ClientId clientId, PropertyId propertyId, AgencyId agencyId,
         Period bookingPeriod, Price totalPrice)
         : base(id)
     {
@@ -108,6 +108,11 @@ public class BookingEntity : Entity<BookingId>
         BookingPeriod = bookingPeriod;
         TotalPrice = totalPrice;
         CreatedAt = DateTime.UtcNow;
+    }
+    
+    // EF Core конструктор
+    protected BookingEntity()
+    {
     }
 
     /// <summary>

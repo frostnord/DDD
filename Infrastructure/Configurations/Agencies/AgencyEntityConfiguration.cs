@@ -16,7 +16,7 @@ public sealed class AgencyEntityConfiguration : IEntityTypeConfiguration<AgencyE
         // Ключ
         builder.HasKey(x => x.Id)
             .HasName("pk_agency");
-
+        
         builder.Property(x => x.Id)
             .IsRequired()
             .HasConversion(toDb => toDb.Value, fromDb => AgencyId.Create(fromDb).Value)
@@ -42,7 +42,6 @@ public sealed class AgencyEntityConfiguration : IEntityTypeConfiguration<AgencyE
             .HasColumnName("created_at");
 
         builder.Property(x => x.UpdatedAt)
-            .IsRequired(false)
             .HasColumnName("updated_at");
 
         // Контактная информация (owned type ContactInfo)

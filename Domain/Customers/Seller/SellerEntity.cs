@@ -2,6 +2,7 @@ using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
 using Domain.Customers.Seller.VO;
 using Domain.Property.VO;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Domain.Customers.Seller
 {
@@ -12,11 +13,17 @@ namespace Domain.Customers.Seller
     {
         public ClientId ClientId { get; private set; }
         private readonly List<PropertyId> _ownedProperties = new();
+        [NotMapped]
         public IReadOnlyCollection<PropertyId> OwnedProperties => _ownedProperties.AsReadOnly();
 
-        private SellerEntity(SellerId id, ClientId clientId) : base(id)
+        protected SellerEntity(SellerId id, ClientId clientId) : base(id)
         {
             ClientId = clientId;
+        }
+        
+        // EF Core конструктор
+        protected SellerEntity()
+        {
         }
 
         public static Result<SellerEntity> Create(ClientId clientId)

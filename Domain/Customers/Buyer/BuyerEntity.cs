@@ -13,13 +13,18 @@ namespace Domain.Customers.Buyer
         public ClientId ClientId { get; private set; }
         public ClientSearchCriteria SearchCriteria { get; private set; }
 
-        private BuyerEntity(BuyerId id, ClientId clientId, ClientSearchCriteria searchCriteria)
+        protected BuyerEntity(BuyerId id, ClientId clientId, ClientSearchCriteria searchCriteria)
             : base(id)
         {
             ClientId = clientId;
             SearchCriteria = searchCriteria;
         }
-
+        
+        // EF Core конструктор
+        protected BuyerEntity()
+        {
+        }
+        
         public static Result<BuyerEntity> Create(ClientId clientId, ClientSearchCriteria searchCriteria)
         {
             var errors = new List<string>();

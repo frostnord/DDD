@@ -7,6 +7,8 @@ using Infrastructure;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 using UseCases.Booking.Commands;
+using UseCases.Booking.Commands.CancelBooking;
+using UseCases.Booking.Commands.ConfirmBooking;
 using UseCases.Booking.Commands.CreateBooking;
 using UseCases.Buyer;
 using UseCases.CompleteDeal;
@@ -37,6 +39,8 @@ namespace Presenter
             services.AddScoped<ICommandHandler<CreateBuyerCommand, BuyerEntity>, CreateBuyerCommandHandler>();
             services.AddScoped<ICommandHandler<CreateSellerCommand, SellerEntity>, CreateSellerCommandHandler>();
             services.AddScoped<ICommandHandler<CreateBookingCommand, BookingEntity>, CreateBookingCommandHandler>();
+            services.AddScoped<ICommandHandler<ConfirmBookingCommand>, ConfirmBookingCommandHandler>();
+            services.AddScoped<ICommandHandler<CancelBookingCommand>, CancelBookingCommandHandler>();
             services
                 .AddScoped<ICommandHandler<CreateCompleteDealCommand, CompletedDealEntity>,
                     CreateCompleteDealCommandHandler>();
