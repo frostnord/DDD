@@ -6,19 +6,19 @@ namespace Domain.ValueObjects
     /// <summary>
     /// Объект значения, представляющий площадь недвижимости
     /// </summary>
-    public class Area
+    public class Area: ValueObject
     {
         /// <summary>
         /// Значение площади в квадратных метрах
         /// </summary>
-        public int Value { get; }
+        public decimal Value { get; }
 
         /// <summary>
         /// Создает новый экземпляр площади
         /// </summary>
         /// <param name="value">Площадь в квадратных метрах</param>
         [JsonConstructor]
-        private Area(int value)
+        private Area(decimal value)
         {
             Value = value;
         }
@@ -28,7 +28,7 @@ namespace Domain.ValueObjects
         /// </summary>
         /// <param name="value">Площадь в квадратных метрах</param>
         /// <returns>Result с экземпляром Area при успешной валидации или ошибкой при провале валидации</returns>
-        public static Result<Area> Create(int value)
+        public static Result<Area> Create(decimal value)
         {
             var errors = new List<string>();
 
@@ -46,6 +46,12 @@ namespace Domain.ValueObjects
         public override string ToString()
         {
             return $"{Value} м²";
+        }
+
+
+        protected override IEnumerable<object> GetEqualityComponents()
+        {
+            yield return Value;
         }
 
         public override bool Equals(object obj)
