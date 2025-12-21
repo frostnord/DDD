@@ -104,7 +104,7 @@ namespace Presenter.DTOs.PropertyDTO
         /// </summary>
         [Required(ErrorMessage = "Площадь обязательна")]
         [Range(1, double.MaxValue, ErrorMessage = "Площадь должна быть больше 0")]
-        public double Area { get; init; }
+        public decimal Area { get; init; }
 
         /// <summary>
         /// Наличие парковки

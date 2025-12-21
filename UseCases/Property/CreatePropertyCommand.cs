@@ -1,15 +1,27 @@
+using System;
 using Domain.Property;
 using Domain.Property.VO;
-using Domain.ValueObjects;
 using UseCases.Interfaces.Commands;
 
 namespace UseCases.Property
 {
     public record CreatePropertyCommand(
-        Address Address,
-        Price Price,
-        Description Description,
-        PropertyDetails Details,
-        OwnershipRecord OwnerRecord
-    ) : ICommand<PropertyEntity>;
+        string Street,
+        string City,
+        int HomeNumber,
+        int ZipCode,
+        string Country,
+        decimal Price,
+        string Description,
+        int NumberOfRooms,
+        int Floor,
+        int TotalFloors,
+        string PropertyType,
+        string HeatingType,
+        string PropertyCondition,
+        decimal Area,
+        bool? HasParking,
+        Guid OwnerClientId,
+        DateTime StartDate
+    ) : ICommand<Guid>;
 }

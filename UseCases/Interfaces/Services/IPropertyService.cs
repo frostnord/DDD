@@ -5,10 +5,6 @@ namespace UseCases.Interfaces.Services
 {
     public interface IPropertyService
     {
-        Task<Result<PropertyEntity>> CreatePropertyAsync(string street, string city, int homeNumber, int zipCode,
-            string country, decimal price, string description, int numberOfRooms, int floor, int totalFloors,
-            string propertyType, string heatingType, string propertyCondition, double area, bool? hasParking,
-            Guid ownerClientId, DateTime startDate);
 
         Task<Result<PropertyEntity>> GetPropertyByIdAsync(Guid propertyId);
         Task<Result<IEnumerable<PropertyEntity>>> GetAllPropertiesAsync();

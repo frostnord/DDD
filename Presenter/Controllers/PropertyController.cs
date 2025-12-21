@@ -1,11 +1,13 @@
 using System.Net;
+using Domain.Property.VO;
 using Microsoft.AspNetCore.Mvc;
 using Presenter.DTOs;
 using Presenter.DTOs.PropertyDTO;
 using Presenter.Extensions;
 using Presenter.Utilities;
-using UseCases.Interfaces;
+using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Services;
+using UseCases.Property;
 
 namespace Presenter.Controllers
 {
@@ -17,14 +19,19 @@ namespace Presenter.Controllers
     [Route("api/[controller]")]
     public class PropertyController : ControllerBase
     {
+        private readonly ICommandHandler<CreatePropertyCommand, Guid> _createPropertyHandler;
         private readonly IPropertyService _propertyService;
 
         /// <summary>
         /// Инициализирует новый экземпляр класса PropertyController.
         /// </summary>
-        /// <param name="propertyService">Сервис для обработки бизнес-логики, связанной с недвижимостью</param>
-        public PropertyController(IPropertyService propertyService)
+        /// <param name="createPropertyHandler">Обработчик команды создания недвижимости</param>
+        /// <param name="propertyService">Сервис для операций чтения/обновления/поиска недвижимости</param>
+        public PropertyController(
+            ICommandHandler<CreatePropertyCommand, Guid> createPropertyHandler,
+            IPropertyService propertyService)
         {
+            _createPropertyHandler = createPropertyHandler;
             _propertyService = propertyService;
         }
 
@@ -36,7 +43,7 @@ namespace Presenter.Controllers
         [HttpPost]
         public async Task<Envelope> CreateProperty([FromBody] CreatePropertyRequest request)
         {
-            var result = await _propertyService.CreatePropertyAsync(
+            var command = new CreatePropertyCommand(
                 request.Street,
                 request.City,
                 request.HomeNumber,
@@ -53,22 +60,23 @@ namespace Presenter.Controllers
                 request.Area,
                 request.HasParking,
                 request.OwnerClientId,
-                request.StartDate
-            );
+                request.StartDate);
+
+            var result = await _createPropertyHandler.HandleAsync(command);
 
             if (result.IsFailure)
             {
                 return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            return new Envelope(HttpStatusCode.Created, result.Value.ToDTO());
+            return new Envelope(HttpStatusCode.Created, result);
         }
 
         /// <summary>
         /// Получает объект недвижимости по его уникальному идентификатору.
         /// </summary>
         /// <param name="id">Уникальный идентификатор объекта недвижимости</param>
-        /// <returns>Запрошенный объект недвижимости с HTTP 20 если найден, иначе HTTP 404 с деталями ошибки</returns>
+        /// <returns>Запрошенный объект недвижимости с HTTP 200 если найден, иначе HTTP 404 с деталями ошибки</returns>
         [HttpGet("{id}")]
         public async Task<Envelope> GetProperty(Guid id)
         {
@@ -107,7 +115,7 @@ namespace Presenter.Controllers
         /// </summary>
         /// <param name="id">Уникальный идентификатор объекта недвижимости для обновления</param>
         /// <param name="request">Запрос, содержащий обновленные данные объекта недвижимости</param>
-        /// <returns>Обновленный объект недвижимости с HTTP 20 при успешном выполнении, иначе HTTP 400 или 404 с деталями ошибки</returns>
+        /// <returns>Обновленный объект недвижимости с HTTP 200 при успешном выполнении, иначе HTTP 400 или 404 с деталями ошибки</returns>
         [HttpPut("{id}")]
         public async Task<Envelope> UpdateProperty(Guid id, [FromBody] UpdatePropertyRequest request)
         {

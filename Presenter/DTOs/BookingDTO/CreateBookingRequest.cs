@@ -20,12 +20,6 @@ namespace Presenter.DTOs.BookingDTO
         public Guid PropertyId { get; init; }
 
         /// <summary>
-        /// Идентификатор агентства, осуществляющего бронирование
-        /// </summary>
-        [Required(ErrorMessage = "Идентификатор агентства обязателен")]
-        public Guid AgencyId { get; init; }
-
-        /// <summary>
         /// Дата начала бронирования
         /// </summary>
         [Required(ErrorMessage = "Дата начала бронирования обязательна")]

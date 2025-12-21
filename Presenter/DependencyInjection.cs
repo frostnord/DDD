@@ -1,8 +1,10 @@
 using Domain.Booking;
+using Domain.Booking.VO;
 using Domain.Customers.Buyer;
 using Domain.Customers.Seller;
 using Domain.Deal;
 using Domain.Property;
+using Domain.Property.VO;
 using Infrastructure;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
@@ -34,11 +36,11 @@ namespace Presenter
                 options.UseNpgsql(connectionString));
 
             // Регистрация Use Case Handlers
-            services.AddScoped<ICommandHandler<CreatePropertyCommand, PropertyEntity>, CreatePropertyCommandHandler>();
+            services.AddScoped<ICommandHandler<CreatePropertyCommand, Guid>, CreatePropertyCommandHandler>();
             services.AddScoped<ICommandHandler<CreateDealCommand, DealEntity>, CreateDealCommandHandler>();
             services.AddScoped<ICommandHandler<CreateBuyerCommand, BuyerEntity>, CreateBuyerCommandHandler>();
             services.AddScoped<ICommandHandler<CreateSellerCommand, SellerEntity>, CreateSellerCommandHandler>();
-            services.AddScoped<ICommandHandler<CreateBookingCommand, BookingEntity>, CreateBookingCommandHandler>();
+            services.AddScoped<ICommandHandler<CreateBookingCommand, Guid>, CreateBookingCommandHandler>();
             services.AddScoped<ICommandHandler<ConfirmBookingCommand>, ConfirmBookingCommandHandler>();
             services.AddScoped<ICommandHandler<CancelBookingCommand>, CancelBookingCommandHandler>();
             services

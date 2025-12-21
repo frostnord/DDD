@@ -18,66 +18,6 @@ namespace UseCases.Services
             _propertyRepository = propertyRepository;
         }
 
-        public async Task<Result<PropertyEntity>> CreatePropertyAsync(string street, string city, int homeNumber, int zipCode,
-            string country, decimal price, string description, int numberOfRooms, int floor, int totalFloors,
-            string propertyType, string heatingType, string propertyCondition, double area, bool? hasParking,
-            Guid ownerClientId, DateTime startDate)
-        {
-            var addressVO = Address.Create(street, city, homeNumber, zipCode, country);
-            if (addressVO.IsFailure)
-                return Result.Failure<PropertyEntity>(addressVO.Error);
-
-            var priceVO = Price.Create(price);
-            if (priceVO.IsFailure)
-                return Result.Failure<PropertyEntity>(priceVO.Error);
-
-            var descriptionVO = Description.Create(description);
-            if (descriptionVO.IsFailure)
-                return Result.Failure<PropertyEntity>(descriptionVO.Error);
-
-            var propertyTypeVO = SmartPropertyType.FromName(propertyType);
-            var heatingTypeVO = HeatingType.Create(heatingType);
-            if (heatingTypeVO.IsFailure)
-                return Result.Failure<PropertyEntity>(heatingTypeVO.Error);
-
-            var propertyConditionVO = PropertyCondition.Create(propertyCondition);
-            if (propertyConditionVO.IsFailure)
-                return Result.Failure<PropertyEntity>(propertyConditionVO.Error);
-
-            var detailsVO = PropertyDetails.Create(
-                (int)area, numberOfRooms, floor, totalFloors,
-                propertyTypeVO, false, hasParking ?? false, heatingType, propertyCondition);
-            if (detailsVO.IsFailure)
-                return Result.Failure<PropertyEntity>(detailsVO.Error);
-
-            var ownerIdVO = ClientId.Create(ownerClientId);
-            if (ownerIdVO.IsFailure)
-                return Result.Failure<PropertyEntity>(ownerIdVO.Error);
-
-            var ownerRecordVO = OwnershipRecord.Create(ownerIdVO.Value, startDate);
-            if (ownerRecordVO.IsFailure)
-                return Result.Failure<PropertyEntity>(ownerRecordVO.Error);
-
-            var propertyResult = PropertyEntity.Create(
-                addressVO.Value,
-                priceVO.Value,
-                descriptionVO.Value,
-                detailsVO.Value
-            );
-
-            if (propertyResult.IsFailure)
-                return Result.Failure<PropertyEntity>(propertyResult.Error);
-
-            var property = propertyResult.Value;
-            property.SetFirstOwner(ownerRecordVO.Value);
-
-            var saveResult = await _propertyRepository.AddAsync(property);
-            if (saveResult.IsFailure)
-                return Result.Failure<PropertyEntity>(saveResult.Error);
-
-            return Result.Success(property);
-        }
-
         public async Task<Result<PropertyEntity>> GetPropertyByIdAsync(Guid propertyId)
         {
             var propertyIdVO = PropertyId.Create(propertyId);

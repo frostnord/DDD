@@ -26,10 +26,9 @@ namespace Presenter.Controllers
     [Route("api/[controller]")]
     public class BookingsController : ControllerBase
     {
-        private readonly ICommandHandler<CreateBookingCommand, BookingEntity> _createBookingHandler;
+        private readonly ICommandHandler<CreateBookingCommand, Guid> _createBookingHandler;
         private readonly ICommandHandler<ConfirmBookingCommand> _confirmBookingHandler;
         private readonly ICommandHandler<CancelBookingCommand> _cancelBookingHandler;
-        private readonly IBookingRepository _bookingRepository;
         private readonly IBookingService _bookingService;
 
         /// <summary>
@@ -38,20 +37,17 @@ namespace Presenter.Controllers
         /// <param name="createBookingHandler">Обработчик команды создания бронирования</param>
         /// <param name="confirmBookingHandler">Обработчик команды подтверждения бронирования</param>
         /// <param name="cancelBookingHandler">Обработчик команды отмены бронирования</param>
-        /// <param name="bookingRepository">Репозиторий для работы с бронированиями</param>
         /// <param name="bookingService">Сервис</param>
         /// 
         public BookingsController(
-            ICommandHandler<CreateBookingCommand, BookingEntity> createBookingHandler,
+            ICommandHandler<CreateBookingCommand, Guid> createBookingHandler,
             ICommandHandler<ConfirmBookingCommand> confirmBookingHandler,
             ICommandHandler<CancelBookingCommand> cancelBookingHandler,
-            IBookingRepository bookingRepository,
             IBookingService bookingService)
         {
             _createBookingHandler = createBookingHandler;
             _confirmBookingHandler = confirmBookingHandler;
             _cancelBookingHandler = cancelBookingHandler;
-            _bookingRepository = bookingRepository;
             _bookingService = bookingService;
         }
 
@@ -66,7 +62,6 @@ namespace Presenter.Controllers
             var command = new CreateBookingCommand(
                 request.ClientId,
                 request.PropertyId,
-                request.AgencyId,
                 request.StartDate,
                 request.EndDate,
                 request.TotalPrice
@@ -79,7 +74,7 @@ namespace Presenter.Controllers
                 return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            var bookingDto = result.Value.ToDTO();
+            var bookingDto = result.Value;
             return new Envelope(HttpStatusCode.Created, bookingDto);
         }
 
@@ -94,6 +89,11 @@ namespace Presenter.Controllers
         [HttpGet("{id}")]
         public async Task<Envelope> GetBooking(Guid id)
         {
+            if (id == Guid.Empty)
+            {
+                return new Envelope(HttpStatusCode.BadRequest, error: "Invalid booking ID");
+            }
+
             var bookingResult = await _bookingService.GetBookingByIdAsync(id);
             if (bookingResult.IsFailure)
             {

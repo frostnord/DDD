@@ -83,7 +83,7 @@ namespace Domain.Property.VO
         /// <summary>
         /// Фабричный метод для создания PropertyDetails с возвратом Result
         /// </summary>
-        public static Result<PropertyDetails> Create(int area, int numberOfRooms, int floor, int totalFloors,
+        public static Result<PropertyDetails> Create(decimal area, int numberOfRooms, int floor, int totalFloors,
             SmartPropertyType type, bool hasBalcony = false, bool hasParking = false,
             string heatingType = null, string condition = null)
         {
@@ -155,8 +155,6 @@ namespace Domain.Property.VO
         /// Возвращает площадь одной комнаты
         /// </summary>
         /// <returns>Площадь одной комнаты или 0, если невозможно рассчитать</returns>
-        public int GetRoomArea() => Area.Value > NumberOfRooms.Value && NumberOfRooms.Value > 0
-            ? Area.Value / NumberOfRooms.Value
-            : 0;
+        // public int GetRoomArea() => 
     }
 }

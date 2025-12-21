@@ -27,7 +27,7 @@ namespace Presenter.DTOs.PropertyDTO
         
         public string PropertyCondition { get; set; }
         
-        public double Area { get; set; }
+        public decimal Area { get; set; }
         
         public bool? HasParking { get; set; }
         
