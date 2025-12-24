@@ -21,64 +21,65 @@ namespace UseCases.Property
 
         public async Task<Result<Guid>> HandleAsync(CreatePropertyCommand command)
         {
-            var addressVO = Address.Create(command.Street, command.City, command.HomeNumber, command.ZipCode, command.Country);
-            if (addressVO.IsFailure)
-            {
-                return Result.Failure<Guid>(addressVO.Error);
-            }
+            
+            var (Street, City, HomeNumber, ZipCode, Country) = command.AddressData;
+            
+            var (PropertyPrice, PropertyDescription, NumberOfRooms, Floor, TotalFloors,
+                Area, PropertyType, Heating, Condition, HasParking) = command.PropertyDetailsData;
+            
+            var propertyTypeVO = SmartPropertyType.FromName(PropertyType);
+            
+            var (OwnerClientId, StartDate) = command.OwnershipData;
 
-            var priceVO = Price.Create(command.Price);
-            if (priceVO.IsFailure)
-            {
-                return Result.Failure<Guid>(priceVO.Error);
-            }
-
-            var descriptionVO = Description.Create(command.Description);
-            if (descriptionVO.IsFailure)
-            {
-                return Result.Failure<Guid>(descriptionVO.Error);
-            }
-
-            var propertyTypeVO = SmartPropertyType.FromName(command.PropertyType);
-            var heatingTypeVO = HeatingType.Create(command.HeatingType);
-            if (heatingTypeVO.IsFailure)
-            {
-                return Result.Failure<Guid>(heatingTypeVO.Error);
-            }
-
-            var propertyConditionVO = PropertyCondition.Create(command.PropertyCondition);
-            if (propertyConditionVO.IsFailure)
-            {
-                return Result.Failure<Guid>(propertyConditionVO.Error);
-            }
-
-            var detailsVO = PropertyDetails.Create(
-                command.Area,
-                command.NumberOfRooms,
-                command.Floor,
-                command.TotalFloors,
-                propertyTypeVO,
-                false,
-                command.HasParking ?? false,
-                command.HeatingType,
-                command.PropertyCondition);
-            if (detailsVO.IsFailure)
-            {
-                return Result.Failure<Guid>(detailsVO.Error);
-            }
-
-            var ownerIdVO = ClientId.Create(command.OwnerClientId);
+            var ownerIdVO = ClientId.Create(OwnerClientId);
             if (ownerIdVO.IsFailure)
             {
                 return Result.Failure<Guid>(ownerIdVO.Error);
             }
 
-            var ownerRecordVO = OwnershipRecord.Create(ownerIdVO.Value, command.StartDate);
+            var ownerRecordVO = OwnershipRecord.Create(ownerIdVO.Value, StartDate);
             if (ownerRecordVO.IsFailure)
             {
                 return Result.Failure<Guid>(ownerRecordVO.Error);
             }
+            
+            //addressVO
+            var addressVO = Address.Create(Street, City, HomeNumber, ZipCode, Country);
+            if (addressVO.IsFailure)
+            {
+                return Result.Failure<Guid>(addressVO.Error);
+            }
+            
+            //priceVO
+            var priceVO = Price.Create(PropertyPrice);
+            if (priceVO.IsFailure)
+            {
+                return Result.Failure<Guid>(priceVO.Error);
+            }
+            
+            //descriptionVO
+            var descriptionVO = Description.Create(PropertyDescription);
+            if (descriptionVO.IsFailure)
+            {
+                return Result.Failure<Guid>(descriptionVO.Error);
+            }
 
+            //detailsVO
+            var detailsVO = PropertyDetails.Create(
+                Area,
+                NumberOfRooms,
+                Floor,
+                TotalFloors,
+                propertyTypeVO,
+                false,
+                HasParking ?? false,
+                Heating,
+                Condition);
+            if (detailsVO.IsFailure)
+            {
+                return Result.Failure<Guid>(detailsVO.Error);
+            }
+            
             var propertyResult = PropertyEntity.Create(
                 addressVO.Value,
                 priceVO.Value,

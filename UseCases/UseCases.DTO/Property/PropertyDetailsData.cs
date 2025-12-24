@@ -1,6 +1,6 @@
-﻿namespace Presenter.DTOs.PropertyDTO;
+﻿namespace UseCases.UseCases.DTO.Property;
 
-public sealed record PropertyDetailsDto(
+public record PropertyDetailsData(
     decimal Price,
     string Description,
     int NumberOfRooms,
@@ -8,7 +8,7 @@ public sealed record PropertyDetailsDto(
     int TotalFloors,
     decimal Area,
     string Type,  
-    string HeatingType, 
+    string Heating, 
     string Condition,
     bool? HasParking
-);
+    );

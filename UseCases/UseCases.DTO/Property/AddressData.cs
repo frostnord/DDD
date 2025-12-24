@@ -1,9 +1,9 @@
-﻿namespace Presenter.DTOs.PropertyDTO;
+﻿namespace UseCases.UseCases.DTO.Property;
 
-public sealed record AddressDTO(
+public record AddressData(
     string Street,
     string City,
     int HomeNumber,
     int ZipCode,
     string Country
-);
+    );

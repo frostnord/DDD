@@ -7,10 +7,12 @@ using Microsoft.AspNetCore.Mvc;
 using Presenter.DTOs;
 using Presenter.DTOs.PropertyDTO;
 using Presenter.Extensions;
+using Presenter.Mappings;
 using Presenter.Utilities;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Services;
 using UseCases.Property;
+using UseCases.UseCases.DTO.Property;
 
 namespace Presenter.Controllers
 {
@@ -46,25 +48,9 @@ namespace Presenter.Controllers
         [HttpPost]
         public async Task<Envelope> CreateProperty([FromBody] CreatePropertyRequest request)
         {
-            var command = new CreatePropertyCommand(
-                request.Address.Street,
-                request.Address.City,
-                request.Address.HomeNumber,
-                request.Address.ZipCode,
-                request.Address.Country,
-                request.PropertyDetails.Price,
-                request.PropertyDetails.Description,
-                request.PropertyDetails.NumberOfRooms,
-                request.PropertyDetails.Floor,
-                request.PropertyDetails.TotalFloors,
-                request.PropertyDetails.Type,
-                request.PropertyDetails.Heating,
-                request.PropertyDetails.Condition,
-                request.PropertyDetails.Area,
-                request.PropertyDetails.HasParking,
-                request.Ownership.OwnerClientId,
-                request.Ownership.StartDate);
 
+            var command = CreatePropertyMapping.ToCommand(request);
+            
             var result = await _createPropertyHandler.HandleAsync(command);
 
             if (result.IsFailure)
