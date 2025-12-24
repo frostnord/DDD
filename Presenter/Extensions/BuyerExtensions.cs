@@ -13,11 +13,11 @@ namespace Presenter.Extensions
                 return null;
 
             return new BuyerDto
-            {
-                Id = buyerEntity.Id.Value,
-                ClientId = buyerEntity.ClientId.Value,
-                RegisteredAt = DateTime.UtcNow // В реальной реализации это должно быть свойство в сущности
-            };
+            (
+                buyerEntity.Id.Value,
+                buyerEntity.ClientId.Value,
+                DateTime.UtcNow // В реальной реализации это должно быть свойство в сущности
+            );
         }
     }
 }

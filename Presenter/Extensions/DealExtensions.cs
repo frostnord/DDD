@@ -9,16 +9,16 @@ namespace Presenter.Extensions
         public static DealDto ToDTO(this DealEntity deal)
         {
             return new DealDto
-            {
-                Id = deal.Id.Value,
-                ClientId = deal.ClientId.Value,
-                PropertyId = deal.PropertyId.Value,
-                BookingId = deal.BookingId?.Value,
-                Details = deal.Details,
-                Status = deal.Status.Name,
-                CreatedAt = deal.CreatedAt,
-                UpdatedAt = deal.UpdatedAt
-            };
+            (
+                deal.Id.Value,
+                deal.ClientId.Value,
+                deal.PropertyId.Value,
+                deal.BookingId?.Value,
+                deal.Details,
+                deal.Status.Name,
+                deal.CreatedAt,
+                deal.UpdatedAt
+            );
         }
     }
 }

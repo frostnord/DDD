@@ -13,11 +13,11 @@ namespace Presenter.Extensions
                 return null;
 
             return new SellerDto
-            {
-                Id = sellerEntity.Id.Value,
-                ClientId = sellerEntity.ClientId.Value,
-                RegisteredAt = DateTime.UtcNow
-            };
+            (
+                sellerEntity.Id.Value,
+                sellerEntity.ClientId.Value,
+                DateTime.UtcNow
+            );
         }
     }
 }

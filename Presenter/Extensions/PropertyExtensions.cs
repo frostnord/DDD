@@ -21,24 +21,24 @@ namespace Presenter.Extensions
                 return null;
 
             return new PropertyDto
-            {
-                Id = propertyEntity.Id.Value,
-                Address = propertyEntity.Address?.ToString(),
-                Price = propertyEntity.Price?.Value ?? 0,
-                Status = propertyEntity.Status?.GetDisplayName(),
-                Description = propertyEntity.Description?.Value,
-                NumberOfRooms = propertyEntity.Details?.NumberOfRooms?.Value ?? 0,
-                Floor = propertyEntity.Details?.Floor?.Value ?? 0,
-                TotalFloors = propertyEntity.Details?.TotalFloors?.Value ?? 0,
-                PropertyType = propertyEntity.Details?.Type?.Name,
-                HeatingType = propertyEntity.Details?.HeatingType?.Name,
-                PropertyCondition = propertyEntity.Details?.Condition?.Value,
-                Area = propertyEntity.Details?.Area?.Value ?? 0,
-                HasParking = propertyEntity.Details?.HasParking,
-                OwnerClientId = propertyEntity.GetCurrentOwner()?.OwnerClientId?.Value ?? Guid.Empty,
-                CreatedAt = propertyEntity.CreatedAt,
-                UpdatedAt = propertyEntity.UpdatedAt
-            };
+            (
+                    propertyEntity.Id.Value,
+                    propertyEntity.Address?.ToString(),
+                    propertyEntity.Price?.Value ?? 0,
+                    propertyEntity.Status?.GetDisplayName(),
+                    propertyEntity.Description?.Value,
+                    propertyEntity.Details?.NumberOfRooms?.Value ?? 0,
+                    propertyEntity.Details?.Floor?.Value ?? 0,
+                    propertyEntity.Details?.TotalFloors?.Value ?? 0,
+                    propertyEntity.Details?.Type?.Name,
+                    propertyEntity.Details?.HeatingType?.Name,
+                    propertyEntity.Details?.Condition?.Value,
+                    propertyEntity.Details?.Area?.Value ?? 0,
+                    propertyEntity.Details?.HasParking,
+                    propertyEntity.GetCurrentOwner()?.OwnerClientId?.Value ?? Guid.Empty,
+                    propertyEntity.CreatedAt,
+                    propertyEntity.UpdatedAt
+            );
         }
     }
 }

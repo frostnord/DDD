@@ -17,15 +17,15 @@ namespace Presenter.Extensions
                 return null;
 
             return new ClientDto
-            {
-                Id = clientEntity.Id.Value,
-                FirstName = clientEntity.FirstName.Value,
-                LastName = clientEntity.LastName.Value,
-                Email = clientEntity.ContactInfo.Email.Value,
-                PhoneNumber = clientEntity.ContactInfo.PhoneNumber.Value,
-                RegisteredDate = clientEntity.RegisteredDate,
-                UpdatedAt = clientEntity.UpdatedAt
-            };
+            (
+                clientEntity.Id.Value,
+                clientEntity.FirstName.Value,
+                clientEntity.LastName.Value,
+                clientEntity.ContactInfo.Email.Value,
+                clientEntity.ContactInfo.PhoneNumber.Value,
+                clientEntity.RegisteredDate,
+                clientEntity.UpdatedAt
+            );
         }
     }
 }
