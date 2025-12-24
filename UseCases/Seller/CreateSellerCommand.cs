@@ -1,3 +1,4 @@
+using System;
 using Domain.Customers.Seller;
 using UseCases.Interfaces.Commands;
 

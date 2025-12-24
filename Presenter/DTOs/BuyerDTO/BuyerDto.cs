@@ -1,3 +1,5 @@
+using System;
+
 namespace Presenter.DTOs.BuyerDTO
 {
     /// <summary>

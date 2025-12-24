@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Property;
 
@@ -11,7 +14,7 @@ namespace UseCases.Interfaces.Services
 
         Task<Result> UpdatePropertyAsync(Guid propertyId, string street, string city, int homeNumber, int zipCode,
             string country, decimal price, string description, int numberOfRooms, int floor, int totalFloors,
-            string propertyType, string heatingType, string propertyCondition, double area, bool? hasParking);
+            string propertyType, string heatingType, string propertyCondition, decimal area, bool? hasParking);
 
         Task<Result> DeletePropertyAsync(Guid propertyId);
 

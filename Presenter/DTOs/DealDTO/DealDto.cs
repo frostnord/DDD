@@ -1,3 +1,4 @@
+using System;
 using Domain.Deal;
 
 namespace Presenter.DTOs.DealDTO

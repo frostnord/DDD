@@ -1,3 +1,4 @@
+using System;
 using CSharpFunctionalExtensions;
 
 namespace Domain.Property.VO

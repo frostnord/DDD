@@ -1,4 +1,5 @@
-﻿using UseCases.Interfaces.Commands;
+﻿using System;
+using UseCases.Interfaces.Commands;
 
 namespace UseCases.CompleteDeal;
 

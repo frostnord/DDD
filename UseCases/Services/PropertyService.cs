@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
 using Domain.Property;
@@ -34,7 +38,7 @@ namespace UseCases.Services
 
         public async Task<Result> UpdatePropertyAsync(Guid propertyId, string street, string city, int homeNumber,
             int zipCode, string country, decimal price, string description, int numberOfRooms, int floor,
-            int totalFloors, string propertyType, string heatingType, string propertyCondition, double area,
+            int totalFloors, string propertyType, string heatingType, string propertyCondition, decimal area,
             bool? hasParking)
         {
             var getPropertyResult = await GetPropertyByIdAsync(propertyId);

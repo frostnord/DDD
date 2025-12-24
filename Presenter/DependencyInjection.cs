@@ -1,3 +1,4 @@
+using System;
 using Domain.Booking;
 using Domain.Booking.VO;
 using Domain.Customers.Buyer;
@@ -8,6 +9,7 @@ using Domain.Property.VO;
 using Infrastructure;
 using Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using UseCases.Booking.Commands;
 using UseCases.Booking.Commands.CancelBooking;
 using UseCases.Booking.Commands.ConfirmBooking;
@@ -65,6 +67,7 @@ namespace Presenter
             services.AddScoped<IBuyerService, BuyerService>();
             services.AddScoped<IDealService, DealService>();
             services.AddScoped<ICompletedDealService, CompletedDealService>();
+            services.AddScoped<IBookingService, BookingService>();
 
             return services;
         }

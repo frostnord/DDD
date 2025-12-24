@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using CSharpFunctionalExtensions;
 
 namespace Domain.Property.VO
@@ -69,12 +70,17 @@ namespace Domain.Property.VO
                 errors.Add("Улица не может быть пустой");
             if (string.IsNullOrWhiteSpace(city))
                 errors.Add("Город не может быть пустым");
-            if (homeNumber == null)
+            if (homeNumber <= 0)
                 errors.Add("Номер дома не может быть пустой");
-            if (zipCode == null)
+            if (zipCode <= 0)
                 errors.Add("Почтовый индекс не может быть пустым");
             if (string.IsNullOrWhiteSpace(country))
                 errors.Add("Страна не может быть пустой");
+            if (street.Length > MAX_STREET_LENGTH)
+                errors.Add($"Улица не может быть длиннее {MAX_STREET_LENGTH} символов");
+
+            if (city.Length > MAX_CITY_LENGTH)
+                errors.Add($"Город не может быть длиннее {MAX_CITY_LENGTH} символов");
 
             return errors.Count > 0
                 ? Result.Failure<Address>(string.Join("; ", errors))

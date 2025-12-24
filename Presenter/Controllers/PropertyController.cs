@@ -1,4 +1,7 @@
+using System;
+using System.Linq;
 using System.Net;
+using System.Threading.Tasks;
 using Domain.Property.VO;
 using Microsoft.AspNetCore.Mvc;
 using Presenter.DTOs;
@@ -44,23 +47,23 @@ namespace Presenter.Controllers
         public async Task<Envelope> CreateProperty([FromBody] CreatePropertyRequest request)
         {
             var command = new CreatePropertyCommand(
-                request.Street,
-                request.City,
-                request.HomeNumber,
-                request.ZipCode,
-                request.Country,
-                request.Price,
-                request.Description,
-                request.NumberOfRooms,
-                request.Floor,
-                request.TotalFloors,
-                request.PropertyType,
-                request.HeatingType,
-                request.PropertyCondition,
-                request.Area,
-                request.HasParking,
-                request.OwnerClientId,
-                request.StartDate);
+                request.Address.Street,
+                request.Address.City,
+                request.Address.HomeNumber,
+                request.Address.ZipCode,
+                request.Address.Country,
+                request.PropertyDetails.Price,
+                request.PropertyDetails.Description,
+                request.PropertyDetails.NumberOfRooms,
+                request.PropertyDetails.Floor,
+                request.PropertyDetails.TotalFloors,
+                request.PropertyDetails.Type,
+                request.PropertyDetails.Heating,
+                request.PropertyDetails.Condition,
+                request.PropertyDetails.Area,
+                request.PropertyDetails.HasParking,
+                request.Ownership.OwnerClientId,
+                request.Ownership.StartDate);
 
             var result = await _createPropertyHandler.HandleAsync(command);
 
@@ -69,7 +72,7 @@ namespace Presenter.Controllers
                 return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            return new Envelope(HttpStatusCode.Created, result);
+            return new Envelope(HttpStatusCode.Created, result.Value);
         }
 
         /// <summary>

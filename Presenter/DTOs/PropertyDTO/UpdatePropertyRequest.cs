@@ -30,7 +30,7 @@ namespace Presenter.DTOs.PropertyDTO
 
         [Required] public string PropertyCondition { get; init; }
 
-        [Required] public double Area { get; init; }
+        [Required] public decimal Area { get; init; }
 
         public bool? HasParking { get; init; }
     }
