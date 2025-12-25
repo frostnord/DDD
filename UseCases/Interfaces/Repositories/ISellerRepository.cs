@@ -1,16 +1,17 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
-using Domain.Domain;
-using Domain.Domain.Customers.Seller.VO;
-using Domain.Domain.ValueObjects;
+using Domain.Customers.Seller;
+using Domain.Customers.Seller.VO;
 
 namespace UseCases.Interfaces.Repositories
 {
     public interface ISellerRepository
     {
-        Task<Result<Seller>> GetByIdAsync(SellerId id);
-        Task<Result<IEnumerable<Seller>>> GetAllAsync();
-        Task<Result<Seller>> AddAsync(Seller seller);
-        Task<Result> UpdateAsync(Seller seller);
+        Task<Result<SellerEntity>> GetByIdAsync(SellerId id);
+        Task<Result<IEnumerable<SellerEntity>>> GetAllAsync();
+        Task<Result<SellerEntity>> AddAsync(SellerEntity sellerEntity);
+        Task<Result> UpdateAsync(SellerEntity sellerEntity);
         Task<Result> DeleteAsync(SellerId id);
         Task<bool> ExistsAsync(SellerId id);
     }

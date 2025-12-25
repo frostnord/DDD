@@ -1,17 +1,17 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
-using Domain.Domain;
-using Domain.Domain.Property;
-using Domain.Domain.Property.VO;
-using Domain.Domain.ValueObjects;
+using Domain.Property;
+using Domain.Property.VO;
 
 namespace UseCases.Interfaces.Repositories
 {
     public interface IPropertyRepository
     {
-        Task<Result<Property>> GetByIdAsync(PropertyId id);
-        Task<Result<IEnumerable<Property>>> GetAllAsync();
-        Task<Result<Property>> AddAsync(Property property);
-        Task<Result> UpdateAsync(Property property);
+        Task<Result<PropertyEntity>> GetByIdAsync(PropertyId id);
+        Task<Result<IEnumerable<PropertyEntity>>> GetAllAsync();
+        Task<Result<PropertyEntity>> AddAsync(PropertyEntity propertyEntity);
+        Task<Result> UpdateAsync(PropertyEntity propertyEntity);
         Task<Result> DeleteAsync(PropertyId id);
         Task<bool> ExistsAsync(PropertyId id);
     }

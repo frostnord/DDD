@@ -1,19 +1,20 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
-using Domain.Domain;
-using Domain.Domain.Customers.Client.VO;
-using Domain.Domain.Deal;
-using Domain.Domain.Property.VO;
-using Domain.Domain.ValueObjects;
+using Domain.Customers.Client.VO;
+using Domain.Deal;
+using Domain.Property.VO;
 
 namespace UseCases.Interfaces.Repositories
 {
     public interface IDealRepository
     {
-        Task<Result<Deal>> GetByIdAsync(DealId id);
-        Task<Result<IEnumerable<Deal>>> GetByClientIdAsync(ClientId clientId);
-        Task<Result<IEnumerable<Deal>>> GetByPropertyIdAsync(PropertyId propertyId);
-        Task<Result<Deal>> AddAsync(Deal deal);
-        Task<Result> UpdateAsync(Deal deal);
+        Task<Result<DealEntity>> GetByIdAsync(DealId id);
+        Task<Result<IEnumerable<DealEntity>>> GetByClientIdAsync(ClientId clientId);
+        Task<Result<IEnumerable<DealEntity>>> GetByPropertyIdAsync(PropertyId propertyId);
+        Task<Result<IEnumerable<DealEntity>>> GetAllAsync();
+        Task<Result<DealEntity>> AddAsync(DealEntity dealEntity);
+        Task<Result> UpdateAsync(DealEntity dealEntity);
         Task<Result> DeleteAsync(DealId id);
         Task<bool> ExistsAsync(DealId id);
     }

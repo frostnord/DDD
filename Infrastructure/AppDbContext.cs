@@ -1,24 +1,27 @@
-using Domain.Domain;
-using Domain.Domain.Booking;
-using Domain.Domain.Customers.Buyer;
-using Domain.Domain.Customers.Client;
-using Domain.Domain.Customers.Seller;
-using Domain.Domain.Deal;
-using Domain.Domain.Property;
+using Domain.Booking;
+using Domain.Customers.Buyer;
+using Domain.Customers.Client;
+using Domain.Customers.Seller;
+using Domain.Deal;
+using Domain.Property;
 using Microsoft.EntityFrameworkCore;
 
 namespace Infrastructure;
 
-public class AppDbContext : Microsoft.EntityFrameworkCore.DbContext
+public class AppDbContext : DbContext
 {
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+    {
+    }
+
     // DbSets (агрегаты)
-    public DbSet<Property> Properties => Set<Property>();
-    public DbSet<Buyer> Buyers => Set<Buyer>();
-    public DbSet<Seller> Sellers => Set<Seller>();
-    public DbSet<CompletedDeal> CompletedDeals => Set<CompletedDeal>();
-    public DbSet<Deal> Deals => Set<Deal>();
-    public DbSet<Client> Clients => Set<Client>();
-    public DbSet<Booking> Bookings => Set<Booking>();
+    public DbSet<PropertyEntity> Properties => Set<PropertyEntity>();
+    public DbSet<BuyerEntity> Buyers => Set<BuyerEntity>();
+    public DbSet<SellerEntity> Sellers => Set<SellerEntity>();
+    public DbSet<CompletedDealEntity> CompletedDeals => Set<CompletedDealEntity>();
+    public DbSet<DealEntity> Deals => Set<DealEntity>();
+    public DbSet<ClientEntity> Clients => Set<ClientEntity>();
+    public DbSet<BookingEntity> Bookings => Set<BookingEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

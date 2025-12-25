@@ -1,16 +1,17 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
-using Domain.Domain;
-using Domain.Domain.Customers.Buyer;
-using Domain.Domain.ValueObjects;
+using Domain.Customers.Buyer;
+using Domain.Customers.Buyer.VO;
 
 namespace UseCases.Interfaces.Repositories
 {
     public interface IBuyerRepository
     {
-        Task<Result<Buyer>> GetByIdAsync(BuyerId id);
-        Task<Result<IEnumerable<Buyer>>> GetAllAsync();
-        Task<Result<Buyer>> AddAsync(Buyer buyer);
-        Task<Result> UpdateAsync(Buyer buyer);
+        Task<Result<BuyerEntity>> GetByIdAsync(BuyerId id);
+        Task<Result<IEnumerable<BuyerEntity>>> GetAllAsync();
+        Task<Result<BuyerEntity>> AddAsync(BuyerEntity buyerEntity);
+        Task<Result> UpdateAsync(BuyerEntity buyerEntity);
         Task<Result> DeleteAsync(BuyerId id);
         Task<bool> ExistsAsync(BuyerId id);
     }

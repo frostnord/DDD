@@ -1,21 +1,19 @@
-using Domain.Domain;
-using Domain.Domain.Customers.Client.VO;
-using Domain.Domain.Property;
-using Domain.Domain.Property.VO;
-using Domain.Domain.ValueObjects;
+using Domain.Customers.Client.VO;
+using Domain.Property;
+using Domain.Property.VO;
 using Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Domain.Database.Configurations.Properties;
+namespace Infrastructure.Configurations.Properties;
 
-public sealed class PropertyEntityConfiguration: IEntityTypeConfiguration<Property>
+public sealed class PropertyEntityConfiguration : IEntityTypeConfiguration<PropertyEntity>
 {
-    public void Configure(EntityTypeBuilder<Property> builder)
+    public void Configure(EntityTypeBuilder<PropertyEntity> builder)
     {
         // Создаем таблицу
         builder.ToTable("property");
-        
+
         // Устанавливаем ключ
         builder.HasKey(x => x.Id)
             .HasName("pk_property");
@@ -42,7 +40,6 @@ public sealed class PropertyEntityConfiguration: IEntityTypeConfiguration<Proper
             .HasColumnName("created_at");
 
         builder.Property(x => x.UpdatedAt)
-            .IsRequired(false)
             .HasColumnName("updated_at");
 
         // Конфигурация статуса недвижимости (smart-enum)

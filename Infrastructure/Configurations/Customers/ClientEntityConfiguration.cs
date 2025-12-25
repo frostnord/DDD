@@ -1,15 +1,14 @@
-using Domain.Domain;
-using Domain.Domain.Customers.Client;
-using Domain.Domain.Customers.Client.VO;
-using Domain.Domain.ValueObjects;
+using Domain.Customers.Client;
+using Domain.Customers.Client.VO;
+using Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Domain.DbContext.Database.Configurations;
+namespace Infrastructure.Configurations.Customers;
 
-public sealed class ClientEntityConfiguration : IEntityTypeConfiguration<Client>
+public sealed class ClientEntityConfiguration : IEntityTypeConfiguration<ClientEntity>
 {
-    public void Configure(EntityTypeBuilder<Client> builder)
+    public void Configure(EntityTypeBuilder<ClientEntity> builder)
     {
         // Создаем таблицу
         builder.ToTable("clients");

@@ -1,15 +1,16 @@
-using Domain.Domain;
-using Domain.Domain.Booking;
-using Domain.Domain.Booking.VO;
-using Domain.Domain.ValueObjects;
+using Domain.Booking;
+using Domain.Booking.VO;
+using Domain.Customers.Client.VO;
+using Domain.Property.VO;
+using Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Infrastructure.Persistence.Configurations.Bookings;
+namespace Infrastructure.Configurations.Bookings;
 
-public sealed class BookingEntityConfiguration : IEntityTypeConfiguration<Booking>
+public sealed class BookingEntityConfiguration : IEntityTypeConfiguration<BookingEntity>
 {
-    public void Configure(EntityTypeBuilder<Booking> builder)
+    public void Configure(EntityTypeBuilder<BookingEntity> builder)
     {
         // Таблица
         builder.ToTable("booking");
@@ -29,7 +30,6 @@ public sealed class BookingEntityConfiguration : IEntityTypeConfiguration<Bookin
             .HasColumnName("created_at");
 
         builder.Property(x => x.UpdatedAt)
-            .IsRequired(false)
             .HasColumnName("updated_at");
 
         // Общая цена бронирования (VO Price)
@@ -51,19 +51,14 @@ public sealed class BookingEntityConfiguration : IEntityTypeConfiguration<Bookin
         });
 
         // Ссылки на агрегаты (ограничиваем каскадное удаление)
-        builder.HasOne(x => x.Client)
-            .WithMany()
-            .HasForeignKey("client_id")
-            .OnDelete(DeleteBehavior.Restrict);
+        builder.Property(x => x.ClientId)
+            .IsRequired()
+            .HasConversion(toDb => toDb.Value, fromDb => ClientId.Create(fromDb).Value)
+            .HasColumnName("client_id");
 
-        builder.HasOne(x => x.Property)
-            .WithMany()
-            .HasForeignKey("property_id")
-            .OnDelete(DeleteBehavior.Restrict);
-
-        builder.HasOne(x => x.Agency)
-            .WithMany()
-            .HasForeignKey("agency_id")
-            .OnDelete(DeleteBehavior.Restrict);
+        builder.Property(x => x.PropertyId)
+            .IsRequired()
+            .HasConversion(toDb => toDb.Value, fromDb => PropertyId.Create(fromDb).Value)
+            .HasColumnName("property_id");
     }
 }

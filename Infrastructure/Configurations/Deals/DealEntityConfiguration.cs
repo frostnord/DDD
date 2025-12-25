@@ -1,18 +1,17 @@
 using System;
-using Domain.Domain.Booking.VO;
-using Domain.Domain.Customers.Client.VO;
-using Domain.Domain.Deal;
-using Domain.Domain.Property.VO;
-using Domain.Domain.ValueObjects;
+using Domain.Booking.VO;
+using Domain.Customers.Client.VO;
+using Domain.Deal;
+using Domain.Property.VO;
 using Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
 namespace Infrastructure.Configurations.Deals;
 
-public sealed class DealEntityConfiguration : IEntityTypeConfiguration<Deal>
+public sealed class DealEntityConfiguration : IEntityTypeConfiguration<DealEntity>
 {
-    public void Configure(EntityTypeBuilder<Deal> builder)
+    public void Configure(EntityTypeBuilder<DealEntity> builder)
     {
         // Создаем таблицу
         builder.ToTable("deals");
@@ -77,7 +76,6 @@ public sealed class DealEntityConfiguration : IEntityTypeConfiguration<Deal>
             .HasColumnName("created_at");
 
         builder.Property(x => x.UpdatedAt)
-            .IsRequired(false)
             .HasColumnName("updated_at");
 
         // Настройка документов как отдельной таблицы
@@ -85,7 +83,6 @@ public sealed class DealEntityConfiguration : IEntityTypeConfiguration<Deal>
         {
             documentBuilder.ToTable("deal_documents");
 
-            documentBuilder.Property<int>("Id").UseIdentityColumn().HasColumnName("id");
             documentBuilder.WithOwner().HasForeignKey("deal_id");
 
             documentBuilder.Property(d => d.Id)

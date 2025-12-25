@@ -1,17 +1,17 @@
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
-using Domain.Domain;
-using Domain.Domain.Customers.Client;
-using Domain.Domain.Customers.Client.VO;
-using Domain.Domain.ValueObjects;
+using Domain.Customers.Client;
+using Domain.Customers.Client.VO;
 
 namespace UseCases.Interfaces.Repositories
 {
     public interface IClientRepository
     {
-        Task<Result<Client>> GetByIdAsync(ClientId id);
-        Task<Result<IEnumerable<Client>>> GetAllAsync();
-        Task<Result<Client>> AddAsync(Client client);
-        Task<Result> UpdateAsync(Client client);
+        Task<Result<ClientEntity>> GetByIdAsync(ClientId id);
+        Task<Result<IEnumerable<ClientEntity>>> GetAllAsync();
+        Task<Result<ClientEntity>> AddAsync(ClientEntity clientEntity);
+        Task<Result> UpdateAsync(ClientEntity clientEntity);
         Task<Result> DeleteAsync(ClientId id);
         Task<bool> ExistsAsync(ClientId id);
     }

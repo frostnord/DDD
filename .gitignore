@@ -1,1 +1,10 @@
 ﻿/.idea/
+/Domain/obj
+/Domain/bin
+/Infrastructure/obj
+/Infrastructure/bin
+/Presenter/obj
+/Presenter/bin
+/UseCases/obj
+/UseCases/bin
+

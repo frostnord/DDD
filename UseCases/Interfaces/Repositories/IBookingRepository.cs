@@ -1,12 +1,10 @@
-using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
-using Domain.Domain;
-using Domain.Domain.Booking;
-using Domain.Domain.Booking.VO;
-using Domain.Domain.Customers.Client.VO;
-using Domain.Domain.Property.VO;
-using Domain.Domain.ValueObjects;
+using Domain.Booking;
+using Domain.Booking.VO;
+using Domain.Customers.Client.VO;
+using Domain.Property.VO;
 
 namespace UseCases.Interfaces.Repositories
 {
@@ -20,28 +18,34 @@ namespace UseCases.Interfaces.Repositories
         /// </summary>
         /// <param name="id">Идентификатор бронирования</param>
         /// <returns>Результат с бронированием или ошибкой, если бронирование не найдено</returns>
-        Task<Result<Booking>> GetByIdAsync(BookingId id);
+        Task<Result<BookingEntity>> GetByIdAsync(BookingId id);
+
+        /// <summary>
+        /// Получает все бронирования
+        /// </summary>
+        /// <returns>Список всех бронирований</returns>
+        Task<Result<IEnumerable<BookingEntity>>> GetAllAsync();
 
         /// <summary>
         /// Получает все бронирования клиента по его идентификатору
         /// </summary>
         /// <param name="clientId">Идентификатор клиента</param>
         /// <returns>Список бронирований клиента</returns>
-        Task<Result<IEnumerable<Booking>>> GetByClientIdAsync(ClientId clientId);
+        Task<Result<IEnumerable<Domain.Booking.BookingEntity>>> GetByClientIdAsync(ClientId clientId);
 
         /// <summary>
         /// Получает все бронирования объекта недвижимости по его идентификатору
         /// </summary>
         /// <param name="propertyId">Идентификатор объекта недвижимости</param>
         /// <returns>Список бронирований объекта недвижимости</returns>
-        Task<Result<IEnumerable<Booking>>> GetByPropertyIdAsync(PropertyId propertyId);
+        Task<Result<IEnumerable<BookingEntity>>> GetByPropertyIdAsync(PropertyId propertyId);
 
         /// <summary>
         /// Сохраняет бронирование в репозитории
         /// </summary>
-        /// <param name="booking">Бронирование для сохранения</param>
+        /// <param name="bookingEntity">Бронирование для сохранения</param>
         /// <returns>Результат операции</returns>
-        Task<Result> SaveAsync(Booking booking);
+        Task<Result> SaveAsync(Domain.Booking.BookingEntity bookingEntity);
 
         /// <summary>
         /// Удаляет бронирование из репозитория
@@ -49,7 +53,7 @@ namespace UseCases.Interfaces.Repositories
         /// <param name="id">Идентификатор бронирования для удаления</param>
         /// <returns>Результат операции</returns>
         Task<Result> DeleteAsync(BookingId id);
-        
+
         /// <summary>
         /// Проверяет, существует ли бронирование с указанным идентификатором
         /// </summary>

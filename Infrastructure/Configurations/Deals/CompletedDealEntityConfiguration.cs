@@ -1,15 +1,15 @@
-using Domain.Domain.Customers.Client.VO;
-using Domain.Domain.Deal;
-using Domain.Domain.Property.VO;
-using Domain.Domain.ValueObjects;
+using Domain.Customers.Client.VO;
+using Domain.Deal;
+using Domain.Property.VO;
+using Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Domain.Database.Configurations.Deals;
+namespace Infrastructure.Configurations.Deals;
 
-public sealed class CompletedDealEntityConfiguration : IEntityTypeConfiguration<CompletedDeal>
+public sealed class CompletedDealEntityConfiguration : IEntityTypeConfiguration<CompletedDealEntity>
 {
-    public void Configure(EntityTypeBuilder<CompletedDeal> builder)
+    public void Configure(EntityTypeBuilder<CompletedDealEntity> builder)
     {
         builder.ToTable("completed_deals");
 
@@ -56,7 +56,6 @@ public sealed class CompletedDealEntityConfiguration : IEntityTypeConfiguration<
             .HasColumnName("created_at");
 
         builder.Property(x => x.UpdatedAt)
-            .IsRequired(false)
             .HasColumnName("updated_at");
     }
 }

@@ -1,17 +1,15 @@
-using Domain.Domain;
-using Domain.Domain.Customers.Client.VO;
-using Domain.Domain.Customers.Seller.VO;
-using Domain.Domain.Property.VO;
-using Domain.Domain.ValueObjects;
-using Domain.ValueObjects;
+using Domain.Customers.Client.VO;
+using Domain.Customers.Seller;
+using Domain.Customers.Seller.VO;
+using Domain.Property.VO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Domain.DbContext.Database.Configurations;
+namespace Infrastructure.Configurations.Customers;
 
-public sealed class SellerEntityConfiguration : IEntityTypeConfiguration<Seller>
+public sealed class SellerEntityConfiguration : IEntityTypeConfiguration<SellerEntity>
 {
-    public void Configure(EntityTypeBuilder<Seller> builder)
+    public void Configure(EntityTypeBuilder<SellerEntity> builder)
     {
         // Таблица
         builder.ToTable("sellers");
@@ -45,7 +43,7 @@ public sealed class SellerEntityConfiguration : IEntityTypeConfiguration<Seller>
                 .HasColumnName("property_id");
 
             // Составной ключ для уникальности
-            nav.HasKey("seller_id", "property_id");
+            nav.HasKey("seller_id", "Value");
         });
     }
 }
