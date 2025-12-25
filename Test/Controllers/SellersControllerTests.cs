@@ -1,3 +1,5 @@
+using System;
+using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
 using Domain.Customers.Seller;
@@ -6,7 +8,9 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Presenter.Controllers;
 using Presenter.DTOs;
+using Presenter.DTOs.SellerDTO;
 using UseCases.Interfaces;
+using Presenter.Utilities;
 using UseCases.Interfaces.Services;
 using Xunit;
 
@@ -46,8 +50,10 @@ namespace Test.Controllers
             var actionResult = await _controller.CreateSeller(request);
 
             // Assert
-            var createdAtResult = Assert.IsType<CreatedAtActionResult>(actionResult.Result);
-            Assert.Equal("GetSeller", createdAtResult.ActionName);
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            Assert.Equal(201, envelope.Status);
+            var sellerDto = Assert.IsType<SellerDto>(envelope.Result);
+            Assert.Equal(clientId, sellerDto.ClientId);
         }
 
         [Fact]
@@ -68,8 +74,9 @@ namespace Test.Controllers
             var actionResult = await _controller.CreateSeller(request);
 
             // Assert
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(actionResult.Result);
-            Assert.Contains("Validation error", badRequestResult.Value.ToString());
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            Assert.Equal(400, envelope.Status);
+            Assert.Contains("Validation error", envelope.Error.ToString());
         }
 
         [Fact]
@@ -91,8 +98,8 @@ namespace Test.Controllers
             var actionResult = await _controller.GetSeller(sellerId);
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var sellerDto = Assert.IsType<SellerDto>(okResult.Value);
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            var sellerDto = Assert.IsType<SellerDto>(envelope.Result);
             // Проверяем, что возвращаемые данные соответствуют ожидаемым
             Assert.Equal(clientId, sellerDto.ClientId);
         }
@@ -110,8 +117,9 @@ namespace Test.Controllers
             var actionResult = await _controller.GetSeller(sellerId);
 
             // Assert
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(actionResult.Result);
-            Assert.Contains("Seller not found", badRequestResult.Value.ToString());
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            Assert.Equal(400, envelope.Status);
+            Assert.Contains("Seller not found", envelope.Error.ToString());
         }
 
         [Fact]
@@ -141,8 +149,8 @@ namespace Test.Controllers
             var actionResult = await _controller.UpdateSeller(sellerId, request);
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var sellerDto = Assert.IsType<SellerDto>(okResult.Value);
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            var sellerDto = Assert.IsType<SellerDto>(envelope.Result);
             // Проверяем, что возвращаемые данные соответствуют ожидаемым
             Assert.Equal(clientId, sellerDto.ClientId);
         }
@@ -169,8 +177,8 @@ namespace Test.Controllers
             var actionResult = await _controller.DeleteSeller(sellerId);
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var sellerDto = Assert.IsType<SellerDto>(okResult.Value);
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            var sellerDto = Assert.IsType<SellerDto>(envelope.Result);
             // Проверяем, что возвращаемые данные соответствуют ожидаемым
             Assert.Equal(clientId, sellerDto.ClientId);
         }

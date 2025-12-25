@@ -36,12 +36,6 @@ namespace UseCases.Property
             {
                 return Result.Failure<Guid>(ownerIdVO.Error);
             }
-
-            var ownerRecordVO = OwnershipRecord.Create(ownerIdVO.Value, StartDate);
-            if (ownerRecordVO.IsFailure)
-            {
-                return Result.Failure<Guid>(ownerRecordVO.Error);
-            }
             
             //addressVO
             var addressVO = Address.Create(Street, City, HomeNumber, ZipCode, Country);
@@ -92,6 +86,12 @@ namespace UseCases.Property
                 return Result.Failure<Guid>(propertyResult.Error);
             }
 
+            var ownerRecordVO = OwnershipRecord.Create(ownerIdVO.Value, StartDate);
+            if (ownerRecordVO.IsFailure)
+            {
+                return Result.Failure<Guid>(ownerRecordVO.Error);
+            }
+            
             var property = propertyResult.Value;
             property.SetFirstOwner(ownerRecordVO.Value);
 

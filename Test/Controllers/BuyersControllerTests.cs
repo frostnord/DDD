@@ -1,3 +1,7 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Buyer;
 using Domain.Customers.Client.VO;
@@ -7,6 +11,8 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Presenter.Controllers;
 using Presenter.DTOs;
+using Presenter.DTOs.BuyerDTO;
+using Presenter.Utilities;
 using UseCases.Interfaces;
 using UseCases.Interfaces.Services;
 using Xunit;
@@ -66,8 +72,10 @@ namespace Test.Controllers
             var actionResult = await _controller.CreateBuyer(request);
 
             // Assert
-            var createdAtResult = Assert.IsType<CreatedAtActionResult>(actionResult.Result);
-            Assert.Equal("GetBuyer", createdAtResult.ActionName);
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            Assert.Equal(201, envelope.Status);
+            var buyerDto = Assert.IsType<BuyerDto>(envelope.Result);
+            Assert.Equal(clientId, buyerDto.ClientId);
         }
 
         [Fact]
@@ -98,8 +106,9 @@ namespace Test.Controllers
             var actionResult = await _controller.CreateBuyer(request);
 
             // Assert
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(actionResult.Result);
-            Assert.Contains("Validation error", badRequestResult.Value.ToString());
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            Assert.Equal(400, envelope.Status);
+            Assert.Contains("Validation error", envelope.Error.ToString());
         }
 
         [Fact]
@@ -131,8 +140,8 @@ namespace Test.Controllers
             var actionResult = await _controller.GetBuyer(buyerId);
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var buyerDto = Assert.IsType<BuyerDto>(okResult.Value);
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            var buyerDto = Assert.IsType<BuyerDto>(envelope.Result);
             // Проверяем, что возвращаемые данные соответствуют ожидаемым
             Assert.Equal(clientId, buyerDto.ClientId);
         }
@@ -150,8 +159,9 @@ namespace Test.Controllers
             var actionResult = await _controller.GetBuyer(buyerId);
 
             // Assert
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(actionResult.Result);
-            Assert.Contains("Buyer not found", badRequestResult.Value.ToString());
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            Assert.Equal(400, envelope.Status);
+            Assert.Contains("Buyer not found", envelope.Error.ToString());
         }
 
         [Fact]
@@ -201,8 +211,8 @@ namespace Test.Controllers
             var actionResult = await _controller.UpdateBuyer(buyerId, request);
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var buyerDto = Assert.IsType<BuyerDto>(okResult.Value);
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            var buyerDto = Assert.IsType<BuyerDto>(envelope.Result);
             // Проверяем, что возвращаемые данные соответствуют ожидаемым
             Assert.Equal(clientId, buyerDto.ClientId);
         }
@@ -239,8 +249,8 @@ namespace Test.Controllers
             var actionResult = await _controller.DeleteBuyer(buyerId);
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var buyerDto = Assert.IsType<BuyerDto>(okResult.Value);
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            var buyerDto = Assert.IsType<BuyerDto>(envelope.Result);
             // Проверяем, что возвращаемые данные соответствуют ожидаемым
             Assert.Equal(clientId, buyerDto.ClientId);
         }
@@ -285,8 +295,8 @@ namespace Test.Controllers
             var actionResult = await _controller.GetBuyers();
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var buyerDtos = Assert.IsAssignableFrom<IEnumerable<BuyerDto>>(okResult.Value);
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            var buyerDtos = Assert.IsAssignableFrom<IEnumerable<BuyerDto>>(envelope.Result);
             Assert.Equal(2, buyerDtos.Count());
         }
     }

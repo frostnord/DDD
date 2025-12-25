@@ -1,4 +1,8 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
+using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Property;
 using Domain.Property.VO;
@@ -8,14 +12,17 @@ using Moq;
 using Presenter.Controllers;
 using Presenter.DTOs;
 using Presenter.DTOs.PropertyDTO;
-using UseCases.Interfaces;
+using Presenter.Utilities;
+using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Services;
+using UseCases.Property;
 using Xunit;
 
 namespace Test.Controllers
 {
     public class PropertyControllerTests
     {
+        private readonly Mock<ICommandHandler<CreatePropertyCommand, Guid>> _mockCreatePropertyHandler;
         private readonly Mock<IPropertyService> _mockPropertyService;
         private readonly PropertyController _controller;
 
@@ -23,8 +30,9 @@ namespace Test.Controllers
 
         public PropertyControllerTests()
         {
+            _mockCreatePropertyHandler = new Mock<ICommandHandler<CreatePropertyCommand, Guid>>();
             _mockPropertyService = new Mock<IPropertyService>();
-            _controller = new PropertyController(_mockPropertyService.Object);
+            _controller = new PropertyController(_mockCreatePropertyHandler.Object, _mockPropertyService.Object);
         }
 
         private PropertyEntity CreateTestProperty(CreatePropertyRequest request, PropertyId propertyId = null)
@@ -80,32 +88,29 @@ namespace Test.Controllers
                 PropertyType = "Apartment",
                 HeatingType = "Central",
                 PropertyCondition = "Good",
-                Area = 60.5,
+                Area = new decimal(60.5),
                 HasParking = true,
                 OwnerClientId = Guid.NewGuid(),
                 StartDate = DateTime.UtcNow
             };
 
             // Создаем реальный объект Property для теста
-            var propertyId = PropertyId.Create(Guid.NewGuid()).Value;
             var property = CreateTestProperty(request);
 
-            var result = Result.Success(property);
-            _mockPropertyService.Setup(x => x.CreatePropertyAsync(
-                    request.Street, request.City, request.HomeNumber, request.ZipCode, request.Country,
-                    request.Price, request.Description,
-                    request.NumberOfRooms, request.Floor, request.TotalFloors,
-                    request.PropertyType, request.HeatingType, request.PropertyCondition,
-                    request.Area, request.HasParking, request.OwnerClientId, request.StartDate))
+            var createdId = property.Id.Value;
+            var result = Result.Success(createdId);
+            _mockCreatePropertyHandler
+                .Setup(x => x.HandleAsync(It.IsAny<CreatePropertyCommand>()))
                 .ReturnsAsync(result);
 
             // Act
             var actionResult = await _controller.CreateProperty(request);
 
             // Assert
-            var actionResultValue = actionResult.Result;
-            var createdAtResult = Assert.IsType<CreatedAtActionResult>(actionResultValue);
-            Assert.Equal("GetProperty", createdAtResult.ActionName);
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            Assert.Equal(201, envelope.Status);
+            var returnedId = Assert.IsType<Guid>(envelope.Result);
+            Assert.Equal(createdId, returnedId);
         }
 
         [Fact]
@@ -127,28 +132,24 @@ namespace Test.Controllers
                 PropertyType = "Apartment",
                 HeatingType = "Central",
                 PropertyCondition = "Good",
-                Area = 60.5,
+                Area = new decimal(60.5),
                 HasParking = true,
                 OwnerClientId = Guid.NewGuid(),
                 StartDate = DateTime.UtcNow
             };
 
-            var errorResult = Result.Failure<PropertyEntity>("Street is required");
-            _mockPropertyService.Setup(x => x.CreatePropertyAsync(
-                    request.Street, request.City, request.HomeNumber, request.ZipCode, request.Country,
-                    request.Price, request.Description,
-                    request.NumberOfRooms, request.Floor, request.TotalFloors,
-                    request.PropertyType, request.HeatingType, request.PropertyCondition,
-                    request.Area, request.HasParking, request.OwnerClientId, request.StartDate))
+            var errorResult = Result.Failure<Guid>("Street is required");
+            _mockCreatePropertyHandler
+                .Setup(x => x.HandleAsync(It.IsAny<CreatePropertyCommand>()))
                 .ReturnsAsync(errorResult);
 
             // Act
             var actionResult = await _controller.CreateProperty(request);
 
             // Assert
-            var actionResultValue = actionResult.Result;
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(actionResultValue);
-            Assert.Contains("Street is required", badRequestResult.Value.ToString());
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            Assert.Equal(400, envelope.Status);
+            Assert.Contains("Street is required", envelope.Error.ToString());
         }
 
         [Fact]
@@ -171,7 +172,7 @@ namespace Test.Controllers
                 PropertyType = "Apartment",
                 HeatingType = "Central",
                 PropertyCondition = "Good",
-                Area = 60.5,
+                Area = new decimal(60.5),
                 HasParking = true,
                 OwnerClientId = Guid.NewGuid(),
                 StartDate = DateTime.UtcNow
@@ -188,9 +189,8 @@ namespace Test.Controllers
             var actionResult = await _controller.GetProperty(propertyId);
 
             // Assert
-            var actionResultValue = actionResult.Result;
-            var okResult = Assert.IsType<OkObjectResult>(actionResultValue);
-            var propertyDto = Assert.IsType<PropertyDto>(okResult.Value);
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            var propertyDto = Assert.IsType<PropertyDto>(envelope.Result);
             Assert.Equal(propertyId, propertyDto.Id);
         }
 
@@ -207,9 +207,9 @@ namespace Test.Controllers
             var actionResult = await _controller.GetProperty(propertyId);
 
             // Assert
-            var actionResultValue = actionResult.Result;
-            var notFoundResult = Assert.IsType<NotFoundObjectResult>(actionResultValue);
-            Assert.Contains("Property not found", notFoundResult.Value.ToString());
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            Assert.Equal(404, envelope.Status);
+            Assert.Contains("Property not found", envelope.Error.ToString());
         }
 
         [Fact]
@@ -232,7 +232,7 @@ namespace Test.Controllers
                 PropertyType = "House",
                 HeatingType = "Gas",
                 PropertyCondition = "Excellent",
-                Area = 80.0,
+                Area = new decimal(80.0),
                 HasParking = false
             };
 
@@ -251,7 +251,7 @@ namespace Test.Controllers
                 PropertyType = "Apartment",
                 HeatingType = "Central",
                 PropertyCondition = "Good",
-                Area = 60.5,
+                Area = new decimal(60.5),
                 HasParking = true,
                 OwnerClientId = Guid.NewGuid(),
                 StartDate = DateTime.UtcNow
@@ -301,9 +301,8 @@ namespace Test.Controllers
             var actionResult = await _controller.UpdateProperty(propertyId, request);
 
             // Assert
-            var actionResultValue = actionResult.Result;
-            var okResult = Assert.IsType<OkObjectResult>(actionResultValue);
-            var propertyDto = Assert.IsType<PropertyDto>(okResult.Value);
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            var propertyDto = Assert.IsType<PropertyDto>(envelope.Result);
             Assert.Equal(propertyId, propertyDto.Id);
         }
 
@@ -336,7 +335,7 @@ namespace Test.Controllers
                     PropertyType = "Apartment",
                     HeatingType = "Central",
                     PropertyCondition = "Good",
-                    Area = 60.5,
+                    Area = new decimal(60.5),
                     HasParking = true,
                     OwnerClientId = Guid.NewGuid(),
                     StartDate = DateTime.UtcNow
@@ -354,9 +353,8 @@ namespace Test.Controllers
             var actionResult = await _controller.GetProperties(query);
 
             // Assert
-            var actionResultValue = actionResult.Result;
-            var okResult = Assert.IsType<OkObjectResult>(actionResultValue);
-            var propertiesDto = Assert.IsType<List<PropertyDto>>(okResult.Value);
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            var propertiesDto = Assert.IsType<List<PropertyDto>>(envelope.Result);
             Assert.Single(propertiesDto);
         }
 
@@ -373,7 +371,8 @@ namespace Test.Controllers
             var actionResult = await _controller.DeleteProperty(propertyId);
 
             // Assert
-            Assert.IsType<NoContentResult>(actionResult);
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            Assert.Equal(204, envelope.Status);
         }
 
         [Fact]
@@ -389,8 +388,9 @@ namespace Test.Controllers
             var actionResult = await _controller.DeleteProperty(propertyId);
 
             // Assert
-            var notFoundResult = Assert.IsType<NotFoundObjectResult>(actionResult);
-            Assert.Contains("Property not found", notFoundResult.Value.ToString());
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            Assert.Equal(404, envelope.Status);
+            Assert.Contains("Property not found", envelope.Error.ToString());
         }
     }
 }

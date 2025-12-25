@@ -1,3 +1,5 @@
+using System;
+using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client;
 using Domain.Customers.Client.VO;
@@ -6,6 +8,8 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Presenter.Controllers;
 using Presenter.DTOs;
+using Presenter.DTOs.ClientDTO;
+using Presenter.Utilities;
 using UseCases.Interfaces;
 using UseCases.Interfaces.Services;
 using Xunit;
@@ -57,8 +61,12 @@ namespace Test.Controllers
             var actionResult = await _controller.CreateClient(request);
 
             // Assert
-            var createdAtResult = Assert.IsType<CreatedAtActionResult>(actionResult.Result);
-            Assert.Equal("GetClient", createdAtResult.ActionName);
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            Assert.Equal(201, envelope.Status);
+            var clientDto = Assert.IsType<ClientDto>(envelope.Result);
+            Assert.Equal("Иван", clientDto.FirstName);
+            Assert.Equal("Иванов", clientDto.LastName);
+            Assert.Equal("ivan@example.com", clientDto.Email);
         }
 
         [Fact]
@@ -85,8 +93,9 @@ namespace Test.Controllers
             var actionResult = await _controller.CreateClient(request);
 
             // Assert
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(actionResult.Result);
-            Assert.Contains("Validation error", badRequestResult.Value.ToString());
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            Assert.Equal(400, envelope.Status);
+            Assert.Contains("Validation error", envelope.Error.ToString());
         }
 
         [Fact]
@@ -112,8 +121,8 @@ namespace Test.Controllers
             var actionResult = await _controller.GetClient(clientId);
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var clientDto = Assert.IsType<ClientDto>(okResult.Value);
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            var clientDto = Assert.IsType<ClientDto>(envelope.Result);
             // Проверяем, что возвращаемые данные соответствуют ожидаемым
             Assert.Equal("Иван", clientDto.FirstName);
             Assert.Equal("Иванов", clientDto.LastName);
@@ -133,8 +142,9 @@ namespace Test.Controllers
             var actionResult = await _controller.GetClient(clientId);
 
             // Assert
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(actionResult.Result);
-            Assert.Contains("Client not found", badRequestResult.Value.ToString());
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            Assert.Equal(400, envelope.Status);
+            Assert.Contains("Client not found", envelope.Error.ToString());
         }
 
         [Fact]
@@ -172,8 +182,8 @@ namespace Test.Controllers
             var actionResult = await _controller.UpdateClient(clientId, request);
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var clientDto = Assert.IsType<ClientDto>(okResult.Value);
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            var clientDto = Assert.IsType<ClientDto>(envelope.Result);
             // Проверяем, что возвращаемые данные соответствуют ожидаемым
             Assert.Equal("Иван", clientDto.FirstName);
             Assert.Equal("Иванов", clientDto.LastName);
@@ -206,8 +216,8 @@ namespace Test.Controllers
             var actionResult = await _controller.DeleteClient(clientId);
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var clientDto = Assert.IsType<ClientDto>(okResult.Value);
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            var clientDto = Assert.IsType<ClientDto>(envelope.Result);
             // Проверяем, что возвращаемые данные соответствуют ожидаемым
             Assert.Equal("Иван", clientDto.FirstName);
             Assert.Equal("Иванов", clientDto.LastName);
