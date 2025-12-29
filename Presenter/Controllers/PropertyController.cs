@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Domain.Customers.Client.VO;
 using Domain.Property.VO;
 using Microsoft.AspNetCore.Mvc;
 using Presenter.DTOs;
@@ -12,6 +13,7 @@ using Presenter.Utilities;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Services;
 using UseCases.Property;
+using UseCases.Seller;
 using UseCases.UseCases.DTO.Property;
 
 namespace Presenter.Controllers
@@ -50,7 +52,6 @@ namespace Presenter.Controllers
         {
 
             var command = CreatePropertyMapping.ToCommand(request);
-            
             var result = await _createPropertyHandler.HandleAsync(command);
 
             if (result.IsFailure)

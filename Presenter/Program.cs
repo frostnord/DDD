@@ -29,10 +29,13 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 // Получаем строку подключения из конфигурации
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ??
-                      "Server=(localdb)\\mssqllocaldb;Database=EstateManagementDb;Trusted_Connection=true;MultipleActiveResultSets=true;";
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 // Add application services including command handlers and repositories
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    throw new InvalidOperationException("Db connection string error");
+}
 builder.Services.AddApplicationServices(connectionString);
 
 var app = builder.Build();
