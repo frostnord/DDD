@@ -99,7 +99,7 @@ namespace UseCases.Services
 
             if (!string.IsNullOrEmpty(propertyType))
                 filteredProperties = filteredProperties.Where(p =>
-                    p.Details.Type.Name.Equals(propertyType, StringComparison.OrdinalIgnoreCase));
+                    p.PropertyDetails.Type.Name.Equals(propertyType, StringComparison.OrdinalIgnoreCase));
 
             if (minPrice.HasValue)
                 filteredProperties = filteredProperties.Where(p => p.Price.Value >= minPrice.Value);
@@ -108,33 +108,33 @@ namespace UseCases.Services
                 filteredProperties = filteredProperties.Where(p => p.Price.Value <= maxPrice.Value);
 
             if (minArea.HasValue)
-                filteredProperties = filteredProperties.Where(p => p.Details.Area.Value >= minArea.Value);
+                filteredProperties = filteredProperties.Where(p => p.PropertyDetails.Area.Value >= minArea.Value);
 
             if (maxArea.HasValue)
-                filteredProperties = filteredProperties.Where(p => p.Details.Area.Value <= maxArea.Value);
+                filteredProperties = filteredProperties.Where(p => p.PropertyDetails.Area.Value <= maxArea.Value);
 
             if (minRooms.HasValue)
-                filteredProperties = filteredProperties.Where(p => p.Details.NumberOfRooms.Value >= minRooms.Value);
+                filteredProperties = filteredProperties.Where(p => p.PropertyDetails.NumberOfRooms.Value >= minRooms.Value);
 
             if (maxRooms.HasValue)
-                filteredProperties = filteredProperties.Where(p => p.Details.NumberOfRooms.Value <= maxRooms.Value);
+                filteredProperties = filteredProperties.Where(p => p.PropertyDetails.NumberOfRooms.Value <= maxRooms.Value);
 
             if (minFloor.HasValue)
-                filteredProperties = filteredProperties.Where(p => p.Details.Floor.Value >= minFloor.Value);
+                filteredProperties = filteredProperties.Where(p => p.PropertyDetails.Floor.Value >= minFloor.Value);
 
             if (maxFloor.HasValue)
-                filteredProperties = filteredProperties.Where(p => p.Details.Floor.Value <= maxFloor.Value);
+                filteredProperties = filteredProperties.Where(p => p.PropertyDetails.Floor.Value <= maxFloor.Value);
 
             if (!string.IsNullOrEmpty(heatingType))
                 filteredProperties = filteredProperties.Where(p =>
-                    p.Details.HeatingType.Name.Equals(heatingType, StringComparison.OrdinalIgnoreCase));
+                    p.PropertyDetails.HeatingType.Name.Equals(heatingType, StringComparison.OrdinalIgnoreCase));
 
             if (!string.IsNullOrEmpty(propertyCondition))
                 filteredProperties = filteredProperties.Where(p =>
-                    p.Details.Condition.Value.Equals(propertyCondition, StringComparison.OrdinalIgnoreCase));
+                    p.PropertyDetails.Condition.Value.Equals(propertyCondition, StringComparison.OrdinalIgnoreCase));
 
             if (hasParking.HasValue)
-                filteredProperties = filteredProperties.Where(p => p.Details.HasParking == hasParking.Value);
+                filteredProperties = filteredProperties.Where(p => p.PropertyDetails.HasParking == hasParking.Value);
 
             return Result.Success(filteredProperties);
         }

@@ -1,12 +1,7 @@
-using System;
-using CSharpFunctionalExtensions;
-using Domain.Property;
-using Domain.Property.VO;
-using UseCases.Booking.Commands.CreateBooking;
 using UseCases.Interfaces.Commands;
 using UseCases.UseCases.DTO.Property;
 
-namespace UseCases.Property
+namespace UseCases.Property.Commands.CreateProperty
 {
     public record CreatePropertyCommand( 
         AddressData AddressData, 

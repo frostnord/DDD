@@ -79,7 +79,7 @@ public sealed class PropertyEntityConfiguration : IEntityTypeConfiguration<Prope
         });
 
         // Настройка свойства Details (составного значения)
-        builder.OwnsOne(x => x.Details, detailsBuilder =>
+        builder.OwnsOne(x => x.PropertyDetails, detailsBuilder =>
         {
             detailsBuilder.Property(d => d.Area)
                 .IsRequired()

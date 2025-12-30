@@ -1,20 +1,16 @@
-using System;
-using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
-using Domain.Customers.Client.VO;
-using Domain.Property.VO;
+using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Mvc;
-using Presenter.DTOs;
 using Presenter.DTOs.PropertyDTO;
-using Presenter.Extensions;
 using Presenter.Mappings;
 using Presenter.Utilities;
 using UseCases.Interfaces.Commands;
-using UseCases.Interfaces.Services;
-using UseCases.Property;
-using UseCases.Seller;
-using UseCases.UseCases.DTO.Property;
+using UseCases.Interfaces.Queries;
+using UseCases.Property.Commands.CreateProperty;
+using UseCases.Property.Queries.GetPropertyById;
+using UseCases.Property.Queries.SearchPropertiesQuery;
+using PropertyDto = UseCases.Property.Queries.GetPropertyById.PropertyDto;
+
 
 namespace Presenter.Controllers
 {
@@ -27,19 +23,23 @@ namespace Presenter.Controllers
     public class PropertyController : ControllerBase
     {
         private readonly ICommandHandler<CreatePropertyCommand, Guid> _createPropertyHandler;
-        private readonly IPropertyService _propertyService;
+        private readonly IQueryHandler<GetPropertyByIdQuery, Result<PropertyDto>> _getPropertyByIdHandler;
+        private readonly IQueryHandler<SearchPropertiesQuery, Result<SearchPropertiesQueryResponse>> _searchPropertiesHandler;
 
         /// <summary>
         /// Инициализирует новый экземпляр класса PropertyController.
         /// </summary>
         /// <param name="createPropertyHandler">Обработчик команды создания недвижимости</param>
-        /// <param name="propertyService">Сервис для операций чтения/обновления/поиска недвижимости</param>
+        /// <param name="getPropertyByIdHandler">Обработчик запроса на получение недвижимости по ID</param>
+        /// <param name="searchPropertiesHandler">Обработчик запроса на поиск недвижимости</param>
         public PropertyController(
             ICommandHandler<CreatePropertyCommand, Guid> createPropertyHandler,
-            IPropertyService propertyService)
+            IQueryHandler<GetPropertyByIdQuery, Result<PropertyDto>> getPropertyByIdHandler,
+            IQueryHandler<SearchPropertiesQuery, Result<SearchPropertiesQueryResponse>> searchPropertiesHandler)
         {
             _createPropertyHandler = createPropertyHandler;
-            _propertyService = propertyService;
+            _getPropertyByIdHandler = getPropertyByIdHandler;
+            _searchPropertiesHandler = searchPropertiesHandler;
         }
 
         /// <summary>
@@ -50,7 +50,6 @@ namespace Presenter.Controllers
         [HttpPost]
         public async Task<Envelope> CreateProperty([FromBody] CreatePropertyRequest request)
         {
-
             var command = CreatePropertyMapping.ToCommand(request);
             var result = await _createPropertyHandler.HandleAsync(command);
 
@@ -65,18 +64,20 @@ namespace Presenter.Controllers
         /// <summary>
         /// Получает объект недвижимости по его уникальному идентификатору.
         /// </summary>
-        /// <param name="id">Уникальный идентификатор объекта недвижимости</param>
+        /// <param name="query">Уникальный идентификатор объекта недвижимости</param>
         /// <returns>Запрошенный объект недвижимости с HTTP 200 если найден, иначе HTTP 404 с деталями ошибки</returns>
         [HttpGet("{id}")]
-        public async Task<Envelope> GetProperty(Guid id)
+        public async Task<Envelope> GetProperty(GetPropertyByIdQuery query)
         {
-            var result = await _propertyService.GetPropertyByIdAsync(id);
+            var result = await _getPropertyByIdHandler.HandleAsync(query);
             if (result.IsFailure)
             {
                 return new Envelope(HttpStatusCode.NotFound, error: result.Error);
             }
+            
+            var propertyDto = result.Value;
 
-            return new Envelope(result.Value.ToDTO());
+            return new Envelope(propertyDto);
         }
 
         /// <summary>
@@ -87,17 +88,22 @@ namespace Presenter.Controllers
         [HttpGet]
         public async Task<Envelope> GetProperties([FromQuery] SearchPropertiesQuery query)
         {
-            var result = await _propertyService.SearchPropertiesAsync(
-                query.City, query.PropertyType, query.MinPrice, query.MaxPrice, query.MinArea, query.MaxArea,
-                query.MinRooms, query.MaxRooms, query.MinFloor, query.MaxFloor, query.HeatingType,
-                query.PropertyCondition, query.HasParking);
+            var result = await _searchPropertiesHandler.HandleAsync(query);
             if (result.IsFailure)
             {
                 return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            var properties = result.Value.Select(p => p.ToDTO()).ToList();
-            return new Envelope(properties);
+            var searchResult = result.Value;
+            
+            return new Envelope(new
+            {
+                Items = searchResult.Items,
+                TotalCount = searchResult.TotalCount,
+                PageSize = searchResult.PageSize,
+                TotalPages = searchResult.TotalPages,
+                CurrentPage = query.Page
+            });
         }
 
         /// <summary>
@@ -110,29 +116,30 @@ namespace Presenter.Controllers
         public async Task<Envelope> UpdateProperty(Guid id, [FromBody] UpdatePropertyRequest request)
         {
             // Для обновления сначала получаем свойство, обновляем его и сохраняем
-            var getPropertyResult = await _propertyService.GetPropertyByIdAsync(id);
+            var query = new GetPropertyByIdQuery(id);
+            var getPropertyResult = await _getPropertyByIdHandler.HandleAsync(query);
             if (getPropertyResult.IsFailure)
             {
                 return new Envelope(HttpStatusCode.NotFound, error: getPropertyResult.Error);
             }
 
-            var updateResult = await _propertyService.UpdatePropertyAsync(id, request.Street, request.City,
-                request.HomeNumber, request.ZipCode, request.Country, request.Price, request.Description,
-                request.NumberOfRooms, request.Floor, request.TotalFloors, request.PropertyType, request.HeatingType,
-                request.PropertyCondition, request.Area, request.HasParking);
+            var updateResult = await _propertyService.UpdatePropertyAsync(id, request);
             if (updateResult.IsFailure)
             {
                 return new Envelope(HttpStatusCode.BadRequest, error: updateResult.Error);
             }
 
             // После обновления получаем обновленное свойство
-            var getResult = await _propertyService.GetPropertyByIdAsync(id);
-            if (getResult.IsFailure)
+            var updatedPropertyResult = await _getPropertyByIdHandler.HandleAsync(query);
+            if (updatedPropertyResult.IsFailure)
             {
-                return new Envelope(HttpStatusCode.NotFound, error: getResult.Error);
+                return new Envelope(HttpStatusCode.NotFound, error: updatedPropertyResult.Error);
             }
 
-            return new Envelope(getResult.Value.ToDTO());
+            var updatedProperty = updatedPropertyResult.Value;
+            var updatedPropertyDto = updatedProperty.ToDTO();
+
+            return new Envelope(updatedPropertyDto);
         }
 
         /// <summary>
@@ -149,6 +156,7 @@ namespace Presenter.Controllers
                 return new Envelope(HttpStatusCode.NotFound, error: result.Error);
             }
 
+            // После удаления возвращаем NoContent
             return new Envelope(HttpStatusCode.NoContent, null);
         }
     }

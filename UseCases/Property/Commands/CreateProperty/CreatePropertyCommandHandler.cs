@@ -1,5 +1,3 @@
-using System;
-using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
 using Domain.Property;
@@ -8,7 +6,7 @@ using Domain.ValueObjects;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Repositories;
 
-namespace UseCases.Property
+namespace UseCases.Property.Commands.CreateProperty
 {
     public class CreatePropertyCommandHandler : ICommandHandler<CreatePropertyCommand, Guid>
     {

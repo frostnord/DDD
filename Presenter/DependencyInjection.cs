@@ -1,4 +1,5 @@
 using System;
+using CSharpFunctionalExtensions;
 using Domain.Booking;
 using Domain.Booking.VO;
 using Domain.Customers.Buyer;
@@ -20,9 +21,14 @@ using UseCases.Deal;
 using UseCases.Deal.Commands;
 using UseCases.Interfaces;
 using UseCases.Interfaces.Commands;
+using UseCases.Interfaces.Queries;
 using UseCases.Interfaces.Repositories;
 using UseCases.Interfaces.Services;
 using UseCases.Property;
+using UseCases.Property.Commands.CreateProperty;
+using UseCases.Property.Queries;
+using UseCases.Property.Queries.GetPropertyById;
+using UseCases.Property.Queries.SearchPropertiesQuery;
 using UseCases.Seller;
 using UseCases.Services;
 
@@ -51,6 +57,10 @@ namespace Presenter
             services.AddScoped<ICommandHandler<ConfirmDealCommand>, ConfirmDealCommandHandler>();
             services.AddScoped<ICommandHandler<CompleteDealCommand>, CompleteDealCommandHandler>();
             services.AddScoped<ICommandHandler<CancelDealCommand>, CancelDealCommandHandler>();
+
+            // Регистрация Query Handlers
+            services.AddScoped<IQueryHandler<GetPropertyByIdQuery, Result<PropertyDto>>, GetPropertyByIdQueryHandler>();
+            services.AddScoped<IQueryHandler<SearchPropertiesQuery, Result<SearchPropertiesQueryResponse>>, SearchPropertiesQueryHandler>();
 
             // Регистрация репозиториев
             services.AddScoped<IPropertyRepository, PropertyRepository>();

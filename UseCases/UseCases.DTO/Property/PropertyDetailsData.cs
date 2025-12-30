@@ -7,8 +7,8 @@ public record PropertyDetailsData(
     int Floor,
     int TotalFloors,
     decimal Area,
-    string Type,  
-    string Heating, 
+    string Type,
+    string HeatingType,
     string Condition,
     bool? HasParking
-    );
+);

@@ -11,7 +11,7 @@ namespace Presenter.DTOs.PropertyDTO
         /// Адрес недвижимости
         /// </summary>
         [Required(ErrorMessage = "Адрес обязателен")]
-        public AddressDTO Address { get; init; }
+        public AddressDto Address { get; init; }
 
         /// <summary>
         /// Детали недвижимости
@@ -25,4 +25,31 @@ namespace Presenter.DTOs.PropertyDTO
         [Required(ErrorMessage = "Информация о владельце обязательна")]
         public OwnershipDto Ownership { get; init; }
     }
+    
+    public record AddressDto(
+        string Street,
+        string City,
+        int HomeNumber,
+        int ZipCode,
+        string Country
+    );
+    
+    public record PropertyDetailsDto(
+        decimal Price,
+        string Description,
+        int NumberOfRooms,
+        int Floor,
+        int TotalFloors,
+        decimal Area,
+        string Type,
+        string HeatingType,
+        string Condition,
+        bool? HasParking
+    );
+    
+    public record OwnershipDto(
+        Guid OwnerClientId,
+        DateTime StartDate
+    );
+    
 }

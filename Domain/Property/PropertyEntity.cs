@@ -44,7 +44,7 @@ namespace Domain.Property
         /// <summary>
         /// Детали объекта недвижимости (площадь, комнаты, этаж и т.д.)
         /// </summary>
-        public PropertyDetails Details { get; private set; }
+        public PropertyDetails PropertyDetails { get; private set; }
 
 
         /// <summary>
@@ -65,15 +65,15 @@ namespace Domain.Property
         /// <param name="address">Адрес объекта недвижимости</param>
         /// <param name="price">Цена объекта недвижимости</param>
         /// <param name="description">Описание объекта недвижимости</param>
-        /// <param name="details">Детали объекта недвижимости</param>
+        /// <param name="propertyDetails">Детали объекта недвижимости</param>
         /// <param name="status">Статус недвижимости</param>
-        protected PropertyEntity(PropertyId id, Address address, Price price, Description description, PropertyDetails details,
+        protected PropertyEntity(PropertyId id, Address address, Price price, Description description, PropertyDetails propertyDetails,
             PropertyStatus status) : base(id)
         {
             Address = address;
             Price = price;
             Description = description;
-            Details = details;
+            PropertyDetails = propertyDetails;
             CreatedAt = DateTime.UtcNow;
             Status = status;
             _ownershipHistory = new OwnershipHistory();
@@ -210,7 +210,7 @@ namespace Domain.Property
         public override string ToString()
         {
             return
-                $"Недвижимость [ID: {Id}, Адрес: {Address}, Цена: {Price}, Статус: {Status.GetDisplayName()}, Площадь: {Details.Area}, Комнат: {Details.NumberOfRooms}, Этаж: {Details.Floor}/{Details.TotalFloors}]";
+                $"Недвижимость [ID: {Id}, Адрес: {Address}, Цена: {Price}, Статус: {Status.GetDisplayName()}, Площадь: {PropertyDetails.Area}, Комнат: {PropertyDetails.NumberOfRooms}, Этаж: {PropertyDetails.Floor}/{PropertyDetails.TotalFloors}]";
         }
 
         // public void ChangePrice(decimal newPrice)

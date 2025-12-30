@@ -1,5 +1,6 @@
 ﻿using Presenter.DTOs.PropertyDTO;
 using UseCases.Property;
+using UseCases.Property.Commands.CreateProperty;
 using UseCases.UseCases.DTO.Property;
 
 namespace Presenter.Mappings;
