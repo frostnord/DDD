@@ -30,7 +30,7 @@ namespace Presenter.Controllers
     {
         private readonly ICommandHandler<CreatePropertyCommand, Guid> _createPropertyHandler;
         private readonly ICommandHandler<UpdatePropertyCommand, Result> _updatePropertyHandler;
-        private readonly ICommandHandler<DeletePropertyCommand, Result> _deletePropertyHandler;
+        private readonly ICommandHandler<DeletePropertyCommand> _deletePropertyHandler;
         private readonly IQueryHandler<GetPropertyByIdQuery, Result<PropertyDto>> _getPropertyByIdHandler;
         private readonly IQueryHandler<SearchPropertiesQuery, Result<SearchPropertiesQueryResponse>> _searchPropertiesHandler;
 
@@ -45,7 +45,7 @@ namespace Presenter.Controllers
         public PropertyController(
             ICommandHandler<CreatePropertyCommand, Guid> createPropertyHandler,
             ICommandHandler<UpdatePropertyCommand, Result> updatePropertyHandler,
-            ICommandHandler<DeletePropertyCommand, Result> deletePropertyHandler,
+            ICommandHandler<DeletePropertyCommand> deletePropertyHandler,
             IQueryHandler<GetPropertyByIdQuery, Result<PropertyDto>> getPropertyByIdHandler,
             IQueryHandler<SearchPropertiesQuery, Result<SearchPropertiesQueryResponse>> searchPropertiesHandler)
         {
@@ -64,15 +64,22 @@ namespace Presenter.Controllers
         [HttpPost]
         public async Task<Envelope> CreateProperty([FromBody] CreatePropertyRequest request)
         {
-            var command = CreatePropertyMapping.ToCommand(request);
-            var result = await _createPropertyHandler.HandleAsync(command);
-
-            if (result.IsFailure)
+            try
             {
-                return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
-            }
+                var command = CreatePropertyMapping.ToCommand(request);
+                var result = await _createPropertyHandler.HandleAsync(command);
 
-            return new Envelope(HttpStatusCode.Created, result.Value);
+                if (result.IsFailure)
+                {
+                    return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
+                }
+
+                return new Envelope(HttpStatusCode.Created, result.Value);
+            }
+            catch (ArgumentNullException ex)
+            {
+                return new Envelope(HttpStatusCode.BadRequest, error: ex.Message);
+            }
         }
 
         /// <summary>
@@ -167,8 +174,7 @@ namespace Presenter.Controllers
                 return new Envelope(HttpStatusCode.NotFound, error: result.Error);
             }
 
-            // После удаления возвращаем NoContent
-            return new Envelope(HttpStatusCode.NoContent, null);
+            return new Envelope(HttpStatusCode.NoContent);
         }
     }
 }

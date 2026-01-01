@@ -9,7 +9,7 @@ namespace Presenter.DTOs.PropertyDTO.UpdateProperty;
         public static UpdatePropertyCommand ToCommand(Guid id, UpdatePropertyRequest request)
         => new(
         id,
-        new AddressDto(
+        new UseCases.UseCases.DTO.Property.AddressDto(
             request.Address.Street,
             request.Address.City,
             request.Address.HomeNumber,

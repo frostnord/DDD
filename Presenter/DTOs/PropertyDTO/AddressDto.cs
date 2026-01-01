@@ -2,7 +2,7 @@
 
 namespace Presenter.DTOs.PropertyDTO;
 
-public record ApiAddressDto(
+public record AddressDto(
     [Required] string Street,
     [Required] string City,
     [Required] int HomeNumber,

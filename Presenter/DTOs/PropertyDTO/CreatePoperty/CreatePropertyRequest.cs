@@ -11,7 +11,7 @@ namespace Presenter.DTOs.PropertyDTO.CreatePoperty
         /// Адрес недвижимости
         /// </summary>
         [Required(ErrorMessage = "Адрес обязателен")]
-        public ApiAddressDto Address { get; init; }
+        public AddressDto Address { get; init; }
 
         /// <summary>
         /// Детали недвижимости

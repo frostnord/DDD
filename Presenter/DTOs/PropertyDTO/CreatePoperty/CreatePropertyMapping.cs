@@ -6,8 +6,16 @@ namespace Presenter.DTOs.PropertyDTO.CreatePoperty;
 public static class CreatePropertyMapping
 {
     public static CreatePropertyCommand ToCommand(CreatePropertyRequest request)
-        => new(
-            new AddressDto(
+    {
+        if (request?.Address == null)
+            throw new ArgumentNullException(nameof(request.Address), "Address is required");
+        if (request.PropertyDetails == null)
+            throw new ArgumentNullException(nameof(request.PropertyDetails), "PropertyDetails is required");
+        if (request.Ownership == null)
+            throw new ArgumentNullException(nameof(request.Ownership), "Ownership is required");
+
+        return new CreatePropertyCommand(
+            new UseCases.UseCases.DTO.Property.AddressDto(
                 request.Address.Street,
                 request.Address.City,
                 request.Address.HomeNumber,
@@ -31,4 +39,5 @@ public static class CreatePropertyMapping
                 request.Ownership.StartDate
             )
         );
+    }
 }
