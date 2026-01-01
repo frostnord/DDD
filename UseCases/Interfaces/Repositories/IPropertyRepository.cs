@@ -4,6 +4,7 @@ using CSharpFunctionalExtensions;
 using Domain.Property;
 using Domain.Property.VO;
 using UseCases.Property.Queries.GetPropertyById;
+using UseCases.UseCases.DTO.Property;
 
 namespace UseCases.Interfaces.Repositories
 {

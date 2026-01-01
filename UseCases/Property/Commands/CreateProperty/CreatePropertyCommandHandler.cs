@@ -19,15 +19,14 @@ namespace UseCases.Property.Commands.CreateProperty
 
         public async Task<Result<Guid>> HandleAsync(CreatePropertyCommand command)
         {
-            
-            var (Street, City, HomeNumber, ZipCode, Country) = command.AddressData;
+            var (Street, City, HomeNumber, ZipCode, Country) = command.AddressDto;
             
             var (PropertyPrice, PropertyDescription, NumberOfRooms, Floor, TotalFloors,
-                Area, PropertyType, Heating, Condition, HasParking) = command.PropertyDetailsData;
+                Area, PropertyType, Heating, Condition, HasParking) = command.PropertyDetailsDto;
             
             var propertyTypeVO = SmartPropertyType.FromName(PropertyType);
             
-            var (OwnerClientId, StartDate) = command.OwnershipData;
+            var (OwnerClientId, StartDate) = command.OwnershipDto;
 
             var ownerIdVO = ClientId.Create(OwnerClientId);
             if (ownerIdVO.IsFailure)

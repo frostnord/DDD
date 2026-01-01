@@ -2,14 +2,20 @@ using System.Net;
 using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Mvc;
 using Presenter.DTOs.PropertyDTO;
-using Presenter.Mappings;
+using Presenter.DTOs.PropertyDTO.CreatePoperty;
+using Presenter.DTOs.PropertyDTO.UpdateProperty;
 using Presenter.Utilities;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Queries;
 using UseCases.Property.Commands.CreateProperty;
+using UseCases.Property.Commands.DeleteProperty;
+using UseCases.Property.Commands.UpdateProperty;
 using UseCases.Property.Queries.GetPropertyById;
 using UseCases.Property.Queries.SearchPropertiesQuery;
-using PropertyDto = UseCases.Property.Queries.GetPropertyById.PropertyDto;
+using UseCases.UseCases.DTO.Property;
+using OwnershipDto = UseCases.UseCases.DTO.Property.OwnershipDto;
+using PropertyDetailsDto = UseCases.UseCases.DTO.Property.PropertyDetailsDto;
+using PropertyDto = UseCases.UseCases.DTO.Property.PropertyDto;
 
 
 namespace Presenter.Controllers
@@ -23,6 +29,8 @@ namespace Presenter.Controllers
     public class PropertyController : ControllerBase
     {
         private readonly ICommandHandler<CreatePropertyCommand, Guid> _createPropertyHandler;
+        private readonly ICommandHandler<UpdatePropertyCommand, Result> _updatePropertyHandler;
+        private readonly ICommandHandler<DeletePropertyCommand, Result> _deletePropertyHandler;
         private readonly IQueryHandler<GetPropertyByIdQuery, Result<PropertyDto>> _getPropertyByIdHandler;
         private readonly IQueryHandler<SearchPropertiesQuery, Result<SearchPropertiesQueryResponse>> _searchPropertiesHandler;
 
@@ -30,14 +38,20 @@ namespace Presenter.Controllers
         /// Инициализирует новый экземпляр класса PropertyController.
         /// </summary>
         /// <param name="createPropertyHandler">Обработчик команды создания недвижимости</param>
+        /// <param name="deletePropertyHandler"></param>
         /// <param name="getPropertyByIdHandler">Обработчик запроса на получение недвижимости по ID</param>
         /// <param name="searchPropertiesHandler">Обработчик запроса на поиск недвижимости</param>
+        /// <param name="updatePropertyHandler"></param>
         public PropertyController(
             ICommandHandler<CreatePropertyCommand, Guid> createPropertyHandler,
+            ICommandHandler<UpdatePropertyCommand, Result> updatePropertyHandler,
+            ICommandHandler<DeletePropertyCommand, Result> deletePropertyHandler,
             IQueryHandler<GetPropertyByIdQuery, Result<PropertyDto>> getPropertyByIdHandler,
             IQueryHandler<SearchPropertiesQuery, Result<SearchPropertiesQueryResponse>> searchPropertiesHandler)
         {
             _createPropertyHandler = createPropertyHandler;
+            _updatePropertyHandler = updatePropertyHandler;
+            _deletePropertyHandler = deletePropertyHandler;
             _getPropertyByIdHandler = getPropertyByIdHandler;
             _searchPropertiesHandler = searchPropertiesHandler;
         }
@@ -115,21 +129,16 @@ namespace Presenter.Controllers
         [HttpPut("{id}")]
         public async Task<Envelope> UpdateProperty(Guid id, [FromBody] UpdatePropertyRequest request)
         {
-            // Для обновления сначала получаем свойство, обновляем его и сохраняем
-            var query = new GetPropertyByIdQuery(id);
-            var getPropertyResult = await _getPropertyByIdHandler.HandleAsync(query);
-            if (getPropertyResult.IsFailure)
-            {
-                return new Envelope(HttpStatusCode.NotFound, error: getPropertyResult.Error);
-            }
+            var command = UpdatePropertyMapper.ToCommand(id ,request);
+            var result = await _updatePropertyHandler.HandleAsync(command);
 
-            var updateResult = await _propertyService.UpdatePropertyAsync(id, request);
-            if (updateResult.IsFailure)
+            if (result.IsFailure)
             {
-                return new Envelope(HttpStatusCode.BadRequest, error: updateResult.Error);
+                return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
             // После обновления получаем обновленное свойство
+            var query = new GetPropertyByIdQuery(id);
             var updatedPropertyResult = await _getPropertyByIdHandler.HandleAsync(query);
             if (updatedPropertyResult.IsFailure)
             {
@@ -137,7 +146,7 @@ namespace Presenter.Controllers
             }
 
             var updatedProperty = updatedPropertyResult.Value;
-            var updatedPropertyDto = updatedProperty.ToDTO();
+            var updatedPropertyDto = updatedProperty;
 
             return new Envelope(updatedPropertyDto);
         }
@@ -150,7 +159,9 @@ namespace Presenter.Controllers
         [HttpDelete("{id}")]
         public async Task<Envelope> DeleteProperty(Guid id)
         {
-            var result = await _propertyService.DeletePropertyAsync(id);
+            var command = new DeletePropertyCommand(id);
+            var result = await _deletePropertyHandler.HandleAsync(command);
+
             if (result.IsFailure)
             {
                 return new Envelope(HttpStatusCode.NotFound, error: result.Error);

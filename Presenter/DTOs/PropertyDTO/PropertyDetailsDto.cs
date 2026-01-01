@@ -1,6 +1,6 @@
-﻿namespace UseCases.UseCases.DTO.Property;
+﻿namespace Presenter.DTOs.PropertyDTO;
 
-public record PropertyDetailsData(
+public record PropertyDetailsDto(
     decimal Price,
     string Description,
     int NumberOfRooms,

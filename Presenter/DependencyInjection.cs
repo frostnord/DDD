@@ -31,6 +31,7 @@ using UseCases.Property.Queries.GetPropertyById;
 using UseCases.Property.Queries.SearchPropertiesQuery;
 using UseCases.Seller;
 using UseCases.Services;
+using UseCases.UseCases.DTO.Property;
 
 namespace Presenter
 {

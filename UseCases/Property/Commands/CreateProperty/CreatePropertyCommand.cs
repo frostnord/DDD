@@ -4,8 +4,8 @@ using UseCases.UseCases.DTO.Property;
 namespace UseCases.Property.Commands.CreateProperty
 {
     public record CreatePropertyCommand( 
-        AddressData AddressData, 
-        PropertyDetailsData PropertyDetailsData,
-        OwnershipData OwnershipData
+        AddressDto AddressDto, 
+        PropertyDetailsDto PropertyDetailsDto,
+        OwnershipDto OwnershipDto
         ) : ICommand<Guid>;
 }

@@ -2,7 +2,7 @@
 
 namespace UseCases.UseCases.DTO.Property;
 
-public record OwnershipData(
+public record OwnershipDto(
     Guid OwnerClientId,
     DateTime StartDate
     );

@@ -1,6 +1,6 @@
 ﻿namespace UseCases.UseCases.DTO.Property;
 
-public record AddressData(
+public record AddressDto(
     string Street,
     string City,
     int HomeNumber,

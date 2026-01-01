@@ -1,26 +1,13 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
-using CSharpFunctionalExtensions;
-using Domain.Booking.VO;
-using Domain.Customers.Client.VO;
 using Domain.Deal;
-using Domain.Property.VO;
 using Microsoft.AspNetCore.Mvc;
-using Presenter.DTOs;
 using Presenter.DTOs.DealDTO;
 using Presenter.Extensions;
 using Presenter.Utilities;
 using UseCases.CompleteDeal;
-using UseCases.Deal;
 using UseCases.Deal.Commands;
-using UseCases.Interfaces;
 using UseCases.Interfaces.Commands;
-using UseCases.Interfaces.Repositories;
 using UseCases.Interfaces.Services;
-using IResult = Microsoft.AspNetCore.Http.IResult;
 
 namespace Presenter.Controllers
 {

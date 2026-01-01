@@ -5,7 +5,10 @@ using Domain.Property;
 using Domain.Property.VO;
 using Microsoft.EntityFrameworkCore;
 using UseCases.Interfaces.Repositories;
-using UseCases.Property.Queries.GetPropertyById;
+using PropertyDto = UseCases.UseCases.DTO.Property.PropertyDto;
+using AddressDto = UseCases.UseCases.DTO.Property.AddressDto;
+using PropertyDetailsDto = UseCases.UseCases.DTO.Property.PropertyDetailsDto;
+using OwnershipDto = UseCases.UseCases.DTO.Property.OwnershipDto;
 
 namespace Infrastructure.Repositories
 {
@@ -33,6 +36,7 @@ namespace Infrastructure.Repositories
             return await _context.Properties
                 .Where(p => p.Id.Value == id)  // VO.Value → Guid
                 .Select(p => new PropertyDto(
+                    p.Id.Value,
                     new AddressDto(p.Address.Street, p.Address.City, p.Address.HomeNumber, p.Address.ZipCode, p.Address.Country),
                     new PropertyDetailsDto(
                         p.Price.Value,

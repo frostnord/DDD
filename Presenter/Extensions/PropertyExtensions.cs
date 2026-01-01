@@ -1,6 +1,7 @@
 using System;
 using Domain.Property;
 using UseCases.Property.Queries.GetPropertyById;
+using UseCases.UseCases.DTO.Property;
 
 namespace Presenter.Extensions
 {
