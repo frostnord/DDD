@@ -122,7 +122,7 @@ namespace Presenter.Controllers
         /// <param name="clientRequest">Данные для обновления клиента</param>
         /// <returns>Обновленный клиент</returns>
         [HttpPut("{id}")]
-        public async Task<Envelope> UpdateClient(Guid id, [FromBody] CreateClientRequest clientRequest)
+        public async Task<Envelope> UpdateClient(Guid id, [FromBody] UpdateClientRequest clientRequest)
         {
             var command = new UpdateClientCommand(
                 id,
