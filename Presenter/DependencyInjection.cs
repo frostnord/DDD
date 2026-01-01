@@ -16,6 +16,13 @@ using UseCases.Booking.Commands.CancelBooking;
 using UseCases.Booking.Commands.ConfirmBooking;
 using UseCases.Booking.Commands.CreateBooking;
 using UseCases.Buyer;
+using UseCases.Client.Commands;
+using UseCases.Client.Commands.CreateClient;
+using UseCases.Client.Commands.DeleteClient;
+using UseCases.Client.Commands.UpdateClient;
+using UseCases.Client.Queries;
+using UseCases.Client.Queries.GetAllClient;
+using UseCases.Client.Queries.GetClientById;
 using UseCases.CompleteDeal;
 using UseCases.Deal;
 using UseCases.Deal.Commands;
@@ -58,10 +65,19 @@ namespace Presenter
             services.AddScoped<ICommandHandler<ConfirmDealCommand>, ConfirmDealCommandHandler>();
             services.AddScoped<ICommandHandler<CompleteDealCommand>, CompleteDealCommandHandler>();
             services.AddScoped<ICommandHandler<CancelDealCommand>, CancelDealCommandHandler>();
+            
+            // Регистрация обработчиков команд для клиентов
+            services.AddScoped<ICommandHandler<CreateClientCommand, Domain.Customers.Client.ClientEntity>, CreateClientCommandHandler>();
+            services.AddScoped<ICommandHandler<UpdateClientCommand, Domain.Customers.Client.ClientEntity>, UpdateClientCommandHandler>();
+            services.AddScoped<ICommandHandler<DeleteClientCommand, Domain.Customers.Client.ClientEntity>, DeleteClientCommandHandler>();
 
             // Регистрация Query Handlers
             services.AddScoped<IQueryHandler<GetPropertyByIdQuery, Result<PropertyDto>>, GetPropertyByIdQueryHandler>();
             services.AddScoped<IQueryHandler<SearchPropertiesQuery, Result<SearchPropertiesQueryResponse>>, SearchPropertiesQueryHandler>();
+            
+            // Регистрация обработчиков запросов для клиентов
+            services.AddScoped<IQueryHandler<GetClientByIdQuery, Result<Domain.Customers.Client.ClientEntity>>, GetClientByIdQueryHandler>();
+            services.AddScoped<IQueryHandler<GetAllClientsQuery, Result<IEnumerable<Domain.Customers.Client.ClientEntity>>>, GetAllClientsQueryHandler>();
 
             // Регистрация репозиториев
             services.AddScoped<IPropertyRepository, PropertyRepository>();
