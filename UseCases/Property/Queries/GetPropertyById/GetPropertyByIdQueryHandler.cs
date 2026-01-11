@@ -1,4 +1,5 @@
 using CSharpFunctionalExtensions;
+using Domain.Property;
 using Domain.Property.VO;
 using UseCases.Interfaces.Queries;
 using UseCases.Interfaces.Repositories;
@@ -6,7 +7,7 @@ using UseCases.UseCases.DTO.Property;
 
 namespace UseCases.Property.Queries.GetPropertyById;
 
-public class GetPropertyByIdQueryHandler : IQueryHandler<GetPropertyByIdQuery, Result<PropertyDto>>
+public class GetPropertyByIdQueryHandler : IQueryHandler<GetPropertyByIdQuery, Result<PropertyEntity>>
 {
     private readonly IPropertyRepository _propertyRepository;
 
@@ -15,12 +16,18 @@ public class GetPropertyByIdQueryHandler : IQueryHandler<GetPropertyByIdQuery, R
         _propertyRepository = propertyRepository;
     }
 
-    public async Task<Result<PropertyDto>> HandleAsync(GetPropertyByIdQuery query)
+    public async Task<Result<PropertyEntity>> HandleAsync(GetPropertyByIdQuery query)
     {
-        var propertyDto = await _propertyRepository.GetDtoByIdAsync(query.PropertyId);
-        if (propertyDto == null)
-            return Result.Failure<PropertyDto>($"Property with ID {query.PropertyId} not found");
+        var propertyIdResult = PropertyId.Create(query.PropertyId);
+        if (propertyIdResult.IsFailure)
+        {
+            return Result.Failure<PropertyEntity>(propertyIdResult.Error);
+        }
+
+        var property = await _propertyRepository.GetByIdAsync(propertyIdResult.Value);
+        if (property.Value == null)
+            return Result.Failure<PropertyEntity>($"Property with ID {query.PropertyId} not found");
             
-        return Result.Success(propertyDto);
+        return Result.Success(property.Value);
     }
 }
