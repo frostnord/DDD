@@ -52,5 +52,5 @@ public class CreateCompletedDealRequest
     [Required(ErrorMessage = "Тип сделки обязателен")]
     [MaxLength(Domain.Deal.DealType.MAX_DEAL_TYPE_LENGTH, ErrorMessage = "Превышена максимальная длина типа сделки")]
     [RegularExpression(@"^(Purchase|Rent|Lease)$", ErrorMessage = "Недопустимый тип сделки. Разрешены: Purchase, Rent, Lease")]
-    public string DealType { get; init; } 
+    public required string DealType { get; init; }
 }

@@ -11,18 +11,18 @@ namespace Presenter.DTOs.PropertyDTO.CreatePoperty
         /// Адрес недвижимости
         /// </summary>
         [Required(ErrorMessage = "Адрес обязателен")]
-        public AddressDto Address { get; init; }
+        public required AddressDto Address { get; init; }
 
         /// <summary>
         /// Детали недвижимости
         /// </summary>
         [Required(ErrorMessage = "Детали недвижимости обязательны")]
-        public PropertyDetailsDto PropertyDetails { get; init; }
+        public required PropertyDetailsDto PropertyDetails { get; init; }
 
         /// <summary>
         /// Информация о владельце
         /// </summary>
         [Required(ErrorMessage = "Информация о владельце обязательна")]
-        public OwnershipDto Ownership { get; init; }
+        public required OwnershipDto Ownership { get; init; }
     }
 }

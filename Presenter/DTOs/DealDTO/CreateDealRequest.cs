@@ -30,6 +30,6 @@ namespace Presenter.DTOs.DealDTO
         /// Детали сделки
         /// </summary>
         [Required(ErrorMessage = "Детали сделки обязательны")]
-        public DealDetails Details { get; init; }
+        public required DealDetails Details { get; init; }
     }
 }

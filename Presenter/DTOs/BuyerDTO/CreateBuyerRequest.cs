@@ -32,7 +32,7 @@ namespace Presenter.DTOs.BuyerDTO
         /// <summary>
         /// Предпочтительный тип недвижимости
         /// </summary>
-        public string PreferredType { get; init; }
+        public required string PreferredType { get; init; }
 
         /// <summary>
         /// Наличие предпочтения по парковке
@@ -42,11 +42,11 @@ namespace Presenter.DTOs.BuyerDTO
         /// <summary>
         /// Предпочтительный тип отопления
         /// </summary>
-        public string PreferredHeatingType { get; init; } 
+        public required string PreferredHeatingType { get; init; } 
 
         /// <summary>
         /// Предпочтительное состояние недвижимости
         /// </summary>
-        public string PreferredCondition { get; init; } 
+        public required string PreferredCondition { get; init; }
     }
 }
