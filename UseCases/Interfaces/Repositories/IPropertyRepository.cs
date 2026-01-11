@@ -11,7 +11,6 @@ namespace UseCases.Interfaces.Repositories
     public interface IPropertyRepository
     {
         Task<Result<PropertyEntity>> GetByIdAsync(PropertyId id);
-        Task<PropertyDto?> GetDtoByIdAsync(Guid propertyId);
         Task<Result<IEnumerable<PropertyEntity>>> GetAllAsync();
         Task<Result<PropertyEntity>> AddAsync(PropertyEntity propertyEntity);
         Task<Result> UpdateAsync(PropertyEntity propertyEntity);

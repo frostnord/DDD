@@ -5,6 +5,8 @@ using Domain.Property.VO;
 using Domain.ValueObjects;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Repositories;
+using System;
+using System.Threading.Tasks;
 
 namespace UseCases.Property.Commands.CreateProperty
 {

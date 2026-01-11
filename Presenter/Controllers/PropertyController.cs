@@ -1,9 +1,11 @@
 using System.Net;
 using CSharpFunctionalExtensions;
+using Domain.Property;
 using Microsoft.AspNetCore.Mvc;
 using Presenter.DTOs.PropertyDTO;
 using Presenter.DTOs.PropertyDTO.CreatePoperty;
 using Presenter.DTOs.PropertyDTO.UpdateProperty;
+using Presenter.Extensions;
 using Presenter.Utilities;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Queries;
@@ -31,7 +33,7 @@ namespace Presenter.Controllers
         private readonly ICommandHandler<CreatePropertyCommand, Guid> _createPropertyHandler;
         private readonly ICommandHandler<UpdatePropertyCommand, Result> _updatePropertyHandler;
         private readonly ICommandHandler<DeletePropertyCommand> _deletePropertyHandler;
-        private readonly IQueryHandler<GetPropertyByIdQuery, Result<PropertyDto>> _getPropertyByIdHandler;
+        private readonly IQueryHandler<GetPropertyByIdQuery, Result<PropertyEntity>> _getPropertyByIdHandler;
         private readonly IQueryHandler<SearchPropertiesQuery, Result<SearchPropertiesQueryResponse>> _searchPropertiesHandler;
 
         /// <summary>
@@ -46,7 +48,7 @@ namespace Presenter.Controllers
             ICommandHandler<CreatePropertyCommand, Guid> createPropertyHandler,
             ICommandHandler<UpdatePropertyCommand, Result> updatePropertyHandler,
             ICommandHandler<DeletePropertyCommand> deletePropertyHandler,
-            IQueryHandler<GetPropertyByIdQuery, Result<PropertyDto>> getPropertyByIdHandler,
+            IQueryHandler<GetPropertyByIdQuery, Result<PropertyEntity>> getPropertyByIdHandler,
             IQueryHandler<SearchPropertiesQuery, Result<SearchPropertiesQueryResponse>> searchPropertiesHandler)
         {
             _createPropertyHandler = createPropertyHandler;
@@ -96,7 +98,7 @@ namespace Presenter.Controllers
                 return new Envelope(HttpStatusCode.NotFound, error: result.Error);
             }
             
-            var propertyDto = result.Value;
+            var propertyDto = result.Value.ToDTO();
 
             return new Envelope(propertyDto);
         }

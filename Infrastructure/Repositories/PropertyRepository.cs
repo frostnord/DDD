@@ -31,33 +31,6 @@ namespace Infrastructure.Repositories
                 : Result.Failure<PropertyEntity>($"Property with ID {id.Value} not found");
         }
 
-        public async Task<PropertyDto?> GetDtoByIdAsync(Guid id)
-        {
-            return await _context.Properties
-                .Where(p => p.Id.Value == id)  // VO.Value → Guid
-                .Select(p => new PropertyDto(
-                    p.Id.Value,
-                    new AddressDto(p.Address.Street, p.Address.City, p.Address.HomeNumber, p.Address.ZipCode, p.Address.Country),
-                    new PropertyDetailsDto(
-                        p.Price.Value,
-                        p.Description.Value,
-                        p.PropertyDetails.NumberOfRooms.Value,
-                        p.PropertyDetails.Floor.Value,
-                        p.PropertyDetails.TotalFloors.Value,
-                        p.PropertyDetails.Area.Value,
-                        p.PropertyDetails.Type.Name,
-                        p.PropertyDetails.HeatingType.Value.ToString(),
-                        p.PropertyDetails.Condition.Value,
-                        p.PropertyDetails.HasParking
-                    ),
-                    new OwnershipDto(
-                        p.OwnershipHistory.Any() ? p.OwnershipHistory.Last().OwnerClientId.Value : Guid.Empty,
-                        p.OwnershipHistory.Any() ? p.OwnershipHistory.Last().StartDate : DateTime.MinValue
-                    )
-                ))
-                .FirstOrDefaultAsync();
-        }
-
 
         public async Task<Result<IEnumerable<PropertyEntity>>> GetAllAsync()
         {

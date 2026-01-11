@@ -39,6 +39,10 @@ using UseCases.Property.Queries.SearchPropertiesQuery;
 using UseCases.Seller;
 using UseCases.Services;
 using UseCases.UseCases.DTO.Property;
+using System.Collections.Generic;
+using UseCases.DTO.Seller;
+using UseCases.Seller.Commands;
+using UseCases.Seller.Queries;
 
 namespace Presenter
 {
@@ -55,7 +59,7 @@ namespace Presenter
             services.AddScoped<ICommandHandler<CreatePropertyCommand, Guid>, CreatePropertyCommandHandler>();
             services.AddScoped<ICommandHandler<CreateDealCommand, DealEntity>, CreateDealCommandHandler>();
             services.AddScoped<ICommandHandler<CreateBuyerCommand, BuyerEntity>, CreateBuyerCommandHandler>();
-            services.AddScoped<ICommandHandler<CreateSellerCommand, SellerEntity>, CreateSellerCommandHandler>();
+            services.AddScoped<ICommandHandler<CreateSellerCommand, Guid>, CreateSellerCommandHandler>();
             services.AddScoped<ICommandHandler<CreateBookingCommand, Guid>, CreateBookingCommandHandler>();
             services.AddScoped<ICommandHandler<ConfirmBookingCommand>, ConfirmBookingCommandHandler>();
             services.AddScoped<ICommandHandler<CancelBookingCommand>, CancelBookingCommandHandler>();
@@ -72,12 +76,16 @@ namespace Presenter
             services.AddScoped<ICommandHandler<DeleteClientCommand, Domain.Customers.Client.ClientEntity>, DeleteClientCommandHandler>();
 
             // Регистрация Query Handlers
-            services.AddScoped<IQueryHandler<GetPropertyByIdQuery, Result<PropertyDto>>, GetPropertyByIdQueryHandler>();
+            services.AddScoped<IQueryHandler<GetPropertyByIdQuery, Result<PropertyEntity>>, GetPropertyByIdQueryHandler>();
             services.AddScoped<IQueryHandler<SearchPropertiesQuery, Result<SearchPropertiesQueryResponse>>, SearchPropertiesQueryHandler>();
             
             // Регистрация обработчиков запросов для клиентов
             services.AddScoped<IQueryHandler<GetClientByIdQuery, Result<Domain.Customers.Client.ClientEntity>>, GetClientByIdQueryHandler>();
             services.AddScoped<IQueryHandler<GetAllClientsQuery, Result<IEnumerable<Domain.Customers.Client.ClientEntity>>>, GetAllClientsQueryHandler>();
+
+            // Регистрация обработчиков запросов для продавцов
+            services.AddScoped<IQueryHandler<GetSellerByIdQuery, Result<SellerDto>>, GetSellerByIdQueryHandler>();
+            services.AddScoped<IQueryHandler<SearchSellersQuery, Result<SearchSellersQueryResponse>>, SearchSellersQueryHandler>();
 
             // Регистрация репозиториев
             services.AddScoped<IPropertyRepository, PropertyRepository>();
