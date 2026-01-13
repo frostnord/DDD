@@ -33,6 +33,8 @@ using UseCases.Interfaces.Repositories;
 using UseCases.Interfaces.Services;
 using UseCases.Property;
 using UseCases.Property.Commands.CreateProperty;
+using UseCases.Property.Commands.DeleteProperty;
+using UseCases.Property.Commands.UpdateProperty;
 using UseCases.Property.Queries;
 using UseCases.Property.Queries.GetPropertyById;
 using UseCases.Property.Queries.SearchPropertiesQuery;
@@ -57,6 +59,9 @@ namespace Presenter
 
             // Регистрация Use Case Handlers
             services.AddScoped<ICommandHandler<CreatePropertyCommand, Guid>, CreatePropertyCommandHandler>();
+            services.AddScoped<ICommandHandler<UpdatePropertyCommand>, UpdatePropertyCommandHandler>();
+            services.AddScoped<ICommandHandler<DeletePropertyCommand>, DeletePropertyCommandHandler>();
+
             services.AddScoped<ICommandHandler<CreateDealCommand, DealEntity>, CreateDealCommandHandler>();
             services.AddScoped<ICommandHandler<CreateBuyerCommand, BuyerEntity>, CreateBuyerCommandHandler>();
             services.AddScoped<ICommandHandler<CreateSellerCommand, Guid>, CreateSellerCommandHandler>();
@@ -70,7 +75,7 @@ namespace Presenter
             services.AddScoped<ICommandHandler<CompleteDealCommand>, CompleteDealCommandHandler>();
             services.AddScoped<ICommandHandler<CancelDealCommand>, CancelDealCommandHandler>();
 
-            services.AddScoped<ICommandHandler<UpdateSellerCommand, SellerDto>, UpdateSellerCommandHandler>();
+            services.AddScoped<ICommandHandler<UpdateSellerCommand>, UpdateSellerCommandHandler>();
             
             // Регистрация обработчиков команд для клиентов
             services.AddScoped<ICommandHandler<CreateClientCommand, Domain.Customers.Client.ClientEntity>, CreateClientCommandHandler>();

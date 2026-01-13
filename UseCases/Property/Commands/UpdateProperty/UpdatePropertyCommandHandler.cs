@@ -5,7 +5,6 @@ using Domain.Property.VO;
 using Domain.ValueObjects;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Repositories;
-using UseCases.UseCases.DTO.Property;
 
 namespace UseCases.Property.Commands.UpdateProperty
 {

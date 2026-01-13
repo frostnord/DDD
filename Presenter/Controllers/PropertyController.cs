@@ -26,7 +26,7 @@ namespace Presenter.Controllers
     public class PropertyController : ControllerBase
     {
         private readonly ICommandHandler<CreatePropertyCommand, Guid> _createPropertyHandler;
-        private readonly ICommandHandler<UpdatePropertyCommand, PropertyDto> _updatePropertyHandler;
+        private readonly ICommandHandler<UpdatePropertyCommand> _updatePropertyHandler;
         private readonly ICommandHandler<DeletePropertyCommand> _deletePropertyHandler;
         private readonly IQueryHandler<GetPropertyByIdQuery, Result<PropertyDto>> _getPropertyByIdHandler;
         private readonly IQueryHandler<SearchPropertiesQuery, Result<SearchPropertiesQueryResponse>> _searchPropertiesHandler;
@@ -37,7 +37,7 @@ namespace Presenter.Controllers
         /// </summary>
         public PropertyController(
             ICommandHandler<CreatePropertyCommand, Guid> createPropertyHandler,
-            ICommandHandler<UpdatePropertyCommand, PropertyDto> updatePropertyHandler,
+            ICommandHandler<UpdatePropertyCommand> updatePropertyHandler,
             ICommandHandler<DeletePropertyCommand> deletePropertyHandler,
             IQueryHandler<GetPropertyByIdQuery, Result<PropertyDto>> getPropertyByIdHandler,
             IQueryHandler<SearchPropertiesQuery, Result<SearchPropertiesQueryResponse>> searchPropertiesHandler,
@@ -75,7 +75,7 @@ namespace Presenter.Controllers
         /// </summary>
         /// <param name="id">Уникальный идентификатор объекта недвижимости</param>
         /// <returns>Запрошенный объект недвижимости с HTTP 200 если найден, иначе HTTP 404 с деталями ошибки</returns>
-        [HttpGet("{id:guid}")]
+        [HttpGet("{id}")]
         public async Task<Envelope> GetProperty(Guid id)
         {
             var query = new GetPropertyByIdQuery(id);
@@ -94,7 +94,7 @@ namespace Presenter.Controllers
         /// <param name="query">Параметры запроса для фильтрации объектов недвижимости</param>
         /// <returns>Список объектов недвижимости, соответствующих критериям фильтрации, с HTTP 200 при успешном выполнении, иначе HTTP 400 с деталями ошибки</returns>
         [HttpGet]
-        public async Task<Envelope> GetProperties([FromBody] SearchPropertiesQuery query)
+        public async Task<Envelope> GetProperties([FromQuery] SearchPropertiesQuery query)
         {
             var result = await _searchPropertiesHandler.HandleAsync(query);
             if (result.IsFailure)
@@ -120,12 +120,12 @@ namespace Presenter.Controllers
         /// </summary>
         /// <param name="id">Уникальный идентификатор объекта недвижимости для обновления</param>
         /// <param name="request">Запрос, содержащий обновленные данные объекта недвижимости</param>
-        /// <returns>Обновленный объект недвижимости с HTTP 200 при успешном выполнении, иначе HTTP 400 или 404 с деталями ошибки</returns>
+        /// <returns>HTTP 204 при успешном выполнении, иначе HTTP 400 или 404 с деталями ошибки</returns>
         [HttpPut("{id}")]
         public async Task<Envelope> UpdateProperty(Guid id, [FromBody] UpdatePropertyRequest request)
         {
-            var command = _mapper.Map<UpdatePropertyCommand>(request);
-            command.Id = id; // Устанавливаем Id из URL
+            var command = _mapper.Map<UpdatePropertyCommand>(request, opt => 
+                opt.Items["Id"] = id);
             
             var result = await _updatePropertyHandler.HandleAsync(command);
 
@@ -134,7 +134,7 @@ namespace Presenter.Controllers
                 return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            return new Envelope(result.Value);
+            return new Envelope(HttpStatusCode.NoContent);
         }
 
         /// <summary>

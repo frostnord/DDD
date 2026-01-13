@@ -1,4 +1,3 @@
-using CSharpFunctionalExtensions;
 using UseCases.Interfaces.Commands;
 using UseCases.UseCases.DTO.Property;
 
@@ -9,5 +8,6 @@ namespace UseCases.Property.Commands.UpdateProperty
         AddressDto AddressDto,
         PropertyDetailsDto PropertyDetailsDto,
         OwnershipDto OwnershipDto
-    ) : ICommand<Result>;
+    ) : ICommand;
+
 }
