@@ -15,35 +15,37 @@ namespace Presenter.Extensions
         /// </summary>
         /// <param name="propertyEntity">Объект недвижимости</param>
         /// <returns>DTO недвижимости</returns>
-        public static PropertyDto ToDTO(this PropertyEntity propertyEntity)
+        public static PropertyDto? ToDTO(this PropertyEntity propertyEntity)
         {
             if (propertyEntity == null)
                 return null;
 
+            var currentOwner = propertyEntity.GetCurrentOwner();
+
             return new PropertyDto(
                 propertyEntity.Id.Value,
                 new AddressDto(
-                    propertyEntity.Address?.Street ?? string.Empty,
-                    propertyEntity.Address?.City ?? string.Empty,
-                    propertyEntity.Address?.HomeNumber ?? 0,
-                    propertyEntity.Address?.ZipCode ?? 0,
-                    propertyEntity.Address?.Country ?? string.Empty
+                    propertyEntity.Address.Street,
+                    propertyEntity.Address.City,
+                    propertyEntity.Address.HomeNumber,
+                    propertyEntity.Address.ZipCode,
+                    propertyEntity.Address.Country
                 ),
                 new PropertyDetailsDto(
-                    propertyEntity.Price?.Value ?? 0,
-                    propertyEntity.Description?.Value ?? string.Empty,
-                    propertyEntity.PropertyDetails?.NumberOfRooms?.Value ?? 0,
-                    propertyEntity.PropertyDetails?.Floor?.Value ?? 0,
-                    propertyEntity.PropertyDetails?.TotalFloors?.Value ?? 0,
-                    propertyEntity.PropertyDetails?.Area?.Value ?? 0,
-                    propertyEntity.PropertyDetails?.Type?.Name ?? string.Empty,
-                    propertyEntity.PropertyDetails?.HeatingType?.Value.ToString() ?? string.Empty,
-                    propertyEntity.PropertyDetails?.Condition?.Value ?? string.Empty,
-                    propertyEntity.PropertyDetails?.HasParking
+                    propertyEntity.Price.Value,
+                    propertyEntity.Description.Value,
+                    propertyEntity.PropertyDetails.NumberOfRooms.Value,
+                    propertyEntity.PropertyDetails.Floor.Value,
+                    propertyEntity.PropertyDetails.TotalFloors.Value,
+                    propertyEntity.PropertyDetails.Area.Value,
+                    propertyEntity.PropertyDetails.Type.Name,
+                    propertyEntity.PropertyDetails.HeatingType.Value.ToString(),
+                    propertyEntity.PropertyDetails.Condition.Value,
+                    propertyEntity.PropertyDetails.HasParking
                 ),
                 new OwnershipDto(
-                    propertyEntity.GetCurrentOwner()?.OwnerClientId?.Value ?? Guid.Empty,
-                    propertyEntity.GetCurrentOwner()?.StartDate ?? DateTime.MinValue
+                    currentOwner?.OwnerClientId?.Value ?? Guid.Empty,
+                    currentOwner?.StartDate ?? DateTime.MinValue
                 )
             );
         }

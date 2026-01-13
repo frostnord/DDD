@@ -5,7 +5,7 @@ namespace Presenter.DTOs.PropertyDTO.CreatePoperty
     /// <summary>
     /// DTO для запроса создания недвижимости
     /// </summary>
-    public class CreatePropertyRequest
+    public record CreatePropertyRequest
     {
         /// <summary>
         /// Адрес недвижимости

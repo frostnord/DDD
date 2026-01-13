@@ -247,19 +247,21 @@ namespace Domain.Property
         //
         // private void AddEvent(IDomainEvent @event) => _events.Add(@event);
         // public IReadOnlyCollection<IDomainEvent> DomainEvents => _events.AsReadOnly();
-        public void UpdateAddress(Address addressVoValue)
+        public void UpdateAddress(Address address)
         {
-            throw new NotImplementedException();
+            Address = address;
+            UpdatedAt = DateTime.UtcNow;
         }
 
-        public void UpdateDetails(PropertyDetails detailsVoValue)
+        public void UpdateDetails(PropertyDetails details)
         {
-            throw new NotImplementedException();
+            PropertyDetails = details;
+            UpdatedAt = DateTime.UtcNow;
         }
 
-        public void UpdateOwner(OwnershipRecord value)
+        public void UpdateOwner(OwnershipRecord ownerRecord)
         {
-            throw new NotImplementedException();
+            AddOwnershipRecord(ownerRecord);
         }
     }
 }

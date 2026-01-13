@@ -69,6 +69,8 @@ namespace Presenter
             services.AddScoped<ICommandHandler<ConfirmDealCommand>, ConfirmDealCommandHandler>();
             services.AddScoped<ICommandHandler<CompleteDealCommand>, CompleteDealCommandHandler>();
             services.AddScoped<ICommandHandler<CancelDealCommand>, CancelDealCommandHandler>();
+
+            services.AddScoped<ICommandHandler<UpdateSellerCommand, SellerDto>, UpdateSellerCommandHandler>();
             
             // Регистрация обработчиков команд для клиентов
             services.AddScoped<ICommandHandler<CreateClientCommand, Domain.Customers.Client.ClientEntity>, CreateClientCommandHandler>();
@@ -76,7 +78,7 @@ namespace Presenter
             services.AddScoped<ICommandHandler<DeleteClientCommand, Domain.Customers.Client.ClientEntity>, DeleteClientCommandHandler>();
 
             // Регистрация Query Handlers
-            services.AddScoped<IQueryHandler<GetPropertyByIdQuery, Result<PropertyEntity>>, GetPropertyByIdQueryHandler>();
+            services.AddScoped<IQueryHandler<GetPropertyByIdQuery, Result<PropertyDto>>, GetPropertyByIdQueryHandler>();
             services.AddScoped<IQueryHandler<SearchPropertiesQuery, Result<SearchPropertiesQueryResponse>>, SearchPropertiesQueryHandler>();
             
             // Регистрация обработчиков запросов для клиентов

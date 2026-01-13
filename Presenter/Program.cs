@@ -14,17 +14,31 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 
+// Add AutoMapper
+builder.Services.AddAutoMapper(cfg => 
+{
+    // Здесь можно добавить дополнительную конфигурацию, если потребуется
+}, typeof(Program).Assembly);
+
 // Настройка Swagger с XML-документацией
 builder.Services.AddSwaggerGen(c =>
 {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "Real Estate API", Version = "v1" });
 
-    // Получаем путь к XML-файлу документации
-    var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
-    var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
-    if (File.Exists(xmlPath))
+    // XML-файл для текущего проекта (Presenter)
+    var presenterXmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+    var presenterXmlPath = Path.Combine(AppContext.BaseDirectory, presenterXmlFile);
+    if (File.Exists(presenterXmlPath))
     {
-        c.IncludeXmlComments(xmlPath);
+        c.IncludeXmlComments(presenterXmlPath);
+    }
+
+    // XML-файл для проекта UseCases
+    var useCasesXmlFile = "UseCases.xml"; // Имя файла должно совпадать с именем сборки
+    var useCasesXmlPath = Path.Combine(AppContext.BaseDirectory, useCasesXmlFile);
+    if (File.Exists(useCasesXmlPath))
+    {
+        c.IncludeXmlComments(useCasesXmlPath);
     }
 });
 
