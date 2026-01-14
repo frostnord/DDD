@@ -61,7 +61,7 @@ namespace Presenter.Controllers
         public async Task<Envelope> CreateBuyer([FromBody] CreateBuyerRequest request)
         {
             var command = _mapper.Map<CreateBuyerCommand>(request);
-            
+
             var result = await _createBuyerHandler.HandleAsync(command);
 
             if (result.IsFailure)
@@ -86,7 +86,7 @@ namespace Presenter.Controllers
             {
                 return new Envelope(HttpStatusCode.NotFound, error: result.Error);
             }
-            
+
             return new Envelope(result.Value);
         }
 
@@ -105,14 +105,12 @@ namespace Presenter.Controllers
             }
 
             var searchResult = result.Value;
-            var response = new PagedBuyersResponse
-            {
-                Items = searchResult.Items,
-                TotalCount = searchResult.TotalCount,
-                PageSize = searchResult.PageSize,
-                TotalPages = searchResult.TotalPages,
-                CurrentPage = query.Page
-            };
+            var response = new PagedBuyersResponse(
+                searchResult.Items,
+                searchResult.TotalCount,
+                searchResult.PageSize,
+                searchResult.TotalPages,
+                query.Page);
 
             return new Envelope(response);
         }
@@ -122,13 +120,13 @@ namespace Presenter.Controllers
         /// </summary>
         /// <param name="id">Уникальный идентификатор покупателя для обновления</param>
         /// <param name="request">Запрос, содержащий обновленные данные покупателя</param>
-        /// <returns>HTTP 200 с обновленным объектом при успешном выполнении, иначе HTTP 400 или 404 с деталями ошибки</returns>
+        /// <returns>HTTP 204 при успешном выполнении, иначе HTTP 400 или 404 с деталями ошибки</returns>
         [HttpPut("{id}")]
         public async Task<Envelope> UpdateBuyer(Guid id, [FromBody] UpdateBuyerRequest request)
         {
             var command = _mapper.Map<UpdateBuyerCommand>(request, opt =>
                 opt.Items["Id"] = id);
-            
+
             var result = await _updateBuyerHandler.HandleAsync(command);
 
             if (result.IsFailure)
@@ -136,13 +134,7 @@ namespace Presenter.Controllers
                 return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            var updatedBuyerResult = await _getBuyerByIdHandler.HandleAsync(new GetBuyerByIdQuery(id));
-            if (updatedBuyerResult.IsFailure)
-            {
-                return new Envelope(HttpStatusCode.NotFound, error: updatedBuyerResult.Error);
-            }
-
-            return new Envelope(updatedBuyerResult.Value);
+            return new Envelope(HttpStatusCode.NoContent);
         }
 
         /// <summary>

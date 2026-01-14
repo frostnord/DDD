@@ -73,7 +73,7 @@ namespace UseCases.Buyer.Commands.UpdateBuyer
                 numberOfRoomsResult.Value,
                 floorResult.Value,
                 totalFloorsResult.Value,
-                propertyTypeResult, // .Value не нужен, так как FromName возвращает SmartPropertyType
+                propertyTypeResult,
                 command.PreferParking,
                 heatingTypeResult.Value,
                 conditionResult.Value
