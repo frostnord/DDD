@@ -16,6 +16,7 @@ using UseCases.Booking.Commands.CancelBooking;
 using UseCases.Booking.Commands.ConfirmBooking;
 using UseCases.Booking.Commands.CreateBooking;
 using UseCases.Buyer;
+using UseCases.Buyer.Commands.CreateBuyer;
 using UseCases.Client.Commands;
 using UseCases.Client.Commands.CreateClient;
 using UseCases.Client.Commands.DeleteClient;
@@ -63,7 +64,7 @@ namespace Presenter
             services.AddScoped<ICommandHandler<DeletePropertyCommand>, DeletePropertyCommandHandler>();
 
             services.AddScoped<ICommandHandler<CreateDealCommand, DealEntity>, CreateDealCommandHandler>();
-            services.AddScoped<ICommandHandler<CreateBuyerCommand, BuyerEntity>, CreateBuyerCommandHandler>();
+            services.AddScoped<ICommandHandler<CreateBuyerCommand, Guid>, CreateBuyerCommandHandler>();
             services.AddScoped<ICommandHandler<CreateSellerCommand, Guid>, CreateSellerCommandHandler>();
             services.AddScoped<ICommandHandler<CreateBookingCommand, Guid>, CreateBookingCommandHandler>();
             services.AddScoped<ICommandHandler<ConfirmBookingCommand>, ConfirmBookingCommandHandler>();

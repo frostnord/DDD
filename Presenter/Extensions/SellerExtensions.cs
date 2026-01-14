@@ -1,7 +1,6 @@
 using System;
 using Domain.Customers.Seller;
-using Presenter.DTOs;
-using Presenter.DTOs.SellerDTO;
+using UseCases.DTO.Seller;
 
 namespace Presenter.Extensions
 {
@@ -10,13 +9,13 @@ namespace Presenter.Extensions
         public static SellerDto ToDTO(this SellerEntity sellerEntity)
         {
             if (sellerEntity == null)
-                return null;
+                throw new ArgumentNullException(nameof(sellerEntity));
 
             return new SellerDto
             (
                 sellerEntity.Id.Value,
                 sellerEntity.ClientId.Value,
-                DateTime.UtcNow
+                sellerEntity.RegisteredAt
             );
         }
     }

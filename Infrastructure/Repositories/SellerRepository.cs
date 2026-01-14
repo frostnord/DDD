@@ -40,11 +40,11 @@ namespace Infrastructure.Repositories
             return Result.Success(sellerEntity);
         }
 
-        public async Task<Result> UpdateAsync(SellerEntity sellerEntity)
+        public async Task<Result<SellerEntity>> UpdateAsync(SellerEntity sellerEntity)
         {
             _context.Sellers.Update(sellerEntity);
             await _context.SaveChangesAsync();
-            return Result.Success();
+            return Result.Success(sellerEntity);
         }
 
         public async Task<Result> DeleteAsync(SellerId id)
