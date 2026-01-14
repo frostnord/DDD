@@ -153,7 +153,7 @@ namespace Presenter.Controllers
                 return new Envelope(HttpStatusCode.NotFound, error: result.Error);
             }
 
-            return new Envelope(HttpStatusCode.NoContent, null);
+            return new Envelope(HttpStatusCode.NoContent, result: null);
         }
     }
 }

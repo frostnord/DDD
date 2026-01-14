@@ -11,7 +11,7 @@ namespace Presenter.Extensions
         /// </summary>
         /// <param name="clientEntity">Сущность клиента</param>
         /// <returns>ClientDto с данными клиента</returns>
-        public static ClientDto ToDTO(this ClientEntity clientEntity)
+        public static ClientDto? ToDTO(this ClientEntity clientEntity)
         {
             if (clientEntity == null)
                 return null;
