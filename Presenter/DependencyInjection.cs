@@ -15,6 +15,8 @@ using UseCases.Booking.Commands;
 using UseCases.Booking.Commands.CancelBooking;
 using UseCases.Booking.Commands.ConfirmBooking;
 using UseCases.Booking.Commands.CreateBooking;
+using UseCases.Booking.Queries.GetBookingById;
+using UseCases.Booking.Queries.SearchBookingsQuery;
 using UseCases.Buyer;
 using UseCases.Buyer.Commands.CreateBuyer;
 using UseCases.Client.Commands;
@@ -86,6 +88,8 @@ namespace Presenter
             // Регистрация Query Handlers
             services.AddScoped<IQueryHandler<GetPropertyByIdQuery, Result<PropertyDto>>, GetPropertyByIdQueryHandler>();
             services.AddScoped<IQueryHandler<SearchPropertiesQuery, Result<SearchPropertiesQueryResponse>>, SearchPropertiesQueryHandler>();
+            services.AddScoped<IQueryHandler<GetBookingByIdQuery, Result<UseCases.UseCases.DTO.Booking.BookingDto>>, GetBookingByIdQueryHandler>();
+            services.AddScoped<IQueryHandler<SearchBookingsQuery, Result<SearchBookingsQueryResponse>>, SearchBookingsQueryHandler>();
             
             // Регистрация обработчиков запросов для клиентов
             services.AddScoped<IQueryHandler<GetClientByIdQuery, Result<Domain.Customers.Client.ClientEntity>>, GetClientByIdQueryHandler>();
@@ -110,7 +114,6 @@ namespace Presenter
             services.AddScoped<IBuyerService, BuyerService>();
             services.AddScoped<IDealService, DealService>();
             services.AddScoped<ICompletedDealService, CompletedDealService>();
-            services.AddScoped<IBookingService, BookingService>();
 
             return services;
         }
