@@ -97,14 +97,12 @@ namespace Presenter.Controllers
             }
 
             var searchResult = result.Value;
-            var response = new PagedSellersResponse
-            {
-                Items = searchResult.Items,
-                TotalCount = searchResult.TotalCount,
-                PageSize = searchResult.PageSize,
-                TotalPages = searchResult.TotalPages,
-                CurrentPage = query.Page
-            };
+            var response = new PagedSellersResponse(
+                searchResult.Items,
+                searchResult.TotalCount,
+                searchResult.PageSize,
+                searchResult.TotalPages,
+                query.Page);
 
             return new Envelope(response);
         }
