@@ -3,8 +3,9 @@ using AutoMapper;
 using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Mvc;
 using Presenter.DTOs.PropertyDTO;
-using Presenter.DTOs.PropertyDTO.CreatePoperty;
-using Presenter.DTOs.PropertyDTO.UpdateProperty;
+using Presenter.DTOs.PropertyDTO.Request.CreatePoperty;
+using Presenter.DTOs.PropertyDTO.Request.UpdateProperty;
+using Presenter.DTOs.PropertyDTO.Response;
 using Presenter.Utilities;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Queries;
@@ -85,7 +86,8 @@ namespace Presenter.Controllers
                 return new Envelope(HttpStatusCode.NotFound, error: result.Error);
             }
 
-            return new Envelope(result.Value);
+            var response = _mapper.Map<PropertyResponse>(result.Value);
+            return new Envelope(response);
         }
 
         /// <summary>
@@ -103,14 +105,13 @@ namespace Presenter.Controllers
             }
 
             var searchResult = result.Value;
-            var response = new PagedPropertiesResponse
-            {
-                Items = searchResult.Items,
-                TotalCount = searchResult.TotalCount,
-                PageSize = searchResult.PageSize,
-                TotalPages = searchResult.TotalPages,
-                CurrentPage = query.Page
-            };
+            var items = _mapper.Map<IEnumerable<PropertyResponse>>(searchResult.Items);
+            var response = new PagedPropertiesResponse(
+                items,
+                searchResult.TotalCount,
+                searchResult.PageSize,
+                searchResult.TotalPages,
+                query.Page);
             
             return new Envelope(response);
         }

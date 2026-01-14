@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Presenter.DTOs.PropertyDTO.UpdateProperty
+namespace Presenter.DTOs.PropertyDTO.Request.UpdateProperty
 {
     /// <summary>
     /// DTO для запроса обновления данных о недвижимости

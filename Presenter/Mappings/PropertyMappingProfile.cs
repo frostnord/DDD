@@ -1,8 +1,14 @@
 ﻿using AutoMapper;
-using Presenter.DTOs.PropertyDTO.CreatePoperty;
-using Presenter.DTOs.PropertyDTO.UpdateProperty;
+using Presenter.DTOs.PropertyDTO;
+using Presenter.DTOs.PropertyDTO.Request.CreatePoperty;
+using Presenter.DTOs.PropertyDTO.Request.UpdateProperty;
+using Presenter.DTOs.PropertyDTO.Response;
 using UseCases.Property.Commands.CreateProperty;
 using UseCases.Property.Commands.UpdateProperty;
+using UseCasesAddressDto = UseCases.UseCases.DTO.Property.AddressDto;
+using UseCasesOwnershipDto = UseCases.UseCases.DTO.Property.OwnershipDto;
+using UseCasesPropertyDetailsDto = UseCases.UseCases.DTO.Property.PropertyDetailsDto;
+using UseCasesPropertyDto = UseCases.UseCases.DTO.Property.PropertyDto;
 
 namespace Presenter.Mappings
 {
@@ -17,6 +23,15 @@ namespace Presenter.Mappings
             CreateMap<UpdatePropertyRequest, UpdatePropertyCommand>()
                 .ForMember(dest => dest.PropertyId, opt =>
                     opt.MapFrom((src, dest, destMember, context) => context.Items["Id"]));
+
+            CreateMap<UseCasesPropertyDto, PropertyResponse>()
+                .ForMember(dest => dest.Address, opt => opt.MapFrom(src => src.AddressDto))
+                .ForMember(dest => dest.PropertyDetails, opt => opt.MapFrom(src => src.PropertyDetailsDto))
+                .ForMember(dest => dest.Ownership, opt => opt.MapFrom(src => src.OwnershipDto));
+
+            CreateMap<UseCasesAddressDto, AddressDto>();
+            CreateMap<UseCasesPropertyDetailsDto, PropertyDetailsDto>();
+            CreateMap<UseCasesOwnershipDto, OwnershipDto>();
         }
     }
 }

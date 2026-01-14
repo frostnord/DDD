@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 
-namespace Presenter.DTOs.PropertyDTO.CreatePoperty
+namespace Presenter.DTOs.PropertyDTO.Request.CreatePoperty
 {
     /// <summary>
     /// DTO для запроса создания недвижимости
