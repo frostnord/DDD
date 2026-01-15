@@ -8,63 +8,62 @@ using UseCases.Interfaces.Queries;
 using UseCases.Interfaces.Repositories;
 using UseCases.UseCases.DTO.Booking;
 
-namespace UseCases.Booking.Queries.SearchBookingsQuery
+namespace UseCases.Booking.Queries.SearchBookingsQuery;
+
+public class SearchBookingsQueryHandler : IQueryHandler<SearchBookingsQuery, Result<SearchBookingsQueryResponse>>
 {
-    public class SearchBookingsQueryHandler : IQueryHandler<SearchBookingsQuery, Result<SearchBookingsQueryResponse>>
+    private readonly IBookingRepository _bookingRepository;
+
+    public SearchBookingsQueryHandler(IBookingRepository bookingRepository)
     {
-        private readonly IBookingRepository _bookingRepository;
+        _bookingRepository = bookingRepository;
+    }
 
-        public SearchBookingsQueryHandler(IBookingRepository bookingRepository)
+    public async Task<Result<SearchBookingsQueryResponse>> HandleAsync(SearchBookingsQuery query)
+    {
+        if (query.ClientId == null && query.PropertyId == null)
         {
-            _bookingRepository = bookingRepository;
+            return Result.Failure<SearchBookingsQueryResponse>("Нужен id клиента или недвижимости");
         }
 
-        public async Task<Result<SearchBookingsQueryResponse>> HandleAsync(SearchBookingsQuery query)
+        Result<System.Collections.Generic.IEnumerable<Domain.Booking.BookingEntity>> bookingsResult;
+
+        if (query.ClientId != null)
         {
-            if (query.ClientId == null && query.PropertyId == null)
+            var clientIdResult = ClientId.Create(query.ClientId.Value);
+            if (clientIdResult.IsFailure)
             {
-                return Result.Failure<SearchBookingsQueryResponse>("Нужен id клиента или недвижимости");
+                return Result.Failure<SearchBookingsQueryResponse>(clientIdResult.Error);
             }
 
-            Result<System.Collections.Generic.IEnumerable<Domain.Booking.BookingEntity>> bookingsResult;
-
-            if (query.ClientId != null)
-            {
-                var clientIdResult = ClientId.Create(query.ClientId.Value);
-                if (clientIdResult.IsFailure)
-                {
-                    return Result.Failure<SearchBookingsQueryResponse>(clientIdResult.Error);
-                }
-
-                bookingsResult = await _bookingRepository.GetByClientIdAsync(clientIdResult.Value);
-            }
-            else
-            {
-                var propertyIdResult = PropertyId.Create(query.PropertyId!.Value);
-                if (propertyIdResult.IsFailure)
-                {
-                    return Result.Failure<SearchBookingsQueryResponse>(propertyIdResult.Error);
-                }
-
-                bookingsResult = await _bookingRepository.GetByPropertyIdAsync(propertyIdResult.Value);
-            }
-
-            if (bookingsResult.IsFailure)
-            {
-                return Result.Failure<SearchBookingsQueryResponse>(bookingsResult.Error);
-            }
-
-            var dtos = bookingsResult.Value.Select(b => new BookingDto(
-                b.Id.Value,
-                b.ClientId.Value,
-                b.PropertyId.Value,
-                b.BookingPeriod.StartDate,
-                b.BookingPeriod.EndDate,
-                b.TotalPrice.Value,
-                b.CreatedAt,
-                b.UpdatedAt)).ToList();
-
-            return Result.Success(new SearchBookingsQueryResponse(dtos));
+            bookingsResult = await _bookingRepository.GetByClientIdAsync(clientIdResult.Value);
         }
+        else
+        {
+            var propertyIdResult = PropertyId.Create(query.PropertyId!.Value);
+            if (propertyIdResult.IsFailure)
+            {
+                return Result.Failure<SearchBookingsQueryResponse>(propertyIdResult.Error);
+            }
+
+            bookingsResult = await _bookingRepository.GetByPropertyIdAsync(propertyIdResult.Value);
+        }
+
+        if (bookingsResult.IsFailure)
+        {
+            return Result.Failure<SearchBookingsQueryResponse>(bookingsResult.Error);
+        }
+
+        var dtos = bookingsResult.Value.Select(b => new BookingDto(
+            b.Id.Value,
+            b.ClientId.Value,
+            b.PropertyId.Value,
+            b.BookingPeriod.StartDate,
+            b.BookingPeriod.EndDate,
+            b.TotalPrice.Value,
+            b.CreatedAt,
+            b.UpdatedAt)).ToList();
+
+        return Result.Success(new SearchBookingsQueryResponse(dtos));
     }
 }

@@ -96,6 +96,11 @@ namespace Presenter.Controllers
         [HttpGet("{id}")]
         public async Task<Envelope> GetBooking(Guid id)
         {
+            if (id == Guid.Empty)
+            {
+                return new Envelope(HttpStatusCode.BadRequest, error: "Invalid booking ID");
+            }
+
             var query = new GetBookingByIdQuery(id);
             var bookingResult = await _getBookingByIdHandler.HandleAsync(query);
             if (bookingResult.IsFailure)

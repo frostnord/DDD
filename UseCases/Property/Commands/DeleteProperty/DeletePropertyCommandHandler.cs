@@ -3,24 +3,23 @@ using Domain.Property.VO;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Repositories;
 
-namespace UseCases.Property.Commands.DeleteProperty
+namespace UseCases.Property.Commands.DeleteProperty;
+
+public class DeletePropertyCommandHandler : ICommandHandler<DeletePropertyCommand>
 {
-    public class DeletePropertyCommandHandler : ICommandHandler<DeletePropertyCommand>
+    private readonly IPropertyRepository _propertyRepository;
+
+    public DeletePropertyCommandHandler(IPropertyRepository propertyRepository)
     {
-        private readonly IPropertyRepository _propertyRepository;
+        _propertyRepository = propertyRepository;
+    }
 
-        public DeletePropertyCommandHandler(IPropertyRepository propertyRepository)
-        {
-            _propertyRepository = propertyRepository;
-        }
+    public async Task<Result> HandleAsync(DeletePropertyCommand command)
+    {
+        var propertyIdVO = PropertyId.Create(command.PropertyId);
+        if (propertyIdVO.IsFailure)
+            return Result.Failure(propertyIdVO.Error);
 
-        public async Task<Result> HandleAsync(DeletePropertyCommand command)
-        {
-            var propertyIdVO = PropertyId.Create(command.PropertyId);
-            if (propertyIdVO.IsFailure)
-                return Result.Failure(propertyIdVO.Error);
-
-            return await _propertyRepository.DeleteAsync(propertyIdVO.Value);
-        }
+        return await _propertyRepository.DeleteAsync(propertyIdVO.Value);
     }
 }

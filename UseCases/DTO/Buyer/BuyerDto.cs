@@ -1,6 +1,5 @@
 using System;
 
-namespace UseCases.DTO.Buyer
-{
-    public record BuyerDto(Guid Id, Guid ClientId, DateTime RegisteredAt);
-}
+namespace UseCases.DTO.Buyer;
+
+public record BuyerDto(Guid Id, Guid ClientId, DateTime RegisteredAt);

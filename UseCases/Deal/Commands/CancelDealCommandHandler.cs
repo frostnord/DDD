@@ -3,21 +3,20 @@ using CSharpFunctionalExtensions;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Services;
 
-namespace UseCases.Deal.Commands
+namespace UseCases.Deal.Commands;
+
+public class CancelDealCommandHandler : ICommandHandler<CancelDealCommand>
 {
-    public class CancelDealCommandHandler : ICommandHandler<CancelDealCommand>
+    private readonly IDealService _dealService;
+
+    public CancelDealCommandHandler(IDealService dealService)
     {
-        private readonly IDealService _dealService;
+        _dealService = dealService;
+    }
 
-        public CancelDealCommandHandler(IDealService dealService)
-        {
-            _dealService = dealService;
-        }
-
-        public async Task<Result> HandleAsync(CancelDealCommand command)
-        {
-            var result = await _dealService.CancelAsync(command.DealId);
-            return result;
-        }
+    public async Task<Result> HandleAsync(CancelDealCommand command)
+    {
+        var result = await _dealService.CancelAsync(command.DealId);
+        return result;
     }
 }

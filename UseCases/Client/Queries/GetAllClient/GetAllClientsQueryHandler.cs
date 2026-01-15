@@ -5,24 +5,23 @@ using Domain.Customers.Client;
 using UseCases.Interfaces.Queries;
 using UseCases.Interfaces.Repositories;
 
-namespace UseCases.Client.Queries.GetAllClient
+namespace UseCases.Client.Queries.GetAllClient;
+
+public class GetAllClientsQueryHandler : IQueryHandler<GetAllClientsQuery, Result<IEnumerable<ClientEntity>>>
 {
-    public class GetAllClientsQueryHandler : IQueryHandler<GetAllClientsQuery, Result<IEnumerable<ClientEntity>>>
+    private readonly IClientRepository _clientRepository;
+
+    public GetAllClientsQueryHandler(IClientRepository clientRepository)
     {
-        private readonly IClientRepository _clientRepository;
+        _clientRepository = clientRepository;
+    }
 
-        public GetAllClientsQueryHandler(IClientRepository clientRepository)
-        {
-            _clientRepository = clientRepository;
-        }
-
-        public async Task<Result<IEnumerable<ClientEntity>>> HandleAsync(GetAllClientsQuery query)
-        {
-            var clients = await _clientRepository.GetAllAsync();
-            if (clients.IsFailure)
-                return Result.Failure<IEnumerable<ClientEntity>>(clients.Error);
-                
-            return clients;
-        }
+    public async Task<Result<IEnumerable<ClientEntity>>> HandleAsync(GetAllClientsQuery query)
+    {
+        var clients = await _clientRepository.GetAllAsync();
+        if (clients.IsFailure)
+            return Result.Failure<IEnumerable<ClientEntity>>(clients.Error);
+            
+        return clients;
     }
 }

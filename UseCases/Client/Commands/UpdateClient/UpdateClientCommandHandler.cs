@@ -6,79 +6,78 @@ using Domain.ValueObjects;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Repositories;
 
-namespace UseCases.Client.Commands.UpdateClient
+namespace UseCases.Client.Commands.UpdateClient;
+
+public class UpdateClientCommandHandler : ICommandHandler<UpdateClientCommand, ClientEntity>
 {
-    public class UpdateClientCommandHandler : ICommandHandler<UpdateClientCommand, ClientEntity>
+    private readonly IClientRepository _clientRepository;
+
+    public UpdateClientCommandHandler(IClientRepository clientRepository)
     {
-        private readonly IClientRepository _clientRepository;
+        _clientRepository = clientRepository;
+    }
 
-        public UpdateClientCommandHandler(IClientRepository clientRepository)
+    public async Task<Result<ClientEntity>> HandleAsync(UpdateClientCommand command)
+    {
+        var clientId = ClientId.Create(command.ClientId);
+        if (clientId.IsFailure)
         {
-            _clientRepository = clientRepository;
+            return Result.Failure<ClientEntity>($"Invalid client ID: {clientId.Error}");
         }
 
-        public async Task<Result<ClientEntity>> HandleAsync(UpdateClientCommand command)
+        var clientResult = await _clientRepository.GetByIdAsync(clientId.Value);
+        if (clientResult.IsFailure)
         {
-            var clientId = ClientId.Create(command.ClientId);
-            if (clientId.IsFailure)
-            {
-                return Result.Failure<ClientEntity>($"Invalid client ID: {clientId.Error}");
-            }
-
-            var clientResult = await _clientRepository.GetByIdAsync(clientId.Value);
-            if (clientResult.IsFailure)
-            {
-                return Result.Failure<ClientEntity>($"Client with ID {command.ClientId} does not exist");
-            }
-
-            var firstNameResult = Name.Create(command.FirstName);
-            if (firstNameResult.IsFailure)
-            {
-                return Result.Failure<ClientEntity>($"Invalid first name: {firstNameResult.Error}");
-            }
-
-            var lastNameResult = Name.Create(command.LastName);
-            if (lastNameResult.IsFailure)
-            {
-                return Result.Failure<ClientEntity>($"Invalid last name: {lastNameResult.Error}");
-            }
-
-            var emailResult = Email.Create(command.Email);
-            if (emailResult.IsFailure)
-            {
-                return Result.Failure<ClientEntity>($"Invalid email: {emailResult.Error}");
-            }
-
-            var phoneNumberResult = PhoneNumber.Create(command.PhoneNumber);
-            if (phoneNumberResult.IsFailure)
-            {
-                return Result.Failure<ClientEntity>($"Invalid phone number: {phoneNumberResult.Error}");
-            }
-
-            var contactInfoResult = ContactInfo.Create(emailResult.Value, phoneNumberResult.Value);
-            if (contactInfoResult.IsFailure)
-            {
-                return Result.Failure<ClientEntity>($"Invalid contact info: {contactInfoResult.Error}");
-            }
-
-            var updateResult = clientResult.Value.UpdateClientData(
-                firstNameResult.Value,
-                lastNameResult.Value,
-                contactInfoResult.Value
-            );
-
-            if (updateResult.IsFailure)
-            {
-                return Result.Failure<ClientEntity>(updateResult.Error);
-            }
-
-            var saveResult = await _clientRepository.UpdateAsync(clientResult.Value);
-            if (saveResult.IsFailure)
-            {
-                return Result.Failure<ClientEntity>(saveResult.Error);
-            }
-
-            return Result.Success(clientResult.Value);
+            return Result.Failure<ClientEntity>($"Client with ID {command.ClientId} does not exist");
         }
+
+        var firstNameResult = Name.Create(command.FirstName);
+        if (firstNameResult.IsFailure)
+        {
+            return Result.Failure<ClientEntity>($"Invalid first name: {firstNameResult.Error}");
+        }
+
+        var lastNameResult = Name.Create(command.LastName);
+        if (lastNameResult.IsFailure)
+        {
+            return Result.Failure<ClientEntity>($"Invalid last name: {lastNameResult.Error}");
+        }
+
+        var emailResult = Email.Create(command.Email);
+        if (emailResult.IsFailure)
+        {
+            return Result.Failure<ClientEntity>($"Invalid email: {emailResult.Error}");
+        }
+
+        var phoneNumberResult = PhoneNumber.Create(command.PhoneNumber);
+        if (phoneNumberResult.IsFailure)
+        {
+            return Result.Failure<ClientEntity>($"Invalid phone number: {phoneNumberResult.Error}");
+        }
+
+        var contactInfoResult = ContactInfo.Create(emailResult.Value, phoneNumberResult.Value);
+        if (contactInfoResult.IsFailure)
+        {
+            return Result.Failure<ClientEntity>($"Invalid contact info: {contactInfoResult.Error}");
+        }
+
+        var updateResult = clientResult.Value.UpdateClientData(
+            firstNameResult.Value,
+            lastNameResult.Value,
+            contactInfoResult.Value
+        );
+
+        if (updateResult.IsFailure)
+        {
+            return Result.Failure<ClientEntity>(updateResult.Error);
+        }
+
+        var saveResult = await _clientRepository.UpdateAsync(clientResult.Value);
+        if (saveResult.IsFailure)
+        {
+            return Result.Failure<ClientEntity>(saveResult.Error);
+        }
+
+        return Result.Success(clientResult.Value);
     }
 }

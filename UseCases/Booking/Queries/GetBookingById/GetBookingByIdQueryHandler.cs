@@ -5,43 +5,42 @@ using UseCases.Interfaces.Queries;
 using UseCases.Interfaces.Repositories;
 using UseCases.UseCases.DTO.Booking;
 
-namespace UseCases.Booking.Queries.GetBookingById
+namespace UseCases.Booking.Queries.GetBookingById;
+
+public class GetBookingByIdQueryHandler : IQueryHandler<GetBookingByIdQuery, Result<BookingDto>>
 {
-    public class GetBookingByIdQueryHandler : IQueryHandler<GetBookingByIdQuery, Result<BookingDto>>
+    private readonly IBookingRepository _bookingRepository;
+
+    public GetBookingByIdQueryHandler(IBookingRepository bookingRepository)
     {
-        private readonly IBookingRepository _bookingRepository;
+        _bookingRepository = bookingRepository;
+    }
 
-        public GetBookingByIdQueryHandler(IBookingRepository bookingRepository)
+    public async Task<Result<BookingDto>> HandleAsync(GetBookingByIdQuery query)
+    {
+        var bookingIdResult = BookingId.Create(query.BookingId);
+        if (bookingIdResult.IsFailure)
         {
-            _bookingRepository = bookingRepository;
+            return Result.Failure<BookingDto>(bookingIdResult.Error);
         }
 
-        public async Task<Result<BookingDto>> HandleAsync(GetBookingByIdQuery query)
+        var bookingResult = await _bookingRepository.GetByIdAsync(bookingIdResult.Value);
+        if (bookingResult.IsFailure)
         {
-            var bookingIdResult = BookingId.Create(query.BookingId);
-            if (bookingIdResult.IsFailure)
-            {
-                return Result.Failure<BookingDto>(bookingIdResult.Error);
-            }
-
-            var bookingResult = await _bookingRepository.GetByIdAsync(bookingIdResult.Value);
-            if (bookingResult.IsFailure)
-            {
-                return Result.Failure<BookingDto>(bookingResult.Error);
-            }
-
-            var entity = bookingResult.Value;
-            var dto = new BookingDto(
-                entity.Id.Value,
-                entity.ClientId.Value,
-                entity.PropertyId.Value,
-                entity.BookingPeriod.StartDate,
-                entity.BookingPeriod.EndDate,
-                entity.TotalPrice.Value,
-                entity.CreatedAt,
-                entity.UpdatedAt);
-
-            return Result.Success(dto);
+            return Result.Failure<BookingDto>(bookingResult.Error);
         }
+
+        var entity = bookingResult.Value;
+        var dto = new BookingDto(
+            entity.Id.Value,
+            entity.ClientId.Value,
+            entity.PropertyId.Value,
+            entity.BookingPeriod.StartDate,
+            entity.BookingPeriod.EndDate,
+            entity.TotalPrice.Value,
+            entity.CreatedAt,
+            entity.UpdatedAt);
+
+        return Result.Success(dto);
     }
 }

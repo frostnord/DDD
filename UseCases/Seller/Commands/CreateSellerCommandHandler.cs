@@ -7,48 +7,47 @@ using Domain.Customers.Seller.VO;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Repositories;
 
-namespace UseCases.Seller.Commands
+namespace UseCases.Seller.Commands;
+
+public class CreateSellerCommandHandler : ICommandHandler<CreateSellerCommand, Guid>
 {
-    public class CreateSellerCommandHandler : ICommandHandler<CreateSellerCommand, Guid>
+    private readonly ISellerRepository _sellerRepository;
+    private readonly IClientRepository _clientRepository;
+
+    public CreateSellerCommandHandler(
+        ISellerRepository sellerRepository,
+        IClientRepository clientRepository)
     {
-        private readonly ISellerRepository _sellerRepository;
-        private readonly IClientRepository _clientRepository;
+        _sellerRepository = sellerRepository;
+        _clientRepository = clientRepository;
+    }
 
-        public CreateSellerCommandHandler(
-            ISellerRepository sellerRepository,
-            IClientRepository clientRepository)
+    public async Task<Result<Guid>> HandleAsync(CreateSellerCommand command)
+    {
+        var clientIdResult = ClientId.Create(command.ClientId);
+        if (clientIdResult.IsFailure)
         {
-            _sellerRepository = sellerRepository;
-            _clientRepository = clientRepository;
+            return Result.Failure<Guid>(clientIdResult.Error);
         }
 
-        public async Task<Result<Guid>> HandleAsync(CreateSellerCommand command)
+        var clientResult = await _clientRepository.GetByIdAsync(clientIdResult.Value);
+        if (clientResult.IsFailure)
         {
-            var clientIdResult = ClientId.Create(command.ClientId);
-            if (clientIdResult.IsFailure)
-            {
-                return Result.Failure<Guid>(clientIdResult.Error);
-            }
-
-            var clientResult = await _clientRepository.GetByIdAsync(clientIdResult.Value);
-            if (clientResult.IsFailure)
-            {
-                return Result.Failure<Guid>($"Client with ID {command.ClientId} does not exist");
-            }
-
-            var seller = SellerEntity.Create(clientIdResult.Value);
-            if (seller.IsFailure)
-            {
-                return Result.Failure<Guid>(seller.Error);
-            }
-
-            var saveResult = await _sellerRepository.AddAsync(seller.Value);
-            if (saveResult.IsFailure)
-            {
-                return Result.Failure<Guid>(saveResult.Error);
-            }
-
-            return Result.Success(seller.Value.Id.Value);
+            return Result.Failure<Guid>($"Client with ID {command.ClientId} does not exist");
         }
+
+        var seller = SellerEntity.Create(clientIdResult.Value);
+        if (seller.IsFailure)
+        {
+            return Result.Failure<Guid>(seller.Error);
+        }
+
+        var saveResult = await _sellerRepository.AddAsync(seller.Value);
+        if (saveResult.IsFailure)
+        {
+            return Result.Failure<Guid>(saveResult.Error);
+        }
+
+        return Result.Success(seller.Value.Id.Value);
     }
 }
