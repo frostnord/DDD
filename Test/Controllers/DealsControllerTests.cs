@@ -2,51 +2,58 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
+using AutoMapper;
 using CSharpFunctionalExtensions;
 using Domain.Booking.VO;
 using Domain.Customers.Client.VO;
 using Domain.Deal;
 using Domain.Property.VO;
-using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Presenter.Controllers;
 using Presenter.DTOs.DealDTO;
 using Presenter.Utilities;
 using UseCases.CompleteDeal;
-using UseCases.Deal;
 using UseCases.Deal.Commands;
+using UseCases.Deal.Queries.GetDealById;
+using UseCases.Deal.Queries.SearchDealsQuery;
 using UseCases.Interfaces.Commands;
-using UseCases.Interfaces.Repositories;
-using UseCases.Interfaces.Services;
+using UseCases.Interfaces.Queries;
+using UseCasesDealDto = UseCases.UseCases.DTO.Deal.DealDto;
 using Xunit;
 
 namespace Test.Controllers
 {
     public class DealsControllerTests
     {
-        private readonly Mock<ICommandHandler<CreateDealCommand, DealEntity>> _mockCreateDealHandler;
+        private readonly Mock<ICommandHandler<CreateDealCommand, Guid>> _mockCreateDealHandler;
         private readonly Mock<ICommandHandler<ConfirmDealCommand>> _mockConfirmDealHandler;
         private readonly Mock<ICommandHandler<CompleteDealCommand>> _mockCompleteDealHandler;
         private readonly Mock<ICommandHandler<CancelDealCommand>> _mockCancelDealHandler;
-        private readonly Mock<IDealService> _mockDealService;
+        private readonly Mock<IQueryHandler<GetDealByIdQuery, Result<UseCasesDealDto>>> _mockGetDealByIdHandler;
+        private readonly Mock<IQueryHandler<SearchDealsQuery, Result<SearchDealsQueryResponse>>> _mockSearchDealsHandler;
+        private readonly Mock<IMapper> _mockMapper;
         private readonly DealsController _controller;
 
         public DealsControllerTests()
         {
-            _mockCreateDealHandler = new Mock<ICommandHandler<CreateDealCommand, DealEntity>>();
+            _mockCreateDealHandler = new Mock<ICommandHandler<CreateDealCommand, Guid>>();
             _mockConfirmDealHandler = new Mock<ICommandHandler<ConfirmDealCommand>>();
             _mockCompleteDealHandler = new Mock<ICommandHandler<CompleteDealCommand>>();
             _mockCancelDealHandler = new Mock<ICommandHandler<CancelDealCommand>>();
-            _mockDealService = new Mock<IDealService>();
+            _mockGetDealByIdHandler = new Mock<IQueryHandler<GetDealByIdQuery, Result<UseCasesDealDto>>>();
+            _mockSearchDealsHandler = new Mock<IQueryHandler<SearchDealsQuery, Result<SearchDealsQueryResponse>>>();
+            _mockMapper = new Mock<IMapper>();
             _controller = new DealsController(
                 _mockCreateDealHandler.Object,
                 _mockConfirmDealHandler.Object,
                 _mockCompleteDealHandler.Object,
                 _mockCancelDealHandler.Object,
-                _mockDealService.Object);
+                _mockGetDealByIdHandler.Object,
+                _mockSearchDealsHandler.Object,
+                _mockMapper.Object);
         }
 
-        private static DealEntity CreateDealEntity(Guid? clientId = null, Guid? propertyId = null, Guid? bookingId = null, DealDetails details = null)
+        private static DealEntity CreateDealEntity(Guid? clientId = null, Guid? propertyId = null, Guid? bookingId = null, DealDetails? details = null)
         {
             var clientIdValue = ClientId.Create(clientId ?? Guid.NewGuid()).Value;
             var propertyIdValue = PropertyId.Create(propertyId ?? Guid.NewGuid()).Value;
@@ -61,18 +68,18 @@ namespace Test.Controllers
                 DateTime.UtcNow,
                 Domain.ValueObjects.Price.Create(1000).Value,
                 "Test deal",
-                null).Value;
+                string.Empty).Value;
 
             return DealEntity.Create(clientIdValue, propertyIdValue, bookingIdValue, dealDetails).Value;
         }
 
-        private static IEnumerable<DealDto> ExtractItems(dynamic response)
+        private static IEnumerable<DealResponse> ExtractItems(dynamic response)
         {
             var itemsProperty = response.GetType().GetProperty("Items", BindingFlags.Instance | BindingFlags.Public);
             Assert.NotNull(itemsProperty);
 
             var value = itemsProperty.GetValue(response);
-            return Assert.IsAssignableFrom<IEnumerable<DealDto>>(value);
+            return Assert.IsAssignableFrom<IEnumerable<DealResponse>>(value);
         }
 
         [Fact]
@@ -84,19 +91,15 @@ namespace Test.Controllers
                 ClientId = Guid.NewGuid(),
                 PropertyId = Guid.NewGuid(),
                 BookingId = Guid.NewGuid(),
-                Details = DealDetails.Create(DateTime.UtcNow, Domain.ValueObjects.Price.Create(1000).Value, "Test deal", null).Value
+                Details = DealDetails.Create(DateTime.UtcNow, Domain.ValueObjects.Price.Create(1000).Value, "Test deal", string.Empty).Value
             };
 
-            var dealId = DealId.Create(Guid.NewGuid()).Value;
-            var clientId = ClientId.Create(request.ClientId).Value;
-            var propertyId = PropertyId.Create(request.PropertyId).Value;
-            var bookingId = request.BookingId.HasValue ? BookingId.Create(request.BookingId.Value).Value : null;
-            
-            var deal = DealEntity.Create(clientId, propertyId, bookingId, request.Details).Value;
-            deal.Confirm(); // Для установки статуса, если нужно
+            var command = new CreateDealCommand(request.ClientId, request.PropertyId, request.BookingId, request.Details);
+            _mockMapper.Setup(m => m.Map<CreateDealCommand>(request)).Returns(command);
 
-            var result = Result.Success<DealEntity>(deal);
-            _mockCreateDealHandler.Setup(x => x.HandleAsync(It.IsAny<CreateDealCommand>()))
+            var createdDealId = Guid.NewGuid();
+            var result = Result.Success(createdDealId);
+            _mockCreateDealHandler.Setup(x => x.HandleAsync(command))
                 .ReturnsAsync(result);
 
             // Act
@@ -105,11 +108,8 @@ namespace Test.Controllers
 
             // Assert
             Assert.Equal((int)System.Net.HttpStatusCode.Created, envelope.Status);
-            var dto = Assert.IsType<DealDto>(envelope.Result);
-            Assert.Equal(deal.Id.Value, dto.Id);
-            Assert.Equal(deal.ClientId.Value, dto.ClientId);
-            Assert.Equal(deal.PropertyId.Value, dto.PropertyId);
-            Assert.Equal(deal.BookingId?.Value, dto.BookingId);
+            Assert.IsType<Guid>(envelope.Result);
+            Assert.Equal(createdDealId, (Guid)envelope.Result);
         }
 
         [Fact]
@@ -121,11 +121,14 @@ namespace Test.Controllers
                 ClientId = Guid.NewGuid(),
                 PropertyId = Guid.NewGuid(),
                 BookingId = Guid.NewGuid(),
-                Details = DealDetails.Create(DateTime.UtcNow, Domain.ValueObjects.Price.Create(1000).Value, "Test deal", null).Value
+                Details = DealDetails.Create(DateTime.UtcNow, Domain.ValueObjects.Price.Create(1000).Value, "Test deal", string.Empty).Value
             };
 
-            var errorResult = Result.Failure<DealEntity>("Validation error");
-            _mockCreateDealHandler.Setup(x => x.HandleAsync(It.IsAny<CreateDealCommand>()))
+            var command = new CreateDealCommand(request.ClientId, request.PropertyId, request.BookingId, request.Details);
+            _mockMapper.Setup(m => m.Map<CreateDealCommand>(request)).Returns(command);
+
+            var errorResult = Result.Failure<Guid>("Validation error");
+            _mockCreateDealHandler.Setup(x => x.HandleAsync(command))
                 .ReturnsAsync(errorResult);
 
             // Act
@@ -142,30 +145,49 @@ namespace Test.Controllers
         {
             // Arrange
             var dealIdGuid = Guid.NewGuid();
-            var dealId = DealId.Create(dealIdGuid).Value;
             var clientId = ClientId.Create(Guid.NewGuid()).Value;
             var propertyId = PropertyId.Create(Guid.NewGuid()).Value;
             var bookingId = BookingId.Create(Guid.NewGuid()).Value;
-            var details = DealDetails.Create(DateTime.UtcNow, Domain.ValueObjects.Price.Create(100).Value, "Test deal", null).Value;
+            var details = DealDetails.Create(DateTime.UtcNow, Domain.ValueObjects.Price.Create(100).Value, "Test deal", string.Empty).Value;
             
             var deal = DealEntity.Create(clientId, propertyId, bookingId, details).Value;
 
-            var result = Result.Success<DealEntity>(deal);
-            _mockDealService.Setup(x => x.GetByIdAsync(dealIdGuid))
-                .ReturnsAsync(result);
+            var useCasesDto = new UseCasesDealDto(
+                deal.Id.Value,
+                deal.ClientId.Value,
+                deal.PropertyId.Value,
+                deal.BookingId?.Value,
+                deal.Details,
+                deal.Status.Name,
+                deal.CreatedAt,
+                deal.UpdatedAt);
+
+            var presenterDto = new DealResponse(
+                useCasesDto.Id,
+                useCasesDto.ClientId,
+                useCasesDto.PropertyId,
+                useCasesDto.BookingId,
+                useCasesDto.Details,
+                useCasesDto.Status,
+                useCasesDto.CreatedAt,
+                useCasesDto.UpdatedAt);
+
+            _mockGetDealByIdHandler
+                .Setup(x => x.HandleAsync(It.Is<GetDealByIdQuery>(q => q.DealId == dealIdGuid)))
+                .ReturnsAsync(Result.Success(useCasesDto));
+            _mockMapper.Setup(m => m.Map<DealResponse>(useCasesDto)).Returns(presenterDto);
 
             // Act
             var actionResult = await _controller.GetDeal(dealIdGuid);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(actionResult);
-            var dealDto = Assert.IsType<DealDto>(envelope.Result);
+            var dealDto = Assert.IsType<DealResponse>(envelope.Result);
             Assert.Equal(deal.Id.Value, dealDto.Id);
             Assert.Equal(deal.ClientId.Value, dealDto.ClientId);
             Assert.Equal(deal.PropertyId.Value, dealDto.PropertyId);
             Assert.Equal(deal.BookingId?.Value, dealDto.BookingId);
             Assert.Equal(deal.Status.Name, dealDto.Status);
-            _mockDealService.Verify(x => x.GetByIdAsync(dealIdGuid), Times.Once);
         }
 
         [Fact]
@@ -174,8 +196,9 @@ namespace Test.Controllers
             // Arrange
             var dealId = Guid.NewGuid();
 
-            var errorResult = Result.Failure<DealEntity>("Deal not found");
-            _mockDealService.Setup(x => x.GetByIdAsync(dealId))
+            var errorResult = Result.Failure<UseCasesDealDto>("Deal not found");
+            _mockGetDealByIdHandler
+                .Setup(x => x.HandleAsync(It.Is<GetDealByIdQuery>(q => q.DealId == dealId)))
                 .ReturnsAsync(errorResult);
 
             // Act
@@ -193,8 +216,7 @@ namespace Test.Controllers
             // Arrange
             var clientId = Guid.NewGuid();
             var query = new SearchDealsQuery(clientId, null);
-            var details = DealDetails.Create(DateTime.UtcNow, Domain.ValueObjects.Price.Create(100).Value, "Test deal", null).Value;
-            var dealId = DealId.Create(Guid.NewGuid()).Value;
+            var details = DealDetails.Create(DateTime.UtcNow, Domain.ValueObjects.Price.Create(100).Value, "Test deal", string.Empty).Value;
             var clientIdVO = ClientId.Create(clientId).Value;
             var propertyIdVO = PropertyId.Create(Guid.NewGuid()).Value;
             var bookingIdVO = BookingId.Create(Guid.NewGuid()).Value;
@@ -203,22 +225,48 @@ namespace Test.Controllers
             
             var dealsList = new List<DealEntity> { deal };
 
-            var result = Result.Success<IEnumerable<DealEntity>>(dealsList);
-            _mockDealService.Setup(x => x.GetByClientIdAsync(clientId))
-                .ReturnsAsync(result);
+            var useCasesDtos = dealsList.ConvertAll(d => new UseCasesDealDto(
+                d.Id.Value,
+                d.ClientId.Value,
+                d.PropertyId.Value,
+                d.BookingId?.Value,
+                d.Details,
+                d.Status.Name,
+                d.CreatedAt,
+                d.UpdatedAt));
+
+            var presenterDtos = useCasesDtos.ConvertAll(d => new DealResponse(
+                d.Id,
+                d.ClientId,
+                d.PropertyId,
+                d.BookingId,
+                d.Details,
+                d.Status,
+                d.CreatedAt,
+                d.UpdatedAt));
+
+            _mockSearchDealsHandler
+                .Setup(x => x.HandleAsync(It.Is<SearchDealsQuery>(q => q.ClientId == clientId && q.PropertyId == null)))
+                .ReturnsAsync(Result.Success(new SearchDealsQueryResponse(useCasesDtos, 1, 10, 1)));
+
+            _mockMapper
+                .Setup(m => m.Map<IEnumerable<DealResponse>>(useCasesDtos))
+                .Returns(presenterDtos);
 
             // Act
             var actionResult = await _controller.GetDeals(query);
             var envelope = Assert.IsType<Envelope>(actionResult);
 
             // Assert
-            var response = envelope.Result as dynamic;
-            Assert.NotNull(response);
-            var items = ExtractItems(response);
-            var singleItem = Assert.Single(items);
+            var response = Assert.IsType<PagedDealsResponse>(envelope.Result);
+            var singleItem = Assert.Single(response.Items);
             Assert.Equal(deal.Id.Value, singleItem.Id);
             Assert.Equal(deal.ClientId.Value, singleItem.ClientId);
             Assert.Equal(deal.PropertyId.Value, singleItem.PropertyId);
+            Assert.Equal(1, response.TotalCount);
+            Assert.Equal(10, response.PageSize);
+            Assert.Equal(1, response.TotalPages);
+            Assert.Equal(1, response.CurrentPage);
         }
 
         [Fact]
@@ -227,8 +275,7 @@ namespace Test.Controllers
             // Arrange
             var propertyId = Guid.NewGuid();
             var query = new SearchDealsQuery(null, propertyId);
-            var details = DealDetails.Create(DateTime.UtcNow, Domain.ValueObjects.Price.Create(100).Value, "Test deal", null).Value;
-            var dealId = DealId.Create(Guid.NewGuid()).Value;
+            var details = DealDetails.Create(DateTime.UtcNow, Domain.ValueObjects.Price.Create(100).Value, "Test deal", string.Empty).Value;
             var clientIdVO = ClientId.Create(Guid.NewGuid()).Value;
             var propertyIdVO = PropertyId.Create(propertyId).Value;
             var bookingIdVO = BookingId.Create(Guid.NewGuid()).Value;
@@ -237,22 +284,48 @@ namespace Test.Controllers
             
             var dealsList = new List<DealEntity> { deal };
 
-            var result = Result.Success<IEnumerable<DealEntity>>(dealsList);
-            _mockDealService.Setup(x => x.GetByPropertyIdAsync(propertyId))
-                .ReturnsAsync(result);
+            var useCasesDtos = dealsList.ConvertAll(d => new UseCasesDealDto(
+                d.Id.Value,
+                d.ClientId.Value,
+                d.PropertyId.Value,
+                d.BookingId?.Value,
+                d.Details,
+                d.Status.Name,
+                d.CreatedAt,
+                d.UpdatedAt));
+
+            var presenterDtos = useCasesDtos.ConvertAll(d => new DealResponse(
+                d.Id,
+                d.ClientId,
+                d.PropertyId,
+                d.BookingId,
+                d.Details,
+                d.Status,
+                d.CreatedAt,
+                d.UpdatedAt));
+
+            _mockSearchDealsHandler
+                .Setup(x => x.HandleAsync(It.Is<SearchDealsQuery>(q => q.ClientId == null && q.PropertyId == propertyId)))
+                .ReturnsAsync(Result.Success(new SearchDealsQueryResponse(useCasesDtos, 1, 10, 1)));
+
+            _mockMapper
+                .Setup(m => m.Map<IEnumerable<DealResponse>>(useCasesDtos))
+                .Returns(presenterDtos);
 
             // Act
             var actionResult = await _controller.GetDeals(query);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(actionResult);
-            var response = envelope.Result as dynamic;
-            Assert.NotNull(response);
-            var items = ExtractItems(response);
-            var singleItem = Assert.Single(items);
+            var response = Assert.IsType<PagedDealsResponse>(envelope.Result);
+            var singleItem = Assert.Single(response.Items);
             Assert.Equal(deal.Id.Value, singleItem.Id);
             Assert.Equal(deal.ClientId.Value, singleItem.ClientId);
             Assert.Equal(deal.PropertyId.Value, singleItem.PropertyId);
+            Assert.Equal(1, response.TotalCount);
+            Assert.Equal(10, response.PageSize);
+            Assert.Equal(1, response.TotalPages);
+            Assert.Equal(1, response.CurrentPage);
         }
 
         [Fact]
@@ -260,6 +333,10 @@ namespace Test.Controllers
         {
             // Arrange
             var query = new SearchDealsQuery(null, null);
+
+            _mockSearchDealsHandler
+                .Setup(x => x.HandleAsync(It.Is<SearchDealsQuery>(q => q.ClientId == null && q.PropertyId == null)))
+                .ReturnsAsync(Result.Failure<SearchDealsQueryResponse>("Нужен id клиента или недвижимости"));
 
             // Act
             var actionResult = await _controller.GetDeals(query);
@@ -285,8 +362,7 @@ namespace Test.Controllers
 
             // Assert
             var envelope = Assert.IsType<Envelope>(actionResult);
-            Assert.Equal((int)System.Net.HttpStatusCode.OK, envelope.Status);
-            Assert.Contains("Deal confirmed successfully", envelope.Result.ToString());
+            Assert.Equal((int)System.Net.HttpStatusCode.NoContent, envelope.Status);
         }
 
         [Fact]
@@ -323,8 +399,7 @@ namespace Test.Controllers
 
             // Assert
             var envelope = Assert.IsType<Envelope>(actionResult);
-            Assert.Equal((int)System.Net.HttpStatusCode.OK, envelope.Status);
-            Assert.Contains("Deal completed successfully", envelope.Result.ToString());
+            Assert.Equal((int)System.Net.HttpStatusCode.NoContent, envelope.Status);
         }
 
         [Fact]
@@ -361,8 +436,7 @@ namespace Test.Controllers
 
             // Assert
             var envelope = Assert.IsType<Envelope>(actionResult);
-            Assert.Equal((int)System.Net.HttpStatusCode.OK, envelope.Status);
-            Assert.Contains("Deal cancelled successfully", envelope.Result.ToString());
+            Assert.Equal((int)System.Net.HttpStatusCode.NoContent, envelope.Status);
         }
 
         [Fact]

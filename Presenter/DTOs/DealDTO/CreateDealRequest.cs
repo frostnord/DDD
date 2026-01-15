@@ -7,7 +7,7 @@ namespace Presenter.DTOs.DealDTO
     /// <summary>
     /// Запрос на создание сделки
     /// </summary>
-    public class CreateDealRequest
+    public record CreateDealRequest
     {
         /// <summary>
         /// Идентификатор клиента, участвующего в сделке

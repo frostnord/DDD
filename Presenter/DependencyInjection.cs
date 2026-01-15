@@ -29,6 +29,8 @@ using UseCases.Client.Queries.GetClientById;
 using UseCases.CompleteDeal;
 using UseCases.Deal;
 using UseCases.Deal.Commands;
+using UseCases.Deal.Queries.GetDealById;
+using UseCases.Deal.Queries.SearchDealsQuery;
 using UseCases.Interfaces;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Queries;
@@ -65,7 +67,7 @@ namespace Presenter
             services.AddScoped<ICommandHandler<UpdatePropertyCommand>, UpdatePropertyCommandHandler>();
             services.AddScoped<ICommandHandler<DeletePropertyCommand>, DeletePropertyCommandHandler>();
 
-            services.AddScoped<ICommandHandler<CreateDealCommand, DealEntity>, CreateDealCommandHandler>();
+            services.AddScoped<ICommandHandler<CreateDealCommand, Guid>, CreateDealCommandHandler>();
             services.AddScoped<ICommandHandler<CreateBuyerCommand, Guid>, CreateBuyerCommandHandler>();
             services.AddScoped<ICommandHandler<CreateSellerCommand, Guid>, CreateSellerCommandHandler>();
             services.AddScoped<ICommandHandler<CreateBookingCommand, Guid>, CreateBookingCommandHandler>();
@@ -90,6 +92,8 @@ namespace Presenter
             services.AddScoped<IQueryHandler<SearchPropertiesQuery, Result<SearchPropertiesQueryResponse>>, SearchPropertiesQueryHandler>();
             services.AddScoped<IQueryHandler<GetBookingByIdQuery, Result<UseCases.UseCases.DTO.Booking.BookingDto>>, GetBookingByIdQueryHandler>();
             services.AddScoped<IQueryHandler<SearchBookingsQuery, Result<SearchBookingsQueryResponse>>, SearchBookingsQueryHandler>();
+            services.AddScoped<IQueryHandler<GetDealByIdQuery, Result<UseCases.UseCases.DTO.Deal.DealDto>>, GetDealByIdQueryHandler>();
+            services.AddScoped<IQueryHandler<SearchDealsQuery, Result<SearchDealsQueryResponse>>, SearchDealsQueryHandler>();
             
             // Регистрация обработчиков запросов для клиентов
             services.AddScoped<IQueryHandler<GetClientByIdQuery, Result<Domain.Customers.Client.ClientEntity>>, GetClientByIdQueryHandler>();

@@ -6,7 +6,7 @@ namespace Presenter.DTOs.DealDTO
     /// <summary>
     /// DTO для представления информации о сделке
     /// </summary>
-    public record DealDto(
+    public record DealResponse(
         Guid Id,
         Guid ClientId,
         Guid PropertyId,

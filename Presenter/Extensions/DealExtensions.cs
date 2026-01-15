@@ -6,9 +6,9 @@ namespace Presenter.Extensions
 {
     public static class DealExtensions
     {
-        public static DealDto ToDTO(this DealEntity deal)
+        public static DealResponse ToDTO(this DealEntity deal)
         {
-            return new DealDto
+            return new DealResponse
             (
                 deal.Id.Value,
                 deal.ClientId.Value,
