@@ -2,15 +2,21 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
+using AutoMapper;
+using CSharpFunctionalExtensions;
 using Domain.Deal;
 using Microsoft.AspNetCore.Mvc;
 using Presenter.DTOs.CompletedDealDTO;
-using Presenter.Extensions;
 using Presenter.Utilities;
 using UseCases.CompleteDeal;
+using UseCases.CompleteDeal.Commands.DeleteCompletedDeal;
+using UseCases.CompleteDeal.Queries.GetAllCompletedDeals;
+using UseCases.CompleteDeal.Queries.GetCompletedDealById;
+using UseCases.CompleteDeal.Queries.GetCompletedDealsByClientId;
+using UseCases.CompleteDeal.Queries.GetCompletedDealsByPropertyId;
 using UseCases.Interfaces.Commands;
-using UseCases.Interfaces.Services;
+using UseCases.Interfaces.Queries;
+using UseCasesCompletedDealDto = UseCases.UseCases.DTO.CompletedDeal.CompletedDealDto;
 
 namespace Presenter.Controllers
 {
@@ -23,14 +29,29 @@ namespace Presenter.Controllers
     public class CompletedDealsController : ControllerBase
     {
         private readonly ICommandHandler<CreateCompleteDealCommand, CompletedDealEntity> _createCompleteDealHandler;
-        private readonly ICompletedDealService _completedDealService;
+        private readonly ICommandHandler<DeleteCompletedDealCommand> _deleteCompletedDealHandler;
+        private readonly IQueryHandler<GetCompletedDealByIdQuery, Result<UseCasesCompletedDealDto>> _getCompletedDealByIdHandler;
+        private readonly IQueryHandler<GetAllCompletedDealsQuery, Result<IEnumerable<UseCasesCompletedDealDto>>> _getAllCompletedDealsHandler;
+        private readonly IQueryHandler<GetCompletedDealsByClientIdQuery, Result<IEnumerable<UseCasesCompletedDealDto>>> _getCompletedDealsByClientIdHandler;
+        private readonly IQueryHandler<GetCompletedDealsByPropertyIdQuery, Result<IEnumerable<UseCasesCompletedDealDto>>> _getCompletedDealsByPropertyIdHandler;
+        private readonly IMapper _mapper;
 
         public CompletedDealsController(
             ICommandHandler<CreateCompleteDealCommand, CompletedDealEntity> createCompleteDealHandler,
-            ICompletedDealService completedDealService)
+            ICommandHandler<DeleteCompletedDealCommand> deleteCompletedDealHandler,
+            IQueryHandler<GetCompletedDealByIdQuery, Result<UseCasesCompletedDealDto>> getCompletedDealByIdHandler,
+            IQueryHandler<GetAllCompletedDealsQuery, Result<IEnumerable<UseCasesCompletedDealDto>>> getAllCompletedDealsHandler,
+            IQueryHandler<GetCompletedDealsByClientIdQuery, Result<IEnumerable<UseCasesCompletedDealDto>>> getCompletedDealsByClientIdHandler,
+            IQueryHandler<GetCompletedDealsByPropertyIdQuery, Result<IEnumerable<UseCasesCompletedDealDto>>> getCompletedDealsByPropertyIdHandler,
+            IMapper mapper)
         {
             _createCompleteDealHandler = createCompleteDealHandler;
-            _completedDealService = completedDealService;
+            _deleteCompletedDealHandler = deleteCompletedDealHandler;
+            _getCompletedDealByIdHandler = getCompletedDealByIdHandler;
+            _getAllCompletedDealsHandler = getAllCompletedDealsHandler;
+            _getCompletedDealsByClientIdHandler = getCompletedDealsByClientIdHandler;
+            _getCompletedDealsByPropertyIdHandler = getCompletedDealsByPropertyIdHandler;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -44,13 +65,7 @@ namespace Presenter.Controllers
         [HttpPost]
         public async Task<Envelope> CreateCompletedDeal([FromBody] CreateCompletedDealRequest request)
         {
-            var command = new CreateCompleteDealCommand(
-                request.BuyerClientId,
-                request.SellerClientId,
-                request.PropertyId,
-                request.DealDate,
-                request.DealAmount,
-                request.DealType);
+            var command = _mapper.Map<CreateCompleteDealCommand>(request);
 
             var result = await _createCompleteDealHandler.HandleAsync(command);
 
@@ -59,7 +74,8 @@ namespace Presenter.Controllers
                 return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            return new Envelope(HttpStatusCode.Created, result.Value.ToDto());
+            var response = _mapper.Map<CompletedDealDto>(result.Value);
+            return new Envelope(HttpStatusCode.Created, response);
         }
 
         /// <summary>
@@ -72,13 +88,15 @@ namespace Presenter.Controllers
         [HttpGet("{id}")]
         public async Task<Envelope> GetCompletedDeal(Guid id)
         {
-            var result = await _completedDealService.GetByIdAsync(id);
+            var query = new GetCompletedDealByIdQuery(id);
+            var result = await _getCompletedDealByIdHandler.HandleAsync(query);
             if (result.IsFailure)
             {
                 return new Envelope(HttpStatusCode.NotFound, error: result.Error);
             }
 
-            return new Envelope(result.Value.ToDto());
+            var response = _mapper.Map<CompletedDealDto>(result.Value);
+            return new Envelope(response);
         }
 
         /// <summary>
@@ -90,13 +108,14 @@ namespace Presenter.Controllers
         [HttpGet]
         public async Task<Envelope> GetAllCompletedDeals()
         {
-            var result = await _completedDealService.GetAllAsync();
+            var result = await _getAllCompletedDealsHandler.HandleAsync(new GetAllCompletedDealsQuery());
             if (result.IsFailure)
             {
                 return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            return new Envelope(result.Value.Select(d => d.ToDto()));
+            var items = _mapper.Map<IEnumerable<CompletedDealDto>>(result.Value);
+            return new Envelope(items);
         }
 
         /// <summary>
@@ -109,13 +128,15 @@ namespace Presenter.Controllers
         [HttpGet("by-client/{clientId}")]
         public async Task<Envelope> GetCompletedDealsByClient(Guid clientId)
         {
-            var result = await _completedDealService.GetByClientIdAsync(clientId);
+            var query = new GetCompletedDealsByClientIdQuery(clientId);
+            var result = await _getCompletedDealsByClientIdHandler.HandleAsync(query);
             if (result.IsFailure)
             {
                 return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            return new Envelope(result.Value.Select(d => d.ToDto()));
+            var items = _mapper.Map<IEnumerable<CompletedDealDto>>(result.Value);
+            return new Envelope(items);
         }
 
         /// <summary>
@@ -128,13 +149,15 @@ namespace Presenter.Controllers
         [HttpGet("by-property/{propertyId}")]
         public async Task<Envelope> GetCompletedDealsByProperty(Guid propertyId)
         {
-            var result = await _completedDealService.GetByPropertyIdAsync(propertyId);
+            var query = new GetCompletedDealsByPropertyIdQuery(propertyId);
+            var result = await _getCompletedDealsByPropertyIdHandler.HandleAsync(query);
             if (result.IsFailure)
             {
                 return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            return new Envelope(result.Value.Select(d => d.ToDto()));
+            var items = _mapper.Map<IEnumerable<CompletedDealDto>>(result.Value);
+            return new Envelope(items);
         }
 
         /// <summary>
@@ -147,7 +170,8 @@ namespace Presenter.Controllers
         [HttpDelete("{id}")]
         public async Task<Envelope> DeleteCompletedDeal(Guid id)
         {
-            var result = await _completedDealService.DeleteAsync(id);
+            var command = new DeleteCompletedDealCommand(id);
+            var result = await _deleteCompletedDealHandler.HandleAsync(command);
             if (result.IsFailure)
             {
                 return new Envelope(HttpStatusCode.NotFound, error: result.Error);

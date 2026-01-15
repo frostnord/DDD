@@ -27,6 +27,11 @@ using UseCases.Client.Queries;
 using UseCases.Client.Queries.GetAllClient;
 using UseCases.Client.Queries.GetClientById;
 using UseCases.CompleteDeal;
+using UseCases.CompleteDeal.Commands.DeleteCompletedDeal;
+using UseCases.CompleteDeal.Queries.GetAllCompletedDeals;
+using UseCases.CompleteDeal.Queries.GetCompletedDealById;
+using UseCases.CompleteDeal.Queries.GetCompletedDealsByClientId;
+using UseCases.CompleteDeal.Queries.GetCompletedDealsByPropertyId;
 using UseCases.Deal;
 using UseCases.Deal.Commands;
 using UseCases.Deal.Queries.GetDealById;
@@ -76,6 +81,7 @@ namespace Presenter
             services
                 .AddScoped<ICommandHandler<CreateCompleteDealCommand, CompletedDealEntity>,
                     CreateCompleteDealCommandHandler>();
+            services.AddScoped<ICommandHandler<DeleteCompletedDealCommand>, DeleteCompletedDealCommandHandler>();
             services.AddScoped<ICommandHandler<ConfirmDealCommand>, ConfirmDealCommandHandler>();
             services.AddScoped<ICommandHandler<CompleteDealCommand>, CompleteDealCommandHandler>();
             services.AddScoped<ICommandHandler<CancelDealCommand>, CancelDealCommandHandler>();
@@ -94,6 +100,10 @@ namespace Presenter
             services.AddScoped<IQueryHandler<SearchBookingsQuery, Result<SearchBookingsQueryResponse>>, SearchBookingsQueryHandler>();
             services.AddScoped<IQueryHandler<GetDealByIdQuery, Result<UseCases.UseCases.DTO.Deal.DealDto>>, GetDealByIdQueryHandler>();
             services.AddScoped<IQueryHandler<SearchDealsQuery, Result<SearchDealsQueryResponse>>, SearchDealsQueryHandler>();
+            services.AddScoped<IQueryHandler<GetCompletedDealByIdQuery, Result<UseCases.UseCases.DTO.CompletedDeal.CompletedDealDto>>, GetCompletedDealByIdQueryHandler>();
+            services.AddScoped<IQueryHandler<GetAllCompletedDealsQuery, Result<IEnumerable<UseCases.UseCases.DTO.CompletedDeal.CompletedDealDto>>>, GetAllCompletedDealsQueryHandler>();
+            services.AddScoped<IQueryHandler<GetCompletedDealsByClientIdQuery, Result<IEnumerable<UseCases.UseCases.DTO.CompletedDeal.CompletedDealDto>>>, GetCompletedDealsByClientIdQueryHandler>();
+            services.AddScoped<IQueryHandler<GetCompletedDealsByPropertyIdQuery, Result<IEnumerable<UseCases.UseCases.DTO.CompletedDeal.CompletedDealDto>>>, GetCompletedDealsByPropertyIdQueryHandler>();
             
             // Регистрация обработчиков запросов для клиентов
             services.AddScoped<IQueryHandler<GetClientByIdQuery, Result<Domain.Customers.Client.ClientEntity>>, GetClientByIdQueryHandler>();
