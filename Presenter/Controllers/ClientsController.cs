@@ -7,8 +7,15 @@ using Presenter.DTOs;
 using Presenter.DTOs.ClientDTO;
 using Presenter.Extensions;
 using Presenter.Utilities;
-using UseCases.Interfaces;
-using UseCases.Interfaces.Services;
+using UseCases.Client.Commands;
+using UseCases.Client.Commands.CreateClient;
+using UseCases.Client.Commands.DeleteClient;
+using UseCases.Client.Commands.UpdateClient;
+using UseCases.Client.Queries;
+using UseCases.Client.Queries.GetAllClient;
+using UseCases.Client.Queries.GetClientById;
+using UseCases.Interfaces.Commands;
+using UseCases.Interfaces.Queries;
 
 namespace Presenter.Controllers
 {
@@ -19,15 +26,32 @@ namespace Presenter.Controllers
     [Route("api/[controller]")]
     public class ClientsController : ControllerBase
     {
-        private readonly IClientService _clientService;
+        private readonly ICommandHandler<CreateClientCommand, Domain.Customers.Client.ClientEntity> _createClientCommandHandler;
+        private readonly ICommandHandler<UpdateClientCommand, Domain.Customers.Client.ClientEntity> _updateClientCommandHandler;
+        private readonly ICommandHandler<DeleteClientCommand, Domain.Customers.Client.ClientEntity> _deleteClientCommandHandler;
+        private readonly IQueryHandler<GetClientByIdQuery, CSharpFunctionalExtensions.Result<Domain.Customers.Client.ClientEntity>> _getClientByIdQueryHandler;
+        private readonly IQueryHandler<GetAllClientsQuery, CSharpFunctionalExtensions.Result<System.Collections.Generic.IEnumerable<Domain.Customers.Client.ClientEntity>>> _getAllClientsQueryHandler;
 
         /// <summary>
         /// Конструктор контроллера клиентов
         /// </summary>
-        /// <param name="clientService">Сервис для работы с клиентами</param>
-        public ClientsController(IClientService clientService)
+        /// <param name="createClientCommandHandler">Обработчик команды создания клиента</param>
+        /// <param name="updateClientCommandHandler">Обработчик команды обновления клиента</param>
+        /// <param name="deleteClientCommandHandler">Обработчик команды удаления клиента</param>
+        /// <param name="getClientByIdQueryHandler">Обработчик запроса получения клиента по ID</param>
+        /// <param name="getAllClientsQueryHandler">Обработчик запроса получения всех клиентов</param>
+        public ClientsController(
+            ICommandHandler<CreateClientCommand, Domain.Customers.Client.ClientEntity> createClientCommandHandler,
+            ICommandHandler<UpdateClientCommand, Domain.Customers.Client.ClientEntity> updateClientCommandHandler,
+            ICommandHandler<DeleteClientCommand, Domain.Customers.Client.ClientEntity> deleteClientCommandHandler,
+            IQueryHandler<GetClientByIdQuery, CSharpFunctionalExtensions.Result<Domain.Customers.Client.ClientEntity>> getClientByIdQueryHandler,
+            IQueryHandler<GetAllClientsQuery, CSharpFunctionalExtensions.Result<System.Collections.Generic.IEnumerable<Domain.Customers.Client.ClientEntity>>> getAllClientsQueryHandler)
         {
-            _clientService = clientService;
+            _createClientCommandHandler = createClientCommandHandler;
+            _updateClientCommandHandler = updateClientCommandHandler;
+            _deleteClientCommandHandler = deleteClientCommandHandler;
+            _getClientByIdQueryHandler = getClientByIdQueryHandler;
+            _getAllClientsQueryHandler = getAllClientsQueryHandler;
         }
 
         /// <summary>
@@ -38,11 +62,13 @@ namespace Presenter.Controllers
         [HttpPost]
         public async Task<Envelope> CreateClient([FromBody] CreateClientRequest request)
         {
-            var result = await _clientService.CreateClientAsync(
+            var command = new CreateClientCommand(
                 request.FirstName,
                 request.LastName,
                 request.Email,
                 request.PhoneNumber);
+
+            var result = await _createClientCommandHandler.HandleAsync(command);
 
             if (result.IsFailure)
             {
@@ -60,7 +86,9 @@ namespace Presenter.Controllers
         [HttpGet("{id}")]
         public async Task<Envelope> GetClient(Guid id)
         {
-            var result = await _clientService.GetClientByIdAsync(id);
+            var query = new GetClientByIdQuery(id);
+            var result = await _getClientByIdQueryHandler.HandleAsync(query);
+            
             if (result.IsFailure)
             {
                 return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
@@ -76,7 +104,9 @@ namespace Presenter.Controllers
         [HttpGet]
         public async Task<Envelope> GetClients()
         {
-            var result = await _clientService.GetAllClientsAsync();
+            var query = new GetAllClientsQuery();
+            var result = await _getAllClientsQueryHandler.HandleAsync(query);
+            
             if (result.IsFailure)
             {
                 return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
@@ -92,14 +122,16 @@ namespace Presenter.Controllers
         /// <param name="clientRequest">Данные для обновления клиента</param>
         /// <returns>Обновленный клиент</returns>
         [HttpPut("{id}")]
-        public async Task<Envelope> UpdateClient(Guid id, [FromBody] CreateClientRequest clientRequest)
+        public async Task<Envelope> UpdateClient(Guid id, [FromBody] UpdateClientRequest clientRequest)
         {
-            var result = await _clientService.UpdateClientAsync(
+            var command = new UpdateClientCommand(
                 id,
                 clientRequest.FirstName,
                 clientRequest.LastName,
                 clientRequest.Email,
                 clientRequest.PhoneNumber);
+
+            var result = await _updateClientCommandHandler.HandleAsync(command);
 
             if (result.IsFailure)
             {
@@ -117,20 +149,15 @@ namespace Presenter.Controllers
         [HttpDelete("{id}")]
         public async Task<Envelope> DeleteClient(Guid id)
         {
-            var result = await _clientService.DeleteClientAsync(id);
+            var command = new DeleteClientCommand(id);
+            var result = await _deleteClientCommandHandler.HandleAsync(command);
+            
             if (result.IsFailure)
             {
                 return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            // Для возврата удаленного клиента, нужно сначала получить его
-            var getClientResult = await _clientService.GetClientByIdAsync(id);
-            if (getClientResult.IsFailure)
-            {
-                return new Envelope(HttpStatusCode.NotFound, error: getClientResult.Error);
-            }
-
-            return new Envelope(getClientResult.Value.ToDTO());
+            return new Envelope(result.Value.ToDTO());
         }
     }
 }

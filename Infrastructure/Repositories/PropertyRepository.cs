@@ -5,6 +5,10 @@ using Domain.Property;
 using Domain.Property.VO;
 using Microsoft.EntityFrameworkCore;
 using UseCases.Interfaces.Repositories;
+using PropertyDto = UseCases.UseCases.DTO.Property.PropertyDto;
+using AddressDto = UseCases.UseCases.DTO.Property.AddressDto;
+using PropertyDetailsDto = UseCases.UseCases.DTO.Property.PropertyDetailsDto;
+using OwnershipDto = UseCases.UseCases.DTO.Property.OwnershipDto;
 
 namespace Infrastructure.Repositories
 {
@@ -26,6 +30,7 @@ namespace Infrastructure.Repositories
                 ? Result.Success(property)
                 : Result.Failure<PropertyEntity>($"Property with ID {id.Value} not found");
         }
+
 
         public async Task<Result<IEnumerable<PropertyEntity>>> GetAllAsync()
         {

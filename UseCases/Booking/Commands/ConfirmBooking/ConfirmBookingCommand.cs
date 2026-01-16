@@ -1,7 +1,6 @@
 using System;
 using UseCases.Interfaces.Commands;
 
-namespace UseCases.Booking.Commands.ConfirmBooking
-{
-    public record ConfirmBookingCommand(Guid BookingId) : ICommand;
-}
+namespace UseCases.Booking.Commands.ConfirmBooking;
+
+public record ConfirmBookingCommand(Guid BookingId) : ICommand;

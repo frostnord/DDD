@@ -7,7 +7,7 @@ namespace Presenter.DTOs.DealDTO
     /// <summary>
     /// Запрос на создание сделки
     /// </summary>
-    public class CreateDealRequest
+    public record CreateDealRequest
     {
         /// <summary>
         /// Идентификатор клиента, участвующего в сделке
@@ -30,6 +30,6 @@ namespace Presenter.DTOs.DealDTO
         /// Детали сделки
         /// </summary>
         [Required(ErrorMessage = "Детали сделки обязательны")]
-        public DealDetails Details { get; init; }
+        public required DealDetails Details { get; init; }
     }
 }

@@ -4,20 +4,22 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
-using Domain.Booking;
-using Domain.Booking.VO;
 using Microsoft.AspNetCore.Mvc;
 using Presenter.DTOs;
 using Presenter.DTOs.BookingDTO;
-using Presenter.Extensions;
 using Presenter.Utilities;
 using UseCases.Booking.Commands;
 using UseCases.Booking.Commands.CancelBooking;
 using UseCases.Booking.Commands.ConfirmBooking;
 using UseCases.Booking.Commands.CreateBooking;
+using UseCases.Booking.Queries.GetBookingById;
+using UseCases.Booking.Queries.SearchBookingsQuery;
 using UseCases.Interfaces.Commands;
-using UseCases.Interfaces.Repositories;
-using UseCases.Interfaces.Services;
+using UseCases.Interfaces.Queries;
+using AutoMapper;
+using UseCasesBookingDto = UseCases.UseCases.DTO.Booking.BookingDto;
+using PresenterSearchBookingsQuery = Presenter.DTOs.BookingDTO.SearchBookingsQuery;
+using UseCasesSearchBookingsQuery = UseCases.Booking.Queries.SearchBookingsQuery.SearchBookingsQuery;
 
 
 namespace Presenter.Controllers
@@ -33,7 +35,9 @@ namespace Presenter.Controllers
         private readonly ICommandHandler<CreateBookingCommand, Guid> _createBookingHandler;
         private readonly ICommandHandler<ConfirmBookingCommand> _confirmBookingHandler;
         private readonly ICommandHandler<CancelBookingCommand> _cancelBookingHandler;
-        private readonly IBookingService _bookingService;
+        private readonly IQueryHandler<GetBookingByIdQuery, Result<UseCasesBookingDto>> _getBookingByIdHandler;
+        private readonly IQueryHandler<UseCasesSearchBookingsQuery, Result<SearchBookingsQueryResponse>> _searchBookingsHandler;
+        private readonly IMapper _mapper;
 
         /// <summary>
         /// Конструктор контроллера бронирований
@@ -41,18 +45,23 @@ namespace Presenter.Controllers
         /// <param name="createBookingHandler">Обработчик команды создания бронирования</param>
         /// <param name="confirmBookingHandler">Обработчик команды подтверждения бронирования</param>
         /// <param name="cancelBookingHandler">Обработчик команды отмены бронирования</param>
-        /// <param name="bookingService">Сервис</param>
-        /// 
+        /// <param name="getBookingByIdHandler">Обработчик запроса получения бронирования по идентификатору</param>
+        /// <param name="searchBookingsHandler">Обработчик запроса поиска бронирований</param>
+        /// <param name="mapper">AutoMapper</param>
         public BookingsController(
             ICommandHandler<CreateBookingCommand, Guid> createBookingHandler,
             ICommandHandler<ConfirmBookingCommand> confirmBookingHandler,
             ICommandHandler<CancelBookingCommand> cancelBookingHandler,
-            IBookingService bookingService)
+            IQueryHandler<GetBookingByIdQuery, Result<UseCasesBookingDto>> getBookingByIdHandler,
+            IQueryHandler<UseCasesSearchBookingsQuery, Result<SearchBookingsQueryResponse>> searchBookingsHandler,
+            IMapper mapper)
         {
             _createBookingHandler = createBookingHandler;
             _confirmBookingHandler = confirmBookingHandler;
             _cancelBookingHandler = cancelBookingHandler;
-            _bookingService = bookingService;
+            _getBookingByIdHandler = getBookingByIdHandler;
+            _searchBookingsHandler = searchBookingsHandler;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -63,13 +72,7 @@ namespace Presenter.Controllers
         [HttpPost]
         public async Task<Envelope> CreateBooking([FromBody] CreateBookingRequest request)
         {
-            var command = new CreateBookingCommand(
-                request.ClientId,
-                request.PropertyId,
-                request.StartDate,
-                request.EndDate,
-                request.TotalPrice
-            );
+            var command = _mapper.Map<CreateBookingCommand>(request);
 
             var result = await _createBookingHandler.HandleAsync(command);
 
@@ -98,20 +101,15 @@ namespace Presenter.Controllers
                 return new Envelope(HttpStatusCode.BadRequest, error: "Invalid booking ID");
             }
 
-            var bookingResult = await _bookingService.GetBookingByIdAsync(id);
+            var query = new GetBookingByIdQuery(id);
+            var bookingResult = await _getBookingByIdHandler.HandleAsync(query);
             if (bookingResult.IsFailure)
             {
-                return new Envelope(HttpStatusCode.NotFound, error: "Booking not found");
+                return new Envelope(HttpStatusCode.NotFound, error: bookingResult.Error);
             }
 
-            // Проверка на null для дополнительной безопасности
-            if (bookingResult.Value == null)
-            {
-                return new Envelope(HttpStatusCode.NotFound, error: "Booking not found");
-            }
-
-            var bookingDto = bookingResult.Value.ToDTO();
-            return new Envelope(bookingDto);
+            var response = _mapper.Map<BookingDto>(bookingResult.Value);
+            return new Envelope(response);
         }
 
         /// <summary>
@@ -122,42 +120,17 @@ namespace Presenter.Controllers
         /// <response code="200">Возвращает список бронирований</response>
         /// <response code="400">Если параметры запроса некорректны</response>
         [HttpGet]
-        public async Task<Envelope> GetBookings([FromQuery] SearchBookingsQuery query)
+        public async Task<Envelope> GetBookings([FromQuery] PresenterSearchBookingsQuery query)
         {
-            IEnumerable<BookingEntity> booking;
-
-            // Если заданы фильтры по клиенту или недвижимости, используем соответствующие методы сервиса
-            if (query.ClientId.HasValue)
+            var useCasesQuery = new UseCasesSearchBookingsQuery(query.ClientId, query.PropertyId);
+            var result = await _searchBookingsHandler.HandleAsync(useCasesQuery);
+            if (result.IsFailure)
             {
-                var bookingResult = await _bookingService.GetByClientIdAsync(query.ClientId.Value);
-                if (bookingResult.IsFailure)
-                {
-                    return new Envelope(HttpStatusCode.BadRequest, error: bookingResult.Error);
-                }
-
-                booking = bookingResult.Value;
-            }
-            else if (query.PropertyId.HasValue)
-            {
-                var bookingResult = await _bookingService.GetByPropertyIdAsync(query.PropertyId.Value);
-                if (bookingResult.IsFailure)
-                {
-                    return new Envelope(HttpStatusCode.BadRequest, error: bookingResult.Error);
-                }
-
-                booking = bookingResult.Value;
-            }
-            else
-            {
-                return new Envelope(HttpStatusCode.BadRequest, error: "Нужен id клиента или недвижимости");
+                return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            var bookingDtos = booking.Select(b => b.ToDTO()).ToList();
-
-            return new Envelope(new
-            {
-                Items = bookingDtos,
-            });
+            var items = _mapper.Map<IEnumerable<BookingDto>>(result.Value.Items);
+            return new Envelope(new BookingsResponse(items));
         }
 
         /// <summary>
@@ -176,7 +149,7 @@ namespace Presenter.Controllers
                 return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            return new Envelope(new { Message = "Booking confirmed successfully" });
+            return new Envelope(HttpStatusCode.NoContent);
         }
 
         /// <summary>
@@ -195,7 +168,7 @@ namespace Presenter.Controllers
                 return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            return new Envelope(new { Message = "Booking cancelled successfully" });
+            return new Envelope(HttpStatusCode.NoContent);
         }
     }
 }

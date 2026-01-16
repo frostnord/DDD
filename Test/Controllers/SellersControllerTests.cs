@@ -1,178 +1,165 @@
+using System;
+using System.Net;
+using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
-using Domain.Customers.Client.VO;
-using Domain.Customers.Seller;
-using Domain.Customers.Seller.VO;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Presenter.Controllers;
-using Presenter.DTOs;
-using UseCases.Interfaces;
-using UseCases.Interfaces.Services;
+using Presenter.DTOs.SellerDTO;
+using Presenter.Utilities;
+using UseCases.DTO.Seller;
+using UseCases.Interfaces.Commands;
+using UseCases.Interfaces.Queries;
+using UseCases.Seller.Commands;
+using UseCases.Seller.Queries;
 using Xunit;
 
 namespace Test.Controllers
 {
     public class SellersControllerTests
     {
-        private readonly Mock<ISellerService> _mockSellerService;
+        private readonly Mock<ICommandHandler<CreateSellerCommand, Guid>> _mockCreateSellerHandler;
+        private readonly Mock<ICommandHandler<UpdateSellerCommand>> _mockUpdateSellerHandler;
+        private readonly Mock<ICommandHandler<DeleteSellerCommand>> _mockDeleteSellerHandler;
+        private readonly Mock<IQueryHandler<GetSellerByIdQuery, Result<SellerDto>>> _mockGetSellerByIdHandler;
+        private readonly Mock<IQueryHandler<SearchSellersQuery, Result<SearchSellersQueryResponse>>> _mockSearchSellersHandler;
         private readonly SellersController _controller;
 
         public SellersControllerTests()
         {
-            _mockSellerService = new Mock<ISellerService>();
-            _controller = new SellersController(_mockSellerService.Object);
+            _mockCreateSellerHandler = new Mock<ICommandHandler<CreateSellerCommand, Guid>>();
+            _mockUpdateSellerHandler = new Mock<ICommandHandler<UpdateSellerCommand>>();
+            _mockDeleteSellerHandler = new Mock<ICommandHandler<DeleteSellerCommand>>();
+            _mockGetSellerByIdHandler = new Mock<IQueryHandler<GetSellerByIdQuery, Result<SellerDto>>>();
+            _mockSearchSellersHandler = new Mock<IQueryHandler<SearchSellersQuery, Result<SearchSellersQueryResponse>>>();
+
+            _controller = new SellersController(
+                _mockCreateSellerHandler.Object,
+                _mockUpdateSellerHandler.Object,
+                _mockDeleteSellerHandler.Object,
+                _mockGetSellerByIdHandler.Object,
+                _mockSearchSellersHandler.Object
+            );
         }
 
         [Fact]
-        public async Task CreateSeller_ValidRequest_ReturnsCreatedAtActionResult()
+        public async Task CreateSeller_ValidRequest_ReturnsCreatedResultWithGuid()
         {
             // Arrange
             var clientId = Guid.NewGuid();
-            var request = new CreateSellerRequest
-            {
-                ClientId = clientId
-            };
+            var request = new CreateSellerRequest { ClientId = clientId };
+            var newSellerId = Guid.NewGuid();
 
-            // Создаем продавца через фабричный метод, используя ClientId из запроса
-            var sellerId = SellerId.Create(Guid.NewGuid()).Value;
-            var clientIdObj = ClientId.Create(clientId).Value;
-            var seller = SellerEntity.Create(clientIdObj).Value;
-
-            var result = Result.Success(seller);
-            _mockSellerService.Setup(x => x.CreateSellerAsync(request.ClientId))
-                .ReturnsAsync(result);
+            _mockCreateSellerHandler
+                .Setup(h => h.HandleAsync(It.IsAny<CreateSellerCommand>()))
+                .ReturnsAsync(Result.Success(newSellerId));
 
             // Act
-            var actionResult = await _controller.CreateSeller(request);
+            var result = await _controller.CreateSeller(request);
 
             // Assert
-            var createdAtResult = Assert.IsType<CreatedAtActionResult>(actionResult.Result);
-            Assert.Equal("GetSeller", createdAtResult.ActionName);
+            var envelope = Assert.IsType<Envelope>(result);
+            Assert.Equal((int)HttpStatusCode.Created, envelope.Status);
+            Assert.Equal(newSellerId, envelope.Result);
         }
 
         [Fact]
         public async Task CreateSeller_InvalidRequest_ReturnsBadRequest()
         {
             // Arrange
-            var clientId = Guid.Empty; // Невалидный ClientId
-            var request = new CreateSellerRequest
-            {
-                ClientId = clientId
-            };
+            var request = new CreateSellerRequest { ClientId = Guid.Empty };
+            var error = "Invalid client ID";
 
-            var errorResult = Result.Failure<SellerEntity>("Validation error");
-            _mockSellerService.Setup(x => x.CreateSellerAsync(request.ClientId))
-                .ReturnsAsync(errorResult);
+            _mockCreateSellerHandler
+                .Setup(h => h.HandleAsync(It.IsAny<CreateSellerCommand>()))
+                .ReturnsAsync(Result.Failure<Guid>(error));
 
             // Act
-            var actionResult = await _controller.CreateSeller(request);
+            var result = await _controller.CreateSeller(request);
 
             // Assert
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(actionResult.Result);
-            Assert.Contains("Validation error", badRequestResult.Value.ToString());
+            var envelope = Assert.IsType<Envelope>(result);
+            Assert.Equal((int)HttpStatusCode.BadRequest, envelope.Status);
+            Assert.Equal(error, envelope.Error);
         }
 
         [Fact]
-        public async Task GetSeller_ExistingId_ReturnsOkResult()
+        public async Task GetSeller_ExistingId_ReturnsOkResultWithSellerDto()
         {
             // Arrange
             var sellerId = Guid.NewGuid();
+            var sellerDto = new SellerDto(sellerId, Guid.NewGuid(), DateTime.UtcNow);
 
-            // Создаем продавца через фабричный метод с фиксированными данными
-            var clientId = Guid.NewGuid();
-            var clientIdObj = ClientId.Create(clientId).Value;
-            var seller = SellerEntity.Create(clientIdObj).Value;
-
-            var result = Result.Success(seller);
-            _mockSellerService.Setup(x => x.GetSellerByIdAsync(sellerId))
-                .ReturnsAsync(result);
+            _mockGetSellerByIdHandler
+                .Setup(h => h.HandleAsync(It.Is<GetSellerByIdQuery>(q => q.SellerId == sellerId)))
+                .ReturnsAsync(Result.Success(sellerDto));
 
             // Act
-            var actionResult = await _controller.GetSeller(sellerId);
+            var result = await _controller.GetSeller(sellerId);
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var sellerDto = Assert.IsType<SellerDto>(okResult.Value);
-            // Проверяем, что возвращаемые данные соответствуют ожидаемым
-            Assert.Equal(clientId, sellerDto.ClientId);
+            var envelope = Assert.IsType<Envelope>(result);
+            Assert.Equal((int)HttpStatusCode.OK, envelope.Status);
+            var returnedDto = Assert.IsType<SellerDto>(envelope.Result);
+            Assert.Equal(sellerId, returnedDto.Id);
         }
 
         [Fact]
-        public async Task GetSeller_NonExistingId_ReturnsBadRequest()
+        public async Task GetSeller_NonExistingId_ReturnsNotFound()
         {
             // Arrange
             var sellerId = Guid.NewGuid();
-            var errorResult = Result.Failure<SellerEntity>("Seller not found");
-            _mockSellerService.Setup(x => x.GetSellerByIdAsync(sellerId))
-                .ReturnsAsync(errorResult);
+            var error = "Seller not found";
+
+            _mockGetSellerByIdHandler
+                .Setup(h => h.HandleAsync(It.Is<GetSellerByIdQuery>(q => q.SellerId == sellerId)))
+                .ReturnsAsync(Result.Failure<SellerDto>(error));
 
             // Act
-            var actionResult = await _controller.GetSeller(sellerId);
+            var result = await _controller.GetSeller(sellerId);
 
             // Assert
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(actionResult.Result);
-            Assert.Contains("Seller not found", badRequestResult.Value.ToString());
+            var envelope = Assert.IsType<Envelope>(result);
+            Assert.Equal((int)HttpStatusCode.NotFound, envelope.Status);
+            Assert.Equal(error, envelope.Error);
         }
 
         [Fact]
-        public async Task UpdateSeller_ValidRequest_ReturnsOkResult()
+        public async Task UpdateSeller_ValidRequest_ReturnsNoContent()
         {
             // Arrange
             var sellerId = Guid.NewGuid();
             var clientId = Guid.NewGuid();
-            var request = new CreateSellerRequest
-            {
-                ClientId = clientId
-            };
+            var request = new UpdateSellerRequest { ClientId = clientId };
 
-            // Создаем продавца через фабричный метод, используя ClientId из запроса
-            var clientIdObj = ClientId.Create(clientId).Value;
-            var seller = SellerEntity.Create(clientIdObj).Value;
-
-            var result = Result.Success(seller);
-            _mockSellerService.Setup(x => x.UpdateSellerAsync(sellerId, request.ClientId))
-                .ReturnsAsync(result);
-
-            // Мокаем GetSellerByIdAsync, чтобы он возвращал обновленного продавца
-            _mockSellerService.Setup(x => x.GetSellerByIdAsync(sellerId))
-                .ReturnsAsync(Result.Success(seller));
-
-            // Act
-            var actionResult = await _controller.UpdateSeller(sellerId, request);
-
-            // Assert
-            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var sellerDto = Assert.IsType<SellerDto>(okResult.Value);
-            // Проверяем, что возвращаемые данные соответствуют ожидаемым
-            Assert.Equal(clientId, sellerDto.ClientId);
-        }
-
-        [Fact]
-        public async Task DeleteSeller_ExistingId_ReturnsOkResult()
-        {
-            // Arrange
-            var sellerId = Guid.NewGuid();
-
-            // Мокаем успешное удаление
-            _mockSellerService.Setup(x => x.DeleteSellerAsync(sellerId))
+            _mockUpdateSellerHandler
+                .Setup(h => h.HandleAsync(It.Is<UpdateSellerCommand>(c => c.SellerId == sellerId)))
                 .ReturnsAsync(Result.Success());
 
-            // Создаем продавца через фабричный метод с фиксированными данными
-            var clientId = Guid.NewGuid();
-            var clientIdObj = ClientId.Create(clientId).Value;
-            var seller = SellerEntity.Create(clientIdObj).Value;
-
-            _mockSellerService.Setup(x => x.GetSellerByIdAsync(sellerId))
-                .ReturnsAsync(Result.Success(seller));
-
             // Act
-            var actionResult = await _controller.DeleteSeller(sellerId);
+            var result = await _controller.UpdateSeller(sellerId, request);
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var sellerDto = Assert.IsType<SellerDto>(okResult.Value);
-            // Проверяем, что возвращаемые данные соответствуют ожидаемым
-            Assert.Equal(clientId, sellerDto.ClientId);
+            var envelope = Assert.IsType<Envelope>(result);
+            Assert.Equal((int)HttpStatusCode.NoContent, envelope.Status);
+        }
+
+        [Fact]
+        public async Task DeleteSeller_ExistingId_ReturnsNoContent()
+        {
+            // Arrange
+            var sellerId = Guid.NewGuid();
+
+            _mockDeleteSellerHandler
+                .Setup(h => h.HandleAsync(It.Is<DeleteSellerCommand>(c => c.SellerId == sellerId)))
+                .ReturnsAsync(Result.Success());
+
+            // Act
+            var result = await _controller.DeleteSeller(sellerId);
+
+            // Assert
+            var envelope = Assert.IsType<Envelope>(result);
+            Assert.Equal((int)HttpStatusCode.NoContent, envelope.Status);
         }
     }
 }

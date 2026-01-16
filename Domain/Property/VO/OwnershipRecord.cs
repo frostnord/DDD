@@ -49,12 +49,7 @@ namespace Domain.Property.VO
             DateTime? endDate = null)
         {
             var errors = new List<string>();
-
-            if (ownerClientId == null)
-            {
-                errors.Add("Идентификатор клиента не может быть пустым");
-            }
-
+            
             if (startDate == default(DateTime))
                 errors.Add("Дата начала владения не может быть пустой");
 

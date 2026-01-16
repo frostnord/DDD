@@ -1,6 +1,5 @@
-namespace UseCases.Interfaces.Commands
-{
-    public interface ICommand;
+namespace UseCases.Interfaces.Commands;
 
-    public interface ICommand<out TResponse> : ICommand;
-}
+public interface ICommand;
+
+public interface ICommand<out TResponse> : ICommand;

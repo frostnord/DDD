@@ -1,17 +1,19 @@
-using System;
-using System.Linq;
 using System.Net;
-using System.Threading.Tasks;
-using Domain.Property.VO;
+using AutoMapper;
+using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Mvc;
-using Presenter.DTOs;
 using Presenter.DTOs.PropertyDTO;
-using Presenter.Extensions;
-using Presenter.Mappings;
+using Presenter.DTOs.PropertyDTO.Request.CreatePoperty;
+using Presenter.DTOs.PropertyDTO.Request.UpdateProperty;
+using Presenter.DTOs.PropertyDTO.Response;
 using Presenter.Utilities;
 using UseCases.Interfaces.Commands;
-using UseCases.Interfaces.Services;
-using UseCases.Property;
+using UseCases.Interfaces.Queries;
+using UseCases.Property.Commands.CreateProperty;
+using UseCases.Property.Commands.DeleteProperty;
+using UseCases.Property.Commands.UpdateProperty;
+using UseCases.Property.Queries.GetPropertyById;
+using UseCases.Property.Queries.SearchPropertiesQuery;
 using UseCases.UseCases.DTO.Property;
 
 namespace Presenter.Controllers
@@ -25,19 +27,29 @@ namespace Presenter.Controllers
     public class PropertyController : ControllerBase
     {
         private readonly ICommandHandler<CreatePropertyCommand, Guid> _createPropertyHandler;
-        private readonly IPropertyService _propertyService;
+        private readonly ICommandHandler<UpdatePropertyCommand> _updatePropertyHandler;
+        private readonly ICommandHandler<DeletePropertyCommand> _deletePropertyHandler;
+        private readonly IQueryHandler<GetPropertyByIdQuery, Result<PropertyDto>> _getPropertyByIdHandler;
+        private readonly IQueryHandler<SearchPropertiesQuery, Result<SearchPropertiesQueryResponse>> _searchPropertiesHandler;
+        private readonly IMapper _mapper;
 
         /// <summary>
         /// Инициализирует новый экземпляр класса PropertyController.
         /// </summary>
-        /// <param name="createPropertyHandler">Обработчик команды создания недвижимости</param>
-        /// <param name="propertyService">Сервис для операций чтения/обновления/поиска недвижимости</param>
         public PropertyController(
             ICommandHandler<CreatePropertyCommand, Guid> createPropertyHandler,
-            IPropertyService propertyService)
+            ICommandHandler<UpdatePropertyCommand> updatePropertyHandler,
+            ICommandHandler<DeletePropertyCommand> deletePropertyHandler,
+            IQueryHandler<GetPropertyByIdQuery, Result<PropertyDto>> getPropertyByIdHandler,
+            IQueryHandler<SearchPropertiesQuery, Result<SearchPropertiesQueryResponse>> searchPropertiesHandler,
+            IMapper mapper)
         {
             _createPropertyHandler = createPropertyHandler;
-            _propertyService = propertyService;
+            _updatePropertyHandler = updatePropertyHandler;
+            _deletePropertyHandler = deletePropertyHandler;
+            _getPropertyByIdHandler = getPropertyByIdHandler;
+            _searchPropertiesHandler = searchPropertiesHandler;
+            _mapper = mapper;
         }
 
         /// <summary>
@@ -48,9 +60,7 @@ namespace Presenter.Controllers
         [HttpPost]
         public async Task<Envelope> CreateProperty([FromBody] CreatePropertyRequest request)
         {
-
-            var command = CreatePropertyMapping.ToCommand(request);
-            
+            var command = _mapper.Map<CreatePropertyCommand>(request);
             var result = await _createPropertyHandler.HandleAsync(command);
 
             if (result.IsFailure)
@@ -69,13 +79,15 @@ namespace Presenter.Controllers
         [HttpGet("{id}")]
         public async Task<Envelope> GetProperty(Guid id)
         {
-            var result = await _propertyService.GetPropertyByIdAsync(id);
+            var query = new GetPropertyByIdQuery(id);
+            var result = await _getPropertyByIdHandler.HandleAsync(query);
             if (result.IsFailure)
             {
                 return new Envelope(HttpStatusCode.NotFound, error: result.Error);
             }
 
-            return new Envelope(result.Value.ToDTO());
+            var response = _mapper.Map<PropertyResponse>(result.Value);
+            return new Envelope(response);
         }
 
         /// <summary>
@@ -86,17 +98,22 @@ namespace Presenter.Controllers
         [HttpGet]
         public async Task<Envelope> GetProperties([FromQuery] SearchPropertiesQuery query)
         {
-            var result = await _propertyService.SearchPropertiesAsync(
-                query.City, query.PropertyType, query.MinPrice, query.MaxPrice, query.MinArea, query.MaxArea,
-                query.MinRooms, query.MaxRooms, query.MinFloor, query.MaxFloor, query.HeatingType,
-                query.PropertyCondition, query.HasParking);
+            var result = await _searchPropertiesHandler.HandleAsync(query);
             if (result.IsFailure)
             {
                 return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            var properties = result.Value.Select(p => p.ToDTO()).ToList();
-            return new Envelope(properties);
+            var searchResult = result.Value;
+            var items = _mapper.Map<IEnumerable<PropertyResponse>>(searchResult.Items);
+            var response = new PagedPropertiesResponse(
+                items,
+                searchResult.TotalCount,
+                searchResult.PageSize,
+                searchResult.TotalPages,
+                query.Page);
+            
+            return new Envelope(response);
         }
 
         /// <summary>
@@ -104,34 +121,21 @@ namespace Presenter.Controllers
         /// </summary>
         /// <param name="id">Уникальный идентификатор объекта недвижимости для обновления</param>
         /// <param name="request">Запрос, содержащий обновленные данные объекта недвижимости</param>
-        /// <returns>Обновленный объект недвижимости с HTTP 200 при успешном выполнении, иначе HTTP 400 или 404 с деталями ошибки</returns>
+        /// <returns>HTTP 204 при успешном выполнении, иначе HTTP 400 или 404 с деталями ошибки</returns>
         [HttpPut("{id}")]
         public async Task<Envelope> UpdateProperty(Guid id, [FromBody] UpdatePropertyRequest request)
         {
-            // Для обновления сначала получаем свойство, обновляем его и сохраняем
-            var getPropertyResult = await _propertyService.GetPropertyByIdAsync(id);
-            if (getPropertyResult.IsFailure)
+            var command = _mapper.Map<UpdatePropertyCommand>(request, opt => 
+                opt.Items["Id"] = id);
+            
+            var result = await _updatePropertyHandler.HandleAsync(command);
+
+            if (result.IsFailure)
             {
-                return new Envelope(HttpStatusCode.NotFound, error: getPropertyResult.Error);
+                return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
             }
 
-            var updateResult = await _propertyService.UpdatePropertyAsync(id, request.Street, request.City,
-                request.HomeNumber, request.ZipCode, request.Country, request.Price, request.Description,
-                request.NumberOfRooms, request.Floor, request.TotalFloors, request.PropertyType, request.HeatingType,
-                request.PropertyCondition, request.Area, request.HasParking);
-            if (updateResult.IsFailure)
-            {
-                return new Envelope(HttpStatusCode.BadRequest, error: updateResult.Error);
-            }
-
-            // После обновления получаем обновленное свойство
-            var getResult = await _propertyService.GetPropertyByIdAsync(id);
-            if (getResult.IsFailure)
-            {
-                return new Envelope(HttpStatusCode.NotFound, error: getResult.Error);
-            }
-
-            return new Envelope(getResult.Value.ToDTO());
+            return new Envelope(HttpStatusCode.NoContent);
         }
 
         /// <summary>
@@ -142,13 +146,15 @@ namespace Presenter.Controllers
         [HttpDelete("{id}")]
         public async Task<Envelope> DeleteProperty(Guid id)
         {
-            var result = await _propertyService.DeletePropertyAsync(id);
+            var command = new DeletePropertyCommand(id);
+            var result = await _deletePropertyHandler.HandleAsync(command);
+
             if (result.IsFailure)
             {
                 return new Envelope(HttpStatusCode.NotFound, error: result.Error);
             }
 
-            return new Envelope(HttpStatusCode.NoContent, null);
+            return new Envelope(HttpStatusCode.NoContent);
         }
     }
 }

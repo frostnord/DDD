@@ -14,6 +14,7 @@ namespace Domain.Customers.Seller
     public class SellerEntity : Entity<SellerId>
     {
         public ClientId ClientId { get; private set; }
+        public DateTime RegisteredAt { get; private set; }
         private readonly List<PropertyId> _ownedProperties = new();
         [NotMapped]
         public IReadOnlyCollection<PropertyId> OwnedProperties => _ownedProperties.AsReadOnly();
@@ -21,6 +22,7 @@ namespace Domain.Customers.Seller
         protected SellerEntity(SellerId id, ClientId clientId) : base(id)
         {
             ClientId = clientId;
+            RegisteredAt = DateTime.UtcNow;
         }
         
         // EF Core конструктор
@@ -42,6 +44,11 @@ namespace Domain.Customers.Seller
 
             var id = SellerId.Create(Guid.NewGuid()).Value;
             return Result.Success(new SellerEntity(id, clientId));
+        }
+
+        public void Update(ClientId clientId)
+        {
+            ClientId = clientId;
         }
 
         /// <summary>
@@ -70,8 +77,5 @@ namespace Domain.Customers.Seller
             var removed = _ownedProperties.Remove(propertyId);
             return removed ? Result.Success() : Result.Failure("У продавца нет такого объекта");
         }
-        //     }
-        //
-        //     public string GetFullName() => $"{FirstName} {LastName}";
     }
 }

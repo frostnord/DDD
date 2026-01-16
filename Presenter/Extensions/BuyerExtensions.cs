@@ -1,13 +1,13 @@
 using System;
 using Domain.Customers.Buyer;
 using Presenter.DTOs;
-using Presenter.DTOs.BuyerDTO;
+using UseCases.UseCases.DTO.Buyer;
 
 namespace Presenter.Extensions
 {
     public static class BuyerExtensions
     {
-        public static BuyerDto ToDTO(this BuyerEntity buyerEntity)
+        public static BuyerDto? ToDTO(this BuyerEntity buyerEntity)
         {
             if (buyerEntity == null)
                 return null;

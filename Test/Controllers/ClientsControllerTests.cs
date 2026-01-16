@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client;
 using Domain.Customers.Client.VO;
@@ -6,21 +9,45 @@ using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Presenter.Controllers;
 using Presenter.DTOs;
-using UseCases.Interfaces;
-using UseCases.Interfaces.Services;
+using Presenter.DTOs.ClientDTO;
+using Presenter.Extensions;
+using Presenter.Utilities;
+using UseCases.Client.Commands;
+using UseCases.Client.Commands.CreateClient;
+using UseCases.Client.Commands.DeleteClient;
+using UseCases.Client.Commands.UpdateClient;
+using UseCases.Client.Queries;
+using UseCases.Client.Queries.GetAllClient;
+using UseCases.Client.Queries.GetClientById;
+using UseCases.Interfaces.Commands;
+using UseCases.Interfaces.Queries;
 using Xunit;
 
 namespace Test.Controllers
 {
     public class ClientsControllerTests
     {
-        private readonly Mock<IClientService> _mockClientService;
+        private readonly Mock<ICommandHandler<CreateClientCommand, ClientEntity>> _mockCreateClientCommandHandler;
+        private readonly Mock<ICommandHandler<UpdateClientCommand, ClientEntity>> _mockUpdateClientCommandHandler;
+        private readonly Mock<ICommandHandler<DeleteClientCommand, ClientEntity>> _mockDeleteClientCommandHandler;
+        private readonly Mock<IQueryHandler<GetClientByIdQuery, Result<ClientEntity>>> _mockGetClientByIdQueryHandler;
+        private readonly Mock<IQueryHandler<GetAllClientsQuery, Result<IEnumerable<ClientEntity>>>> _mockGetAllClientsQueryHandler;
         private readonly ClientsController _controller;
 
         public ClientsControllerTests()
         {
-            _mockClientService = new Mock<IClientService>();
-            _controller = new ClientsController(_mockClientService.Object);
+            _mockCreateClientCommandHandler = new Mock<ICommandHandler<CreateClientCommand, ClientEntity>>();
+            _mockUpdateClientCommandHandler = new Mock<ICommandHandler<UpdateClientCommand, ClientEntity>>();
+            _mockDeleteClientCommandHandler = new Mock<ICommandHandler<DeleteClientCommand, ClientEntity>>();
+            _mockGetClientByIdQueryHandler = new Mock<IQueryHandler<GetClientByIdQuery, Result<ClientEntity>>>();
+            _mockGetAllClientsQueryHandler = new Mock<IQueryHandler<GetAllClientsQuery, Result<IEnumerable<ClientEntity>>>>();
+
+            _controller = new ClientsController(
+                _mockCreateClientCommandHandler.Object,
+                _mockUpdateClientCommandHandler.Object,
+                _mockDeleteClientCommandHandler.Object,
+                _mockGetClientByIdQueryHandler.Object,
+                _mockGetAllClientsQueryHandler.Object);
         }
 
 
@@ -36,7 +63,6 @@ namespace Test.Controllers
                 PhoneNumber = "+79991234567"
             };
 
-            // Создаем клиента через фабричный метод, используя данные из запроса
             var client = ClientEntity.Create(
                 Name.Create(request.FirstName).Value,
                 Name.Create(request.LastName).Value,
@@ -46,19 +72,23 @@ namespace Test.Controllers
             ).Value;
 
             var result = Result.Success(client);
-            _mockClientService.Setup(x => x.CreateClientAsync(
-                    request.FirstName,
-                    request.LastName,
-                    request.Email,
-                    request.PhoneNumber))
+            _mockCreateClientCommandHandler.Setup(x => x.HandleAsync(
+                    It.Is<CreateClientCommand>(cmd => cmd.FirstName == request.FirstName &&
+                                                     cmd.LastName == request.LastName &&
+                                                     cmd.Email == request.Email &&
+                                                     cmd.PhoneNumber == request.PhoneNumber)))
                 .ReturnsAsync(result);
 
             // Act
             var actionResult = await _controller.CreateClient(request);
 
             // Assert
-            var createdAtResult = Assert.IsType<CreatedAtActionResult>(actionResult.Result);
-            Assert.Equal("GetClient", createdAtResult.ActionName);
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            Assert.Equal(201, envelope.Status);
+            var clientDto = Assert.IsType<ClientDto>(envelope.Result);
+            Assert.Equal("Иван", clientDto.FirstName);
+            Assert.Equal("Иванов", clientDto.LastName);
+            Assert.Equal("ivan@example.com", clientDto.Email);
         }
 
         [Fact]
@@ -74,19 +104,20 @@ namespace Test.Controllers
             };
 
             var errorResult = Result.Failure<ClientEntity>("Validation error");
-            _mockClientService.Setup(x => x.CreateClientAsync(
-                    request.FirstName,
-                    request.LastName,
-                    request.Email,
-                    request.PhoneNumber))
+            _mockCreateClientCommandHandler.Setup(x => x.HandleAsync(
+                    It.Is<CreateClientCommand>(cmd => cmd.FirstName == request.FirstName &&
+                                                     cmd.LastName == request.LastName &&
+                                                     cmd.Email == request.Email &&
+                                                     cmd.PhoneNumber == request.PhoneNumber)))
                 .ReturnsAsync(errorResult);
 
             // Act
             var actionResult = await _controller.CreateClient(request);
 
             // Assert
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(actionResult.Result);
-            Assert.Contains("Validation error", badRequestResult.Value.ToString());
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            Assert.Equal(400, envelope.Status);
+            Assert.Contains("Validation error", envelope.Error ?? string.Empty);
         }
 
         [Fact]
@@ -95,7 +126,6 @@ namespace Test.Controllers
             // Arrange
             var clientId = Guid.NewGuid();
 
-            // Создаем клиента через фабричный метод с фиксированными данными
             var client = ClientEntity.Create(
                 Name.Create("Иван").Value,
                 Name.Create("Иванов").Value,
@@ -105,15 +135,16 @@ namespace Test.Controllers
             ).Value;
 
             var result = Result.Success(client);
-            _mockClientService.Setup(x => x.GetClientByIdAsync(clientId))
+            _mockGetClientByIdQueryHandler.Setup(x => x.HandleAsync(
+                    It.Is<GetClientByIdQuery>(q => q.ClientId.Equals(clientId))))
                 .ReturnsAsync(result);
 
             // Act
             var actionResult = await _controller.GetClient(clientId);
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var clientDto = Assert.IsType<ClientDto>(okResult.Value);
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            var clientDto = Assert.IsType<ClientDto>(envelope.Result);
             // Проверяем, что возвращаемые данные соответствуют ожидаемым
             Assert.Equal("Иван", clientDto.FirstName);
             Assert.Equal("Иванов", clientDto.LastName);
@@ -126,15 +157,17 @@ namespace Test.Controllers
             // Arrange
             var clientId = Guid.NewGuid();
             var errorResult = Result.Failure<ClientEntity>("Client not found");
-            _mockClientService.Setup(x => x.GetClientByIdAsync(clientId))
+            _mockGetClientByIdQueryHandler.Setup(x => x.HandleAsync(
+                    It.Is<GetClientByIdQuery>(q => q.ClientId.Equals(clientId))))
                 .ReturnsAsync(errorResult);
 
             // Act
             var actionResult = await _controller.GetClient(clientId);
 
             // Assert
-            var badRequestResult = Assert.IsType<BadRequestObjectResult>(actionResult.Result);
-            Assert.Contains("Client not found", badRequestResult.Value.ToString());
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            Assert.Equal(400, envelope.Status);
+            Assert.Contains("Client not found", envelope.Error ?? string.Empty);
         }
 
         [Fact]
@@ -142,7 +175,7 @@ namespace Test.Controllers
         {
             // Arrange
             var clientId = Guid.NewGuid();
-            var request = new CreateClientRequest
+            var request = new UpdateClientRequest
             {
                 FirstName = "Иван",
                 LastName = "Иванов",
@@ -150,7 +183,6 @@ namespace Test.Controllers
                 PhoneNumber = "+79991234567"
             };
 
-            // Создаем клиента через фабричный метод, используя данные из запроса
             var client = ClientEntity.Create(
                 Name.Create(request.FirstName).Value,
                 Name.Create(request.LastName).Value,
@@ -160,20 +192,20 @@ namespace Test.Controllers
             ).Value;
 
             var result = Result.Success(client);
-            _mockClientService.Setup(x => x.UpdateClientAsync(
-                    clientId,
-                    request.FirstName,
-                    request.LastName,
-                    request.Email,
-                    request.PhoneNumber))
+            _mockUpdateClientCommandHandler.Setup(x => x.HandleAsync(
+                    It.Is<UpdateClientCommand>(cmd => cmd.ClientId == clientId &&
+                                                     cmd.FirstName == request.FirstName &&
+                                                     cmd.LastName == request.LastName &&
+                                                     cmd.Email == request.Email &&
+                                                     cmd.PhoneNumber == request.PhoneNumber)))
                 .ReturnsAsync(result);
 
             // Act
             var actionResult = await _controller.UpdateClient(clientId, request);
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var clientDto = Assert.IsType<ClientDto>(okResult.Value);
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            var clientDto = Assert.IsType<ClientDto>(envelope.Result);
             // Проверяем, что возвращаемые данные соответствуют ожидаемым
             Assert.Equal("Иван", clientDto.FirstName);
             Assert.Equal("Иванов", clientDto.LastName);
@@ -186,11 +218,6 @@ namespace Test.Controllers
             // Arrange
             var clientId = Guid.NewGuid();
 
-            // Мокаем успешное удаление
-            _mockClientService.Setup(x => x.DeleteClientAsync(clientId))
-                .ReturnsAsync(Result.Success());
-
-            // Создаем клиента через фабричный метод с фиксированными данными
             var client = ClientEntity.Create(
                 Name.Create("Иван").Value,
                 Name.Create("Иванов").Value,
@@ -199,15 +226,16 @@ namespace Test.Controllers
                     PhoneNumber.Create("+79991234567").Value).Value
             ).Value;
 
-            _mockClientService.Setup(x => x.GetClientByIdAsync(clientId))
+            _mockDeleteClientCommandHandler.Setup(x => x.HandleAsync(
+                    It.Is<DeleteClientCommand>(cmd => cmd.ClientId == clientId)))
                 .ReturnsAsync(Result.Success(client));
 
             // Act
             var actionResult = await _controller.DeleteClient(clientId);
 
             // Assert
-            var okResult = Assert.IsType<OkObjectResult>(actionResult.Result);
-            var clientDto = Assert.IsType<ClientDto>(okResult.Value);
+            var envelope = Assert.IsType<Envelope>(actionResult);
+            var clientDto = Assert.IsType<ClientDto>(envelope.Result);
             // Проверяем, что возвращаемые данные соответствуют ожидаемым
             Assert.Equal("Иван", clientDto.FirstName);
             Assert.Equal("Иванов", clientDto.LastName);
