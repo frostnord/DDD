@@ -1,303 +1,273 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
+using AutoMapper;
 using CSharpFunctionalExtensions;
-using Domain.Customers.Buyer;
-using Domain.Customers.Client.VO;
-using Domain.Property.VO;
-using Domain.ValueObjects;
-using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Presenter.Controllers;
-using Presenter.DTOs;
 using Presenter.DTOs.BuyerDTO;
 using Presenter.Utilities;
-using UseCases.Interfaces;
-using UseCases.Interfaces.Services;
+
+using UseCases.Buyer;
+using UseCases.Buyer.Commands.CreateBuyer;
+using UseCases.Buyer.Commands.DeleteBuyer;
+using UseCases.Buyer.Commands.UpdateBuyer;
+using UseCases.Buyer.Queries.GetBuyerById;
+using UseCases.Buyer.Queries.SearchBuyersQuery;
+using UseCases.UseCases.DTO.Buyer;
+using UseCases.Interfaces.Commands;
+using UseCases.Interfaces.Queries;
 using Xunit;
 
 namespace Test.Controllers
 {
     public class BuyersControllerTests
     {
-        private readonly Mock<IBuyerService> _mockBuyerService;
+        private readonly Mock<ICommandHandler<CreateBuyerCommand, Guid>> _mockCreateBuyerHandler;
+        private readonly Mock<ICommandHandler<UpdateBuyerCommand>> _mockUpdateBuyerHandler;
+        private readonly Mock<ICommandHandler<DeleteBuyerCommand>> _mockDeleteBuyerHandler;
+        private readonly Mock<IQueryHandler<GetBuyerByIdQuery, Result<BuyerDto>>> _mockGetBuyerByIdHandler;
+        private readonly Mock<IQueryHandler<SearchBuyersQuery, Result<SearchBuyersQueryResponse>>> _mockSearchBuyersHandler;
+        private readonly Mock<IMapper> _mockMapper;
         private readonly BuyersController _controller;
 
         public BuyersControllerTests()
         {
-            _mockBuyerService = new Mock<IBuyerService>();
-            _controller = new BuyersController(_mockBuyerService.Object);
+            _mockCreateBuyerHandler = new Mock<ICommandHandler<CreateBuyerCommand, Guid>>();
+            _mockUpdateBuyerHandler = new Mock<ICommandHandler<UpdateBuyerCommand>>();
+            _mockDeleteBuyerHandler = new Mock<ICommandHandler<DeleteBuyerCommand>>();
+            _mockGetBuyerByIdHandler = new Mock<IQueryHandler<GetBuyerByIdQuery, Result<BuyerDto>>>();
+            _mockSearchBuyersHandler = new Mock<IQueryHandler<SearchBuyersQuery, Result<SearchBuyersQueryResponse>>>();
+            _mockMapper = new Mock<IMapper>();
+
+            _controller = new BuyersController(
+                _mockCreateBuyerHandler.Object,
+                _mockUpdateBuyerHandler.Object,
+                _mockDeleteBuyerHandler.Object,
+                _mockGetBuyerByIdHandler.Object,
+                _mockSearchBuyersHandler.Object,
+                _mockMapper.Object
+            );
         }
 
-        [Fact]
-        public async Task CreateBuyer_ValidRequest_ReturnsCreatedAtActionResult()
+        private BuyerDto CreateTestBuyerDto(Guid buyerId)
         {
-            // Arrange
-            var clientId = Guid.NewGuid();
-            var request = new CreateBuyerRequest
+            return new BuyerDto(buyerId, Guid.NewGuid(), DateTime.UtcNow);
+        }
+
+        private CreateBuyerRequest CreateValidCreateRequest()
+        {
+            return new CreateBuyerRequest
             {
-                ClientId = clientId,
+                ClientId = Guid.NewGuid(),
                 PreferredNumberOfRooms = 2,
                 PreferredFloor = 3,
                 PreferredTotalFloors = 9,
                 PreferredType = "Apartment",
+                PreferParking = true,
                 PreferredHeatingType = "Central",
-                PreferredCondition = "Хорошее",
-                PreferParking = true
+                PreferredCondition = "Good"
             };
-
-            var clientIdVO = ClientId.Create(clientId).Value;
-
-            var buyer = BuyerEntity.Create(clientIdVO,
-                ClientSearchCriteria.Create(
-                    NumberOfRooms.Create(request.PreferredNumberOfRooms).Value,
-                    Floor.Create(request.PreferredFloor).Value,
-                    TotalFloors.Create(request.PreferredTotalFloors).Value,
-                    SmartPropertyType.FromName(request.PreferredType),
-                    request.PreferParking,
-                    HeatingType.Create(request.PreferredHeatingType).Value,
-                    PropertyCondition.Create(request.PreferredCondition).Value
-                ).Value
-            ).Value;
-
-            var result = Result.Success(buyer);
-            _mockBuyerService.Setup(x => x.CreateBuyerAsync(request.ClientId,
-                    request.PreferredNumberOfRooms, request.PreferredFloor, request.PreferredTotalFloors,
-                    request.PreferredType, request.PreferredHeatingType, request.PreferredCondition,
-                    request.PreferParking))
-                .ReturnsAsync(result);
-
-            // Act
-            var actionResult = await _controller.CreateBuyer(request);
-
-            // Assert
-            var envelope = Assert.IsType<Envelope>(actionResult);
-            Assert.Equal(201, envelope.Status);
-            var buyerDto = Assert.IsType<BuyerDto>(envelope.Result);
-            Assert.Equal(clientId, buyerDto.ClientId);
         }
 
-        [Fact]
-        public async Task CreateBuyer_InvalidRequest_ReturnsBadRequest()
+        private UpdateBuyerRequest CreateValidUpdateRequest()
         {
-            // Arrange
-            var clientId = Guid.Empty; // Невалидный ClientId
-            var request = new CreateBuyerRequest
+            return new UpdateBuyerRequest
             {
-                ClientId = clientId,
-                PreferredNumberOfRooms = 2,
-                PreferredFloor = 3,
-                PreferredTotalFloors = 9,
-                PreferredType = "Apartment",
-                PreferredHeatingType = "Central",
-                PreferredCondition = "Хорошее",
-                PreferParking = true
+                ClientId = Guid.NewGuid(),
+                PreferredNumberOfRooms = 3,
+                PreferredFloor = 4,
+                PreferredTotalFloors = 10,
+                PreferredType = "House",
+                PreferParking = false,
+                PreferredHeatingType = "Autonomous",
+                PreferredCondition = "Excellent"
             };
-
-            var errorResult = Result.Failure<BuyerEntity>("Validation error");
-            _mockBuyerService.Setup(x => x.CreateBuyerAsync(request.ClientId,
-                    request.PreferredNumberOfRooms, request.PreferredFloor, request.PreferredTotalFloors,
-                    request.PreferredType, request.PreferredHeatingType, request.PreferredCondition,
-                    request.PreferParking))
-                .ReturnsAsync(errorResult);
-
-            // Act
-            var actionResult = await _controller.CreateBuyer(request);
-
-            // Assert
-            var envelope = Assert.IsType<Envelope>(actionResult);
-            Assert.Equal(400, envelope.Status);
-            Assert.Contains("Validation error", envelope.Error.ToString());
         }
 
         [Fact]
-        public async Task GetBuyer_ExistingId_ReturnsOkResult()
+        public async Task CreateBuyer_ValidRequest_ReturnsCreated()
+        {
+            // Arrange
+            var request = CreateValidCreateRequest();
+            var command = new CreateBuyerCommand(
+                request.ClientId,
+                request.PreferredNumberOfRooms,
+                request.PreferredFloor,
+                request.PreferredTotalFloors,
+                request.PreferredType,
+                request.PreferParking,
+                request.PreferredHeatingType,
+                request.PreferredCondition);
+            var newBuyerId = Guid.NewGuid();
+
+            _mockMapper.Setup(m => m.Map<CreateBuyerCommand>(request)).Returns(command);
+            _mockCreateBuyerHandler
+                .Setup(h => h.HandleAsync(It.Is<CreateBuyerCommand>(c => c == command)))
+                .ReturnsAsync(Result.Success(newBuyerId));
+
+            // Act
+            var result = await _controller.CreateBuyer(request);
+
+            // Assert
+            var envelope = Assert.IsType<Envelope>(result);
+            Assert.Equal((int)HttpStatusCode.Created, envelope.Status);
+            Assert.Equal(newBuyerId, envelope.Result);
+        }
+
+        [Fact]
+        public async Task CreateBuyer_HandlerFailure_ReturnsBadRequest()
+        {
+            // Arrange
+            var request = CreateValidCreateRequest();
+            var command = new CreateBuyerCommand(
+                request.ClientId,
+                request.PreferredNumberOfRooms,
+                request.PreferredFloor,
+                request.PreferredTotalFloors,
+                request.PreferredType,
+                request.PreferParking,
+                request.PreferredHeatingType,
+                request.PreferredCondition);
+            var error = "Handler failure";
+
+            _mockMapper.Setup(m => m.Map<CreateBuyerCommand>(request)).Returns(command);
+            _mockCreateBuyerHandler
+                .Setup(h => h.HandleAsync(It.Is<CreateBuyerCommand>(c => c == command)))
+                .ReturnsAsync(Result.Failure<Guid>(error));
+
+            // Act
+            var result = await _controller.CreateBuyer(request);
+
+            // Assert
+            var envelope = Assert.IsType<Envelope>(result);
+            Assert.Equal((int)HttpStatusCode.BadRequest, envelope.Status);
+            Assert.Equal(error, envelope.Error);
+        }
+
+        [Fact]
+        public async Task GetBuyer_ExistingId_ReturnsOk()
         {
             // Arrange
             var buyerId = Guid.NewGuid();
-            var clientId = Guid.NewGuid();
+            var buyerDto = CreateTestBuyerDto(buyerId);
 
-            var clientIdVO = ClientId.Create(clientId).Value;
-
-            var buyer = BuyerEntity.Create(clientIdVO,
-                ClientSearchCriteria.Create(
-                    NumberOfRooms.Create(2).Value,
-                    Floor.Create(3).Value,
-                    TotalFloors.Create(9).Value,
-                    SmartPropertyType.FromName("Apartment"),
-                    true,
-                    HeatingType.Create("Central").Value,
-                    PropertyCondition.Create("Хорошее").Value
-                ).Value
-            ).Value;
-
-            var result = Result.Success(buyer);
-            _mockBuyerService.Setup(x => x.GetBuyerByIdAsync(buyerId))
-                .ReturnsAsync(result);
+            _mockGetBuyerByIdHandler.Setup(h => h.HandleAsync(It.Is<GetBuyerByIdQuery>(q => q.BuyerId == buyerId)))
+                .ReturnsAsync(Result.Success(buyerDto));
 
             // Act
-            var actionResult = await _controller.GetBuyer(buyerId);
+            var result = await _controller.GetBuyer(buyerId);
 
             // Assert
-            var envelope = Assert.IsType<Envelope>(actionResult);
-            var buyerDto = Assert.IsType<BuyerDto>(envelope.Result);
-            // Проверяем, что возвращаемые данные соответствуют ожидаемым
-            Assert.Equal(clientId, buyerDto.ClientId);
+            var envelope = Assert.IsType<Envelope>(result);
+            Assert.Equal((int)HttpStatusCode.OK, envelope.Status);
+            Assert.Equal(buyerDto, envelope.Result);
         }
 
         [Fact]
-        public async Task GetBuyer_NonExistingId_ReturnsBadRequest()
+        public async Task GetBuyer_NonExistingId_ReturnsNotFound()
         {
             // Arrange
             var buyerId = Guid.NewGuid();
-            var errorResult = Result.Failure<BuyerEntity>("Buyer not found");
-            _mockBuyerService.Setup(x => x.GetBuyerByIdAsync(buyerId))
-                .ReturnsAsync(errorResult);
+            var error = "Buyer not found";
+
+            _mockGetBuyerByIdHandler.Setup(h => h.HandleAsync(It.Is<GetBuyerByIdQuery>(q => q.BuyerId == buyerId)))
+                .ReturnsAsync(Result.Failure<BuyerDto>(error));
 
             // Act
-            var actionResult = await _controller.GetBuyer(buyerId);
+            var result = await _controller.GetBuyer(buyerId);
 
             // Assert
-            var envelope = Assert.IsType<Envelope>(actionResult);
-            Assert.Equal(400, envelope.Status);
-            Assert.Contains("Buyer not found", envelope.Error.ToString());
+            var envelope = Assert.IsType<Envelope>(result);
+            Assert.Equal((int)HttpStatusCode.NotFound, envelope.Status);
+            Assert.Equal(error, envelope.Error);
         }
 
         [Fact]
-        public async Task UpdateBuyer_ValidRequest_ReturnsOkResult()
+        public async Task UpdateBuyer_ValidRequest_ReturnsOk()
         {
             // Arrange
             var buyerId = Guid.NewGuid();
-            var clientId = Guid.NewGuid();
-            var request = new CreateBuyerRequest
-            {
-                ClientId = clientId,
-                PreferredNumberOfRooms = 2,
-                PreferredFloor = 3,
-                PreferredTotalFloors = 9,
-                PreferredType = "Apartment",
-                PreferredHeatingType = "Central",
-                PreferredCondition = "Хорошее",
-                PreferParking = true
-            };
+            var request = CreateValidUpdateRequest();
+            var command = new UpdateBuyerCommand(
+                buyerId,
+                request.ClientId,
+                request.PreferredNumberOfRooms,
+                request.PreferredFloor,
+                request.PreferredTotalFloors,
+                request.PreferredType,
+                request.PreferParking,
+                request.PreferredHeatingType,
+                request.PreferredCondition);
 
-            var clientIdVO = ClientId.Create(request.ClientId).Value;
-
-            var buyer = BuyerEntity.Create(clientIdVO,
-                ClientSearchCriteria.Create(
-                    NumberOfRooms.Create(request.PreferredNumberOfRooms).Value,
-                    Floor.Create(request.PreferredFloor).Value,
-                    TotalFloors.Create(request.PreferredTotalFloors).Value,
-                    SmartPropertyType.FromName(request.PreferredType),
-                    request.PreferParking,
-                    HeatingType.Create(request.PreferredHeatingType).Value,
-                    PropertyCondition.Create(request.PreferredCondition).Value
-                ).Value
-            ).Value;
-
-            var result = Result.Success(buyer);
-            _mockBuyerService.Setup(x => x.UpdateBuyerAsync(buyerId, request.ClientId,
-                    request.PreferredNumberOfRooms, request.PreferredFloor, request.PreferredTotalFloors,
-                    request.PreferredType, request.PreferredHeatingType, request.PreferredCondition,
-                    request.PreferParking))
-                .ReturnsAsync(result);
-
-            // Мокаем вызов GetBuyerByIdAsync, который используется в контроллере после обновления
-            _mockBuyerService.Setup(x => x.GetBuyerByIdAsync(buyerId))
-                .ReturnsAsync(Result.Success(buyer));
+            _mockMapper
+                .Setup(m => m.Map<UpdateBuyerCommand>(request, It.IsAny<Action<IMappingOperationOptions>>()))
+                .Returns(command);
+            _mockUpdateBuyerHandler.Setup(h => h.HandleAsync(command)).ReturnsAsync(Result.Success());
 
             // Act
-            var actionResult = await _controller.UpdateBuyer(buyerId, request);
+            var result = await _controller.UpdateBuyer(buyerId, request);
 
             // Assert
-            var envelope = Assert.IsType<Envelope>(actionResult);
-            var buyerDto = Assert.IsType<BuyerDto>(envelope.Result);
-            // Проверяем, что возвращаемые данные соответствуют ожидаемым
-            Assert.Equal(clientId, buyerDto.ClientId);
+            var envelope = Assert.IsType<Envelope>(result);
+            Assert.Equal((int)HttpStatusCode.NoContent, envelope.Status);
         }
 
         [Fact]
-        public async Task DeleteBuyer_ExistingId_ReturnsOkResult()
+        public async Task GetBuyers_ValidQuery_ReturnsOk()
+        {
+            // Arrange
+            var query = new SearchBuyersQuery();
+            var buyerDto = CreateTestBuyerDto(Guid.NewGuid());
+            var searchResult = new SearchBuyersQueryResponse(new List<BuyerDto> { buyerDto }, 1, 10, 1);
+
+            _mockSearchBuyersHandler.Setup(h => h.HandleAsync(query)).ReturnsAsync(Result.Success(searchResult));
+
+            // Act
+            var result = await _controller.GetBuyers(query);
+
+            // Assert
+            var envelope = Assert.IsType<Envelope>(result);
+            Assert.Equal((int)HttpStatusCode.OK, envelope.Status);
+            var pagedResponse = Assert.IsType<PagedBuyersResponse>(envelope.Result);
+            Assert.Single(pagedResponse.Items);
+        }
+
+        [Fact]
+        public async Task DeleteBuyer_ExistingId_ReturnsNoContent()
         {
             // Arrange
             var buyerId = Guid.NewGuid();
-            var clientId = Guid.NewGuid();
+            var command = new DeleteBuyerCommand(buyerId);
 
-            // Мокаем успешное удаление
-            _mockBuyerService.Setup(x => x.DeleteBuyerAsync(buyerId))
-                .ReturnsAsync(Result.Success());
-
-            var clientIdVO = ClientId.Create(clientId).Value;
-
-            var buyer = BuyerEntity.Create(clientIdVO,
-                ClientSearchCriteria.Create(
-                    NumberOfRooms.Create(2).Value,
-                    Floor.Create(3).Value,
-                    TotalFloors.Create(9).Value,
-                    SmartPropertyType.FromName("Apartment"),
-                    true,
-                    HeatingType.Create("Central").Value,
-                    PropertyCondition.Create("Хорошее").Value
-                ).Value
-            ).Value;
-
-            _mockBuyerService.Setup(x => x.GetBuyerByIdAsync(buyerId))
-                .ReturnsAsync(Result.Success(buyer));
+            _mockDeleteBuyerHandler.Setup(h => h.HandleAsync(command)).ReturnsAsync(Result.Success());
 
             // Act
-            var actionResult = await _controller.DeleteBuyer(buyerId);
+            var result = await _controller.DeleteBuyer(buyerId);
 
             // Assert
-            var envelope = Assert.IsType<Envelope>(actionResult);
-            var buyerDto = Assert.IsType<BuyerDto>(envelope.Result);
-            // Проверяем, что возвращаемые данные соответствуют ожидаемым
-            Assert.Equal(clientId, buyerDto.ClientId);
+            var envelope = Assert.IsType<Envelope>(result);
+            Assert.Equal((int)HttpStatusCode.NoContent, envelope.Status);
         }
 
         [Fact]
-        public async Task GetBuyers_ReturnsOkResultWithListOfBuyers()
+        public async Task DeleteBuyer_NonExistingId_ReturnsNotFound()
         {
             // Arrange
-            var buyers = new List<BuyerEntity>
-            {
-                BuyerEntity.Create(
-                    ClientId.Create(Guid.NewGuid()).Value,
-                    ClientSearchCriteria.Create(
-                        NumberOfRooms.Create(2).Value,
-                        Floor.Create(3).Value,
-                        TotalFloors.Create(9).Value,
-                        SmartPropertyType.FromName("Apartment"),
-                        true,
-                        HeatingType.Create("Central").Value,
-                        PropertyCondition.Create("Хорошее").Value
-                    ).Value
-                ).Value,
-                BuyerEntity.Create(
-                    ClientId.Create(Guid.NewGuid()).Value,
-                    ClientSearchCriteria.Create(
-                        NumberOfRooms.Create(3).Value,
-                        Floor.Create(5).Value,
-                        TotalFloors.Create(12).Value,
-                        SmartPropertyType.FromName("House"),
-                        false,
-                        HeatingType.Create("Autonomous").Value,
-                        PropertyCondition.Create("Отличное").Value
-                    ).Value
-                ).Value
-            }.AsEnumerable();
+            var buyerId = Guid.NewGuid();
+            var command = new DeleteBuyerCommand(buyerId);
+            var error = "Buyer not found";
 
-            var result = Result.Success(buyers);
-            _mockBuyerService.Setup(x => x.GetAllBuyersAsync())
-                .ReturnsAsync(result);
+            _mockDeleteBuyerHandler.Setup(h => h.HandleAsync(command)).ReturnsAsync(Result.Failure(error));
 
             // Act
-            var actionResult = await _controller.GetBuyers();
+            var result = await _controller.DeleteBuyer(buyerId);
 
             // Assert
-            var envelope = Assert.IsType<Envelope>(actionResult);
-            var buyerDtos = Assert.IsAssignableFrom<IEnumerable<BuyerDto>>(envelope.Result);
-            Assert.Equal(2, buyerDtos.Count());
+            var envelope = Assert.IsType<Envelope>(result);
+            Assert.Equal((int)HttpStatusCode.NotFound, envelope.Status);
+            Assert.Equal(error, envelope.Error);
         }
     }
 }

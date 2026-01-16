@@ -1,6 +1,6 @@
 ﻿using System;
 using UseCases.Interfaces.Commands;
 
-namespace UseCases.CompleteDeal;
+namespace UseCases.Deal.Commands;
 
 public sealed record CompleteDealCommand(Guid DealId) : ICommand;

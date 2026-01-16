@@ -1,197 +1,181 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
+using System.Net;
 using System.Threading.Tasks;
+using AutoMapper;
 using CSharpFunctionalExtensions;
-using Domain.Property;
-using Domain.Property.VO;
-using Domain.ValueObjects;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Presenter.Controllers;
-using Presenter.DTOs;
 using Presenter.DTOs.PropertyDTO;
+using Presenter.DTOs.PropertyDTO.Request.CreatePoperty;
+using Presenter.DTOs.PropertyDTO.Request.UpdateProperty;
+using Presenter.DTOs.PropertyDTO.Response;
 using Presenter.Utilities;
 using UseCases.Interfaces.Commands;
-using UseCases.Interfaces.Services;
-using UseCases.Property;
+using UseCases.Interfaces.Queries;
+using UseCases.Property.Commands.CreateProperty;
+using UseCases.Property.Commands.DeleteProperty;
+using UseCases.Property.Commands.UpdateProperty;
+using UseCases.Property.Queries.GetPropertyById;
+using UseCases.Property.Queries.SearchPropertiesQuery;
+using UseCases.UseCases.DTO.Property;
 using Xunit;
+using AddressDto = Presenter.DTOs.PropertyDTO.AddressDto;
+using OwnershipDto = Presenter.DTOs.PropertyDTO.OwnershipDto;
+using PropertyDetailsDto = Presenter.DTOs.PropertyDTO.PropertyDetailsDto;
 
 namespace Test.Controllers
 {
     public class PropertyControllerTests
     {
         private readonly Mock<ICommandHandler<CreatePropertyCommand, Guid>> _mockCreatePropertyHandler;
-        private readonly Mock<IPropertyService> _mockPropertyService;
+        private readonly Mock<ICommandHandler<UpdatePropertyCommand>> _mockUpdatePropertyHandler;
+        private readonly Mock<ICommandHandler<DeletePropertyCommand>> _mockDeletePropertyHandler;
+        private readonly Mock<IQueryHandler<GetPropertyByIdQuery, Result<PropertyDto>>> _mockGetPropertyByIdHandler;
+        private readonly Mock<IQueryHandler<SearchPropertiesQuery, Result<SearchPropertiesQueryResponse>>> _mockSearchPropertiesHandler;
+        private readonly Mock<IMapper> _mockMapper;
         private readonly PropertyController _controller;
-
-        // Константы удалены, используем значения из request
 
         public PropertyControllerTests()
         {
             _mockCreatePropertyHandler = new Mock<ICommandHandler<CreatePropertyCommand, Guid>>();
-            _mockPropertyService = new Mock<IPropertyService>();
-            _controller = new PropertyController(_mockCreatePropertyHandler.Object, _mockPropertyService.Object);
+            _mockUpdatePropertyHandler = new Mock<ICommandHandler<UpdatePropertyCommand>>();
+            _mockDeletePropertyHandler = new Mock<ICommandHandler<DeletePropertyCommand>>();
+            _mockGetPropertyByIdHandler = new Mock<IQueryHandler<GetPropertyByIdQuery, Result<PropertyDto>>>();
+            _mockSearchPropertiesHandler = new Mock<IQueryHandler<SearchPropertiesQuery, Result<SearchPropertiesQueryResponse>>>();
+            _mockMapper = new Mock<IMapper>();
+            _controller = new PropertyController(
+                _mockCreatePropertyHandler.Object,
+                _mockUpdatePropertyHandler.Object,
+                _mockDeletePropertyHandler.Object,
+                _mockGetPropertyByIdHandler.Object,
+                _mockSearchPropertiesHandler.Object,
+                _mockMapper.Object);
         }
 
-        private PropertyEntity CreateTestProperty(CreatePropertyRequest request, PropertyId propertyId = null)
+        private PropertyDto CreateTestUseCasePropertyDto(Guid propertyId)
         {
-            var address = Address.Create(request.Street, request.City, request.HomeNumber, request.ZipCode,
-                request.Country).Value;
-            var price = Price.Create(request.Price).Value;
-            var description = Description.Create(request.Description).Value;
-            var propertyType = SmartPropertyType.FromName(request.PropertyType);
-            var heatingType = HeatingType.Create(request.HeatingType).Value;
-            var propertyCondition = PropertyCondition.Create(request.PropertyCondition).Value;
-            var details = PropertyDetails.Create((int)request.Area, request.NumberOfRooms, request.Floor,
-                request.TotalFloors, propertyType, false, request.HasParking ?? false, request.HeatingType,
-                request.PropertyCondition).Value;
-
-            if (propertyId != null)
-            {
-                // Создаем Property с нужным ID
-                var propertyConstructor =
-                    typeof(PropertyEntity).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).First();
-                var status = PropertyStatus.FromName("ForSale");
-                return (PropertyEntity)propertyConstructor.Invoke(new object[]
-                    { propertyId, address, price, description, details, status });
-            }
-            else
-            {
-                return PropertyEntity.Create(address, price, description, details).Value;
-            }
+            return new PropertyDto(
+                propertyId,
+                new UseCases.UseCases.DTO.Property.AddressDto("Main St", "City", 123, 123456, "Country"),
+                new UseCases.UseCases.DTO.Property.PropertyDetailsDto(100000, "Nice property", 2, 9, 1, 60.5m, "Apartment", "Central", "Good", true),
+                new UseCases.UseCases.DTO.Property.OwnershipDto(Guid.NewGuid(), DateTime.UtcNow)
+            );
         }
 
-        private PropertyEntity CreateTestPropertyWithId(Guid guid, CreatePropertyRequest request)
+        private CreatePropertyRequest CreateValidCreateRequest()
         {
-            var propertyId = PropertyId.Create(guid).Value;
-            return CreateTestProperty(request, propertyId);
+            return new CreatePropertyRequest
+            {
+                Address = new AddressDto { Street = "Test Street", City = "Test City", Country = "Test Country", HomeNumber = 1, ZipCode = 123456 },
+                PropertyDetails = new PropertyDetailsDto { Description = "Test Description", Type = "Apartment", HeatingType = "Gas", Condition = "New", Area = 100, Floor = 1, NumberOfRooms = 4, TotalFloors = 10, Price = 100000, HasParking = true },
+                Ownership = new OwnershipDto { OwnerClientId = Guid.NewGuid(), StartDate = DateTime.UtcNow }
+            };
+        }
+        
+        private UpdatePropertyRequest CreateValidUpdateRequest()
+        {
+            return new UpdatePropertyRequest
+            {
+                Address = new AddressDto { Street = "Updated Street", City = "Updated City", Country = "Updated Country", HomeNumber = 2, ZipCode = 654321 },
+                PropertyDetails = new PropertyDetailsDto { Description = "Updated Description", Type = "House", HeatingType = "Central", Condition = "Used", Area = 200, Floor = 1, NumberOfRooms = 5, TotalFloors = 2, Price = 200000, HasParking = false },
+                Ownership = new OwnershipDto { OwnerClientId = Guid.NewGuid(), StartDate = DateTime.UtcNow }
+            };
         }
 
         [Fact]
-        public async Task CreateProperty_ValidRequest_ReturnsCreatedAtActionResult()
+        public async Task CreateProperty_ValidRequest_ReturnsCreated()
         {
             // Arrange
-            var request = new CreatePropertyRequest
-            {
-                Street = "Main St",
-                City = "City",
-                HomeNumber = 123,
-                ZipCode = 123456,
-                Country = "Country",
-                Price = 100000,
-                Description = "Nice property",
-                NumberOfRooms = 2,
-                Floor = 3,
-                TotalFloors = 9,
-                PropertyType = "Apartment",
-                HeatingType = "Central",
-                PropertyCondition = "Good",
-                Area = new decimal(60.5),
-                HasParking = true,
-                OwnerClientId = Guid.NewGuid(),
-                StartDate = DateTime.UtcNow
-            };
+            var request = CreateValidCreateRequest();
+            var command = new CreatePropertyCommand(
+                new UseCases.UseCases.DTO.Property.AddressDto("Street", "City", 1, 123456, "Country"),
+                new UseCases.UseCases.DTO.Property.PropertyDetailsDto(100000m, "Desc", 2, 1, 1, 50m, "Apartment", "Central", "Good", true),
+                new UseCases.UseCases.DTO.Property.OwnershipDto(Guid.NewGuid(), DateTime.UtcNow));
+            var createdId = Guid.NewGuid();
 
-            // Создаем реальный объект Property для теста
-            var property = CreateTestProperty(request);
-
-            var createdId = property.Id.Value;
-            var result = Result.Success(createdId);
-            _mockCreatePropertyHandler
-                .Setup(x => x.HandleAsync(It.IsAny<CreatePropertyCommand>()))
-                .ReturnsAsync(result);
+            _mockMapper.Setup(m => m.Map<CreatePropertyCommand>(request)).Returns(command);
+            _mockCreatePropertyHandler.Setup(x => x.HandleAsync(command)).ReturnsAsync(Result.Success(createdId));
 
             // Act
-            var actionResult = await _controller.CreateProperty(request);
+            var result = await _controller.CreateProperty(request);
 
             // Assert
-            var envelope = Assert.IsType<Envelope>(actionResult);
-            Assert.Equal(201, envelope.Status);
-            var returnedId = Assert.IsType<Guid>(envelope.Result);
-            Assert.Equal(createdId, returnedId);
+            var envelope = Assert.IsType<Envelope>(result);
+            Assert.Equal((int)HttpStatusCode.Created, envelope.Status);
+            Assert.Equal(createdId, envelope.Result);
         }
 
         [Fact]
-        public async Task CreateProperty_InvalidRequest_ReturnsBadRequest()
+        public async Task CreateProperty_HandlerFailure_ReturnsBadRequest()
         {
             // Arrange
-            var request = new CreatePropertyRequest
-            {
-                Street = "", // Невалидная улица
-                City = "City",
-                HomeNumber = 123,
-                ZipCode = 123456,
-                Country = "Country",
-                Price = 100000,
-                Description = "Nice property",
-                NumberOfRooms = 2,
-                Floor = 3,
-                TotalFloors = 9,
-                PropertyType = "Apartment",
-                HeatingType = "Central",
-                PropertyCondition = "Good",
-                Area = new decimal(60.5),
-                HasParking = true,
-                OwnerClientId = Guid.NewGuid(),
-                StartDate = DateTime.UtcNow
-            };
+            var request = CreateValidCreateRequest();
+            var command = new CreatePropertyCommand(
+                new UseCases.UseCases.DTO.Property.AddressDto("Street", "City", 1, 123456, "Country"),
+                new UseCases.UseCases.DTO.Property.PropertyDetailsDto(100000m, "Desc", 2, 1, 1, 50m, "Apartment", "Central", "Good", true),
+                new UseCases.UseCases.DTO.Property.OwnershipDto(Guid.NewGuid(), DateTime.UtcNow));
+            var error = "Handler failure";
 
-            var errorResult = Result.Failure<Guid>("Street is required");
-            _mockCreatePropertyHandler
-                .Setup(x => x.HandleAsync(It.IsAny<CreatePropertyCommand>()))
-                .ReturnsAsync(errorResult);
+            _mockMapper.Setup(m => m.Map<CreatePropertyCommand>(request)).Returns(command);
+            _mockCreatePropertyHandler.Setup(x => x.HandleAsync(command)).ReturnsAsync(Result.Failure<Guid>(error));
 
             // Act
-            var actionResult = await _controller.CreateProperty(request);
+            var result = await _controller.CreateProperty(request);
 
             // Assert
-            var envelope = Assert.IsType<Envelope>(actionResult);
-            Assert.Equal(400, envelope.Status);
-            Assert.Contains("Street is required", envelope.Error.ToString());
+            var envelope = Assert.IsType<Envelope>(result);
+            Assert.Equal((int)HttpStatusCode.BadRequest, envelope.Status);
+            Assert.Equal(error, envelope.Error);
         }
 
         [Fact]
-        public async Task GetProperty_ExistingId_ReturnsOkResult()
+        public async Task GetProperty_ExistingId_ReturnsOk()
         {
             // Arrange
             var propertyId = Guid.NewGuid();
-            var request = new CreatePropertyRequest
-            {
-                Street = "Main St",
-                City = "City",
-                HomeNumber = 123,
-                ZipCode = 123456,
-                Country = "Country",
-                Price = 100000,
-                Description = "Nice property",
-                NumberOfRooms = 2,
-                Floor = 3,
-                TotalFloors = 9,
-                PropertyType = "Apartment",
-                HeatingType = "Central",
-                PropertyCondition = "Good",
-                Area = new decimal(60.5),
-                HasParking = true,
-                OwnerClientId = Guid.NewGuid(),
-                StartDate = DateTime.UtcNow
-            };
-
-            // Создаем реальный объект Property для теста
-            var property = CreateTestPropertyWithId(propertyId, request);
-
-            var result = Result.Success(property);
-            _mockPropertyService.Setup(x => x.GetPropertyByIdAsync(propertyId))
-                .ReturnsAsync(result);
+            var propertyDto = CreateTestUseCasePropertyDto(propertyId);
+            var expectedResponse = new PropertyResponse(
+                propertyDto.Id,
+                new AddressDto
+                {
+                    Street = propertyDto.AddressDto.Street,
+                    City = propertyDto.AddressDto.City,
+                    HomeNumber = propertyDto.AddressDto.HomeNumber,
+                    ZipCode = propertyDto.AddressDto.ZipCode,
+                    Country = propertyDto.AddressDto.Country
+                },
+                new PropertyDetailsDto
+                {
+                    Price = propertyDto.PropertyDetailsDto.Price,
+                    Description = propertyDto.PropertyDetailsDto.Description,
+                    NumberOfRooms = propertyDto.PropertyDetailsDto.NumberOfRooms,
+                    Floor = propertyDto.PropertyDetailsDto.Floor,
+                    TotalFloors = propertyDto.PropertyDetailsDto.TotalFloors,
+                    Area = propertyDto.PropertyDetailsDto.Area,
+                    Type = propertyDto.PropertyDetailsDto.Type,
+                    HeatingType = propertyDto.PropertyDetailsDto.HeatingType,
+                    Condition = propertyDto.PropertyDetailsDto.Condition,
+                    HasParking = propertyDto.PropertyDetailsDto.HasParking
+                },
+                new OwnershipDto
+                {
+                    OwnerClientId = propertyDto.OwnershipDto.OwnerClientId,
+                    StartDate = propertyDto.OwnershipDto.StartDate
+                }
+            );
+            _mockGetPropertyByIdHandler.Setup(x => x.HandleAsync(It.Is<GetPropertyByIdQuery>(q => q.PropertyId == propertyId)))
+                .ReturnsAsync(Result.Success(propertyDto));
+            _mockMapper.Setup(m => m.Map<PropertyResponse>(propertyDto)).Returns(expectedResponse);
 
             // Act
-            var actionResult = await _controller.GetProperty(propertyId);
+            var result = await _controller.GetProperty(propertyId);
 
             // Assert
-            var envelope = Assert.IsType<Envelope>(actionResult);
-            var propertyDto = Assert.IsType<PropertyDto>(envelope.Result);
-            Assert.Equal(propertyId, propertyDto.Id);
+            var envelope = Assert.IsType<Envelope>(result);
+            Assert.Equal((int)HttpStatusCode.OK, envelope.Status);
+            Assert.Equal(expectedResponse, envelope.Result);
         }
 
         [Fact]
@@ -199,163 +183,99 @@ namespace Test.Controllers
         {
             // Arrange
             var propertyId = Guid.NewGuid();
-            var errorResult = Result.Failure<PropertyEntity>("Property not found");
-            _mockPropertyService.Setup(x => x.GetPropertyByIdAsync(propertyId))
-                .ReturnsAsync(errorResult);
+            var error = "Property not found";
+            _mockGetPropertyByIdHandler.Setup(x => x.HandleAsync(It.Is<GetPropertyByIdQuery>(q => q.PropertyId == propertyId)))
+                .ReturnsAsync(Result.Failure<PropertyDto>(error));
 
             // Act
-            var actionResult = await _controller.GetProperty(propertyId);
+            var result = await _controller.GetProperty(propertyId);
 
             // Assert
-            var envelope = Assert.IsType<Envelope>(actionResult);
-            Assert.Equal(404, envelope.Status);
-            Assert.Contains("Property not found", envelope.Error.ToString());
+            var envelope = Assert.IsType<Envelope>(result);
+            Assert.Equal((int)HttpStatusCode.NotFound, envelope.Status);
+            Assert.Equal(error, envelope.Error);
         }
 
         [Fact]
-        public async Task UpdateProperty_ValidRequest_ReturnsOkResult()
+        public async Task UpdateProperty_ValidRequest_ReturnsNoContent()
         {
             // Arrange
             var propertyId = Guid.NewGuid();
-            var request = new UpdatePropertyRequest
-            {
-                Street = "Updated St",
-                City = "Updated City",
-                HomeNumber = 456,
-                ZipCode = 654321,
-                Country = "Updated Country",
-                Price = 150000,
-                Description = "Updated property",
-                NumberOfRooms = 3,
-                Floor = 5,
-                TotalFloors = 12,
-                PropertyType = "House",
-                HeatingType = "Gas",
-                PropertyCondition = "Excellent",
-                Area = new decimal(80.0),
-                HasParking = false
-            };
+            var request = CreateValidUpdateRequest();
+            var command = new UpdatePropertyCommand(
+                propertyId,
+                new UseCases.UseCases.DTO.Property.AddressDto("Street", "City", 1, 123456, "Country"),
+                new UseCases.UseCases.DTO.Property.PropertyDetailsDto(100000m, "Desc", 2, 1, 1, 50m, "Apartment", "Central", "Good", true),
+                new UseCases.UseCases.DTO.Property.OwnershipDto(Guid.NewGuid(), DateTime.UtcNow));
 
-            var originalPropertyRequest = new CreatePropertyRequest
-            {
-                Street = "Main St",
-                City = "City",
-                HomeNumber = 123,
-                ZipCode = 123456,
-                Country = "Country",
-                Price = 100000,
-                Description = "Nice property",
-                NumberOfRooms = 2,
-                Floor = 3,
-                TotalFloors = 9,
-                PropertyType = "Apartment",
-                HeatingType = "Central",
-                PropertyCondition = "Good",
-                Area = new decimal(60.5),
-                HasParking = true,
-                OwnerClientId = Guid.NewGuid(),
-                StartDate = DateTime.UtcNow
-            };
-
-            var originalProperty = CreateTestPropertyWithId(propertyId, originalPropertyRequest);
-            var updatedProperty = CreateTestPropertyWithId(propertyId, new CreatePropertyRequest
-            {
-                Street = request.Street,
-                City = request.City,
-                HomeNumber = request.HomeNumber,
-                ZipCode = request.ZipCode,
-                Country = request.Country,
-                Price = request.Price,
-                Description = request.Description,
-                NumberOfRooms = request.NumberOfRooms,
-                Floor = request.Floor,
-                TotalFloors = request.TotalFloors,
-                PropertyType = request.PropertyType,
-                HeatingType = request.HeatingType,
-                PropertyCondition = request.PropertyCondition,
-                Area = request.Area,
-                HasParking = request.HasParking ?? false,
-                OwnerClientId = Guid.NewGuid(),
-                StartDate = DateTime.UtcNow
-            });
-
-            var getPropertyResult = Result.Success(originalProperty);
-            var updateResult = Result.Success();
-            var getResultAfterUpdate = Result.Success(updatedProperty);
-
-            _mockPropertyService.Setup(x => x.GetPropertyByIdAsync(propertyId))
-                .ReturnsAsync(getPropertyResult);
-
-            _mockPropertyService.Setup(x => x.UpdatePropertyAsync(
-                    propertyId,
-                    request.Street, request.City, request.HomeNumber, request.ZipCode, request.Country,
-                    request.Price, request.Description, request.NumberOfRooms, request.Floor, request.TotalFloors,
-                    request.PropertyType, request.HeatingType, request.PropertyCondition, request.Area,
-                    request.HasParking))
-                .ReturnsAsync(updateResult);
-
-            _mockPropertyService.Setup(x => x.GetPropertyByIdAsync(propertyId))
-                .ReturnsAsync(getResultAfterUpdate);
+            _mockMapper.Setup(m => m.Map<UpdatePropertyCommand>(It.IsAny<object>())).Returns(command);
+            _mockUpdatePropertyHandler.Setup(x => x.HandleAsync(command)).ReturnsAsync(Result.Success());
 
             // Act
-            var actionResult = await _controller.UpdateProperty(propertyId, request);
+            var result = await _controller.UpdateProperty(propertyId, request);
 
             // Assert
-            var envelope = Assert.IsType<Envelope>(actionResult);
-            var propertyDto = Assert.IsType<PropertyDto>(envelope.Result);
-            Assert.Equal(propertyId, propertyDto.Id);
+            var envelope = Assert.IsType<Envelope>(result);
+            Assert.Equal((int)HttpStatusCode.NoContent, envelope.Status);
         }
 
         [Fact]
-        public async Task GetProperties_ValidQuery_ReturnsOkResult()
+        public async Task GetProperties_ValidQuery_ReturnsOk()
         {
             // Arrange
-            var query = new SearchPropertiesQuery
+            var query = new SearchPropertiesQuery { Page = 1 }; // Указываем Page, чтобы CurrentPage был 1
+            var propertyDto = CreateTestUseCasePropertyDto(Guid.NewGuid());
+            var searchResult = new SearchPropertiesQueryResponse(new List<PropertyDto> { propertyDto }, 1, 10, 1);
+
+            var mappedItems = new List<PropertyResponse>
             {
-                City = "City",
-                PropertyType = "Apartment",
-                MinPrice = 50000,
-                MaxPrice = 200000
+                new PropertyResponse(
+                    propertyDto.Id,
+                    new AddressDto
+                    {
+                        Street = propertyDto.AddressDto.Street,
+                        City = propertyDto.AddressDto.City,
+                        HomeNumber = propertyDto.AddressDto.HomeNumber,
+                        ZipCode = propertyDto.AddressDto.ZipCode,
+                        Country = propertyDto.AddressDto.Country
+                    },
+                    new PropertyDetailsDto
+                    {
+                        Price = propertyDto.PropertyDetailsDto.Price,
+                        Description = propertyDto.PropertyDetailsDto.Description,
+                        NumberOfRooms = propertyDto.PropertyDetailsDto.NumberOfRooms,
+                        Floor = propertyDto.PropertyDetailsDto.Floor,
+                        TotalFloors = propertyDto.PropertyDetailsDto.TotalFloors,
+                        Area = propertyDto.PropertyDetailsDto.Area,
+                        Type = propertyDto.PropertyDetailsDto.Type,
+                        HeatingType = propertyDto.PropertyDetailsDto.HeatingType,
+                        Condition = propertyDto.PropertyDetailsDto.Condition,
+                        HasParking = propertyDto.PropertyDetailsDto.HasParking
+                    },
+                    new OwnershipDto
+                    {
+                        OwnerClientId = propertyDto.OwnershipDto.OwnerClientId,
+                        StartDate = propertyDto.OwnershipDto.StartDate
+                    }
+                )
             };
 
-            var properties = new List<PropertyEntity>
-            {
-                CreateTestProperty(new CreatePropertyRequest
-                {
-                    Street = "Main St",
-                    City = "City",
-                    HomeNumber = 123,
-                    ZipCode = 123456,
-                    Country = "Country",
-                    Price = 100000,
-                    Description = "Nice property",
-                    NumberOfRooms = 2,
-                    Floor = 3,
-                    TotalFloors = 9,
-                    PropertyType = "Apartment",
-                    HeatingType = "Central",
-                    PropertyCondition = "Good",
-                    Area = new decimal(60.5),
-                    HasParking = true,
-                    OwnerClientId = Guid.NewGuid(),
-                    StartDate = DateTime.UtcNow
-                })
-            };
-
-            var result = Result.Success((IEnumerable<PropertyEntity>)properties);
-            _mockPropertyService.Setup(x => x.SearchPropertiesAsync(
-                    query.City, query.PropertyType, query.MinPrice, query.MaxPrice, query.MinArea, query.MaxArea,
-                    query.MinRooms, query.MaxRooms, query.MinFloor, query.MaxFloor, query.HeatingType,
-                    query.PropertyCondition, query.HasParking))
-                .ReturnsAsync(result);
+            _mockSearchPropertiesHandler.Setup(x => x.HandleAsync(query)).ReturnsAsync(Result.Success(searchResult));
+            _mockMapper.Setup(m => m.Map<IEnumerable<PropertyResponse>>(searchResult.Items)).Returns(mappedItems);
 
             // Act
-            var actionResult = await _controller.GetProperties(query);
+            var result = await _controller.GetProperties(query);
 
             // Assert
-            var envelope = Assert.IsType<Envelope>(actionResult);
-            var propertiesDto = Assert.IsType<List<PropertyDto>>(envelope.Result);
-            Assert.Single(propertiesDto);
+            var envelope = Assert.IsType<Envelope>(result);
+            Assert.Equal((int)HttpStatusCode.OK, envelope.Status);
+            
+            var response = Assert.IsType<PagedPropertiesResponse>(envelope.Result);
+            Assert.Equal(mappedItems, response.Items);
+            Assert.Equal(searchResult.TotalCount, response.TotalCount);
+            Assert.Equal(searchResult.PageSize, response.PageSize);
+            Assert.Equal(searchResult.TotalPages, response.TotalPages);
+            Assert.Equal(query.Page, response.CurrentPage);
         }
 
         [Fact]
@@ -363,16 +283,16 @@ namespace Test.Controllers
         {
             // Arrange
             var propertyId = Guid.NewGuid();
-            var result = Result.Success();
-            _mockPropertyService.Setup(x => x.DeletePropertyAsync(propertyId))
-                .ReturnsAsync(result);
+            var command = new DeletePropertyCommand(propertyId);
+
+            _mockDeletePropertyHandler.Setup(x => x.HandleAsync(command)).ReturnsAsync(Result.Success());
 
             // Act
-            var actionResult = await _controller.DeleteProperty(propertyId);
+            var result = await _controller.DeleteProperty(propertyId);
 
             // Assert
-            var envelope = Assert.IsType<Envelope>(actionResult);
-            Assert.Equal(204, envelope.Status);
+            var envelope = Assert.IsType<Envelope>(result);
+            Assert.Equal((int)HttpStatusCode.NoContent, envelope.Status);
         }
 
         [Fact]
@@ -380,17 +300,18 @@ namespace Test.Controllers
         {
             // Arrange
             var propertyId = Guid.NewGuid();
-            var errorResult = Result.Failure("Property not found");
-            _mockPropertyService.Setup(x => x.DeletePropertyAsync(propertyId))
-                .ReturnsAsync(errorResult);
+            var command = new DeletePropertyCommand(propertyId);
+            var error = "Property not found";
+
+            _mockDeletePropertyHandler.Setup(x => x.HandleAsync(command)).ReturnsAsync(Result.Failure(error));
 
             // Act
-            var actionResult = await _controller.DeleteProperty(propertyId);
+            var result = await _controller.DeleteProperty(propertyId);
 
             // Assert
-            var envelope = Assert.IsType<Envelope>(actionResult);
-            Assert.Equal(404, envelope.Status);
-            Assert.Contains("Property not found", envelope.Error.ToString());
+            var envelope = Assert.IsType<Envelope>(result);
+            Assert.Equal((int)HttpStatusCode.NotFound, envelope.Status);
+            Assert.Equal(error, envelope.Error);
         }
     }
 }

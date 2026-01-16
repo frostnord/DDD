@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using CSharpFunctionalExtensions;
 using Domain.Booking;
 using Domain.Booking.VO;
@@ -36,11 +37,11 @@ using UseCases.Deal;
 using UseCases.Deal.Commands;
 using UseCases.Deal.Queries.GetDealById;
 using UseCases.Deal.Queries.SearchDealsQuery;
+using UseCases.DTO.Seller;
 using UseCases.Interfaces;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Queries;
 using UseCases.Interfaces.Repositories;
-using UseCases.Interfaces.Services;
 using UseCases.Property;
 using UseCases.Property.Commands.CreateProperty;
 using UseCases.Property.Commands.DeleteProperty;
@@ -48,13 +49,9 @@ using UseCases.Property.Commands.UpdateProperty;
 using UseCases.Property.Queries;
 using UseCases.Property.Queries.GetPropertyById;
 using UseCases.Property.Queries.SearchPropertiesQuery;
-using UseCases.Seller;
-using UseCases.Services;
-using UseCases.UseCases.DTO.Property;
-using System.Collections.Generic;
-using UseCases.DTO.Seller;
 using UseCases.Seller.Commands;
 using UseCases.Seller.Queries;
+using UseCases.UseCases.DTO.Property;
 
 namespace Presenter
 {
@@ -114,20 +111,12 @@ namespace Presenter
             services.AddScoped<IQueryHandler<SearchSellersQuery, Result<SearchSellersQueryResponse>>, SearchSellersQueryHandler>();
 
             // Регистрация репозиториев
-            services.AddScoped<IPropertyRepository, PropertyRepository>();
             services.AddScoped<IDealRepository, DealRepository>();
             services.AddScoped<IClientRepository, ClientRepository>();
             services.AddScoped<IBuyerRepository, BuyerRepository>();
             services.AddScoped<ISellerRepository, SellerRepository>();
             services.AddScoped<IBookingRepository, BookingRepository>();
             services.AddScoped<ICompletedDealRepository, CompletedDealRepository>();
-
-            // Регистрация сервисов
-            services.AddScoped<IClientService, ClientService>();
-            services.AddScoped<ISellerService, SellerService>();
-            services.AddScoped<IBuyerService, BuyerService>();
-            services.AddScoped<IDealService, DealService>();
-            services.AddScoped<ICompletedDealService, CompletedDealService>();
 
             return services;
         }
