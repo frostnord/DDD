@@ -17,89 +17,12 @@ public class SearchPropertiesQueryHandler : IQueryHandler<SearchPropertiesQuery,
 
     public async Task<Result<SearchPropertiesQueryResponse>> HandleAsync(SearchPropertiesQuery query)
     {
-        var propertiesResult = await _propertyRepository.GetAllAsync();
-        if (propertiesResult.IsFailure)
-            return Result.Failure<SearchPropertiesQueryResponse>(propertiesResult.Error);
+        var searchResult = await _propertyRepository.SearchAsync(query);
+        if (searchResult.IsFailure)
+            return Result.Failure<SearchPropertiesQueryResponse>(searchResult.Error);
 
-        var properties = propertiesResult.Value.AsEnumerable();
-
-        // Применяем фильтры
-        if (!string.IsNullOrEmpty(query.City))
-            properties = properties.Where(p => 
-                p.Address.City.Equals(query.City, System.StringComparison.OrdinalIgnoreCase));
-
-        if (!string.IsNullOrEmpty(query.PropertyType))
-            properties = properties.Where(p => 
-                p.PropertyDetails.Type.Name.Equals(query.PropertyType, System.StringComparison.OrdinalIgnoreCase));
-
-        if (query.MinPrice.HasValue)
-            properties = properties.Where(p => p.Price.Value >= query.MinPrice.Value);
-
-        if (query.MaxPrice.HasValue)
-            properties = properties.Where(p => p.Price.Value <= query.MaxPrice.Value);
-
-        if (query.MinArea.HasValue)
-            properties = properties.Where(p => p.PropertyDetails.Area.Value >= query.MinArea.Value);
-
-        if (query.MaxArea.HasValue)
-            properties = properties.Where(p => p.PropertyDetails.Area.Value <= query.MaxArea.Value);
-
-        if (query.MinRooms.HasValue)
-            properties = properties.Where(p => p.PropertyDetails.NumberOfRooms.Value >= query.MinRooms.Value);
-
-        if (query.MaxRooms.HasValue)
-            properties = properties.Where(p => p.PropertyDetails.NumberOfRooms.Value <= query.MaxRooms.Value);
-
-        if (query.MinFloor.HasValue)
-            properties = properties.Where(p => p.PropertyDetails.Floor.Value >= query.MinFloor.Value);
-
-        if (query.MaxFloor.HasValue)
-            properties = properties.Where(p => p.PropertyDetails.Floor.Value <= query.MaxFloor.Value);
-
-        if (!string.IsNullOrEmpty(query.HeatingType))
-            properties = properties.Where(p => 
-                System.Object.Equals(p.PropertyDetails.HeatingType.Value, query.HeatingType));
-
-        if (!string.IsNullOrEmpty(query.PropertyCondition))
-            properties = properties.Where(p => 
-                p.PropertyDetails.Condition.Value.Equals(query.PropertyCondition, System.StringComparison.OrdinalIgnoreCase));
-
-        if (query.HasParking.HasValue)
-            properties = properties.Where(p => p.PropertyDetails.HasParking == query.HasParking.Value);
-
-        // Применяем сортировку
-        if (!string.IsNullOrEmpty(query.SortBy))
-        {
-            properties = query.SortBy.ToLower() switch
-            {
-                "price" => query.SortOrder.ToLower() == "desc" 
-                    ? properties.OrderByDescending(p => p.Price.Value)
-                    : properties.OrderBy(p => p.Price.Value),
-                "area" => query.SortOrder.ToLower() == "desc"
-                    ? properties.OrderByDescending(p => p.PropertyDetails.Area.Value)
-                    : properties.OrderBy(p => p.PropertyDetails.Area.Value),
-                "rooms" => query.SortOrder.ToLower() == "desc"
-                    ? properties.OrderByDescending(p => p.PropertyDetails.NumberOfRooms.Value)
-                    : properties.OrderBy(p => p.PropertyDetails.NumberOfRooms.Value),
-                "city" => query.SortOrder.ToLower() == "desc"
-                    ? properties.OrderByDescending(p => p.Address.City)
-                    : properties.OrderBy(p => p.Address.City),
-                _ => properties
-            };
-        }
-        else
-        {
-            properties = properties.OrderBy(p => p.CreatedAt);
-        }
-
-        var allProperties = properties.ToList();
-        var totalCount = allProperties.Count;
-
-        // Применяем пагинацию
-        var pagedProperties = allProperties
-            .Skip((query.Page - 1) * query.PageSize)
-            .Take(query.PageSize)
-            .ToList();
+        var (entities, totalCount) = searchResult.Value;
+        var pagedProperties = entities.ToList();
 
         var items = pagedProperties.Select(p => new PropertyDto(
             p.Id.Value,

@@ -21,23 +21,18 @@ public class SearchBuyersQueryHandler : IQueryHandler<SearchBuyersQuery, Result<
 
     public async Task<Result<SearchBuyersQueryResponse>> HandleAsync(SearchBuyersQuery query)
     {
-        var buyersResult = await _buyerRepository.GetAllAsync();
+        var buyersResult = await _buyerRepository.SearchAsync(query.Page, query.PageSize);
         if (buyersResult.IsFailure)
         {
             return Result.Failure<SearchBuyersQueryResponse>(buyersResult.Error);
         }
 
-        var buyers = buyersResult.Value;
-        var totalCount = buyers.Count();
-        var pageSize = query.PageSize;
+        var (buyers, totalCount) = buyersResult.Value;
+        var pageSize = query.PageSize < 1 ? 1 : query.PageSize;
         var totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
-        var page = Math.Max(1, Math.Min(query.Page, totalPages > 0 ? totalPages : 1));
-        var skip = (page - 1) * pageSize;
-
-        var pagedBuyers = buyers.Skip(skip).Take(pageSize).ToList();
 
         // Используем DateTime.UtcNow, так как RegistrationDate отсутствует в BuyerEntity
-        var dtos = pagedBuyers.Select(b => new BuyerDto(b.Id.Value, b.ClientId.Value, DateTime.UtcNow)).ToList();
+        var dtos = buyers.Select(b => new BuyerDto(b.Id.Value, b.ClientId.Value, DateTime.UtcNow)).ToList();
 
         var response = new SearchBuyersQueryResponse(dtos, totalCount, pageSize, totalPages);
 
