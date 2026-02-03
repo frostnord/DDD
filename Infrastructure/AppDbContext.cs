@@ -10,11 +10,8 @@ namespace Infrastructure;
 
 public class AppDbContext : DbContext
 {
-    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
-    {
-    }
-
     // DbSets (агрегаты)
+
     public DbSet<PropertyEntity> Properties => Set<PropertyEntity>();
     public DbSet<BuyerEntity> Buyers => Set<BuyerEntity>();
     public DbSet<SellerEntity> Sellers => Set<SellerEntity>();
@@ -22,6 +19,10 @@ public class AppDbContext : DbContext
     public DbSet<DealEntity> Deals => Set<DealEntity>();
     public DbSet<ClientEntity> Clients => Set<ClientEntity>();
     public DbSet<BookingEntity> Bookings => Set<BookingEntity>();
+    
+    public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
+    {
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

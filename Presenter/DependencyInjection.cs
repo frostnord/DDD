@@ -10,7 +10,6 @@ using Domain.Property;
 using Domain.Property.VO;
 using Infrastructure;
 using Infrastructure.Repositories;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using UseCases.Booking.Commands;
 using UseCases.Booking.Commands.CancelBooking;
@@ -57,13 +56,8 @@ namespace Presenter
 {
     public static class DependencyInjection
     {
-        public static IServiceCollection AddApplicationServices(this IServiceCollection services,
-            string connectionString)
+        public static void AddApplicationServices(this IServiceCollection services)
         {
-            // Регистрация DbContext
-            services.AddDbContext<AppDbContext>(options =>
-                options.UseNpgsql(connectionString));
-
             // Регистрация Use Case Handlers
             services.AddScoped<ICommandHandler<CreatePropertyCommand, Guid>, CreatePropertyCommandHandler>();
             services.AddScoped<ICommandHandler<UpdatePropertyCommand>, UpdatePropertyCommandHandler>();
@@ -117,8 +111,7 @@ namespace Presenter
             services.AddScoped<ISellerRepository, SellerRepository>();
             services.AddScoped<IBookingRepository, BookingRepository>();
             services.AddScoped<ICompletedDealRepository, CompletedDealRepository>();
-
-            return services;
+            services.AddScoped<IPropertyRepository, PropertyRepository>();
         }
     }
 }

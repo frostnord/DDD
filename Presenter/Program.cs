@@ -1,10 +1,5 @@
-using System;
-using System.IO;
 using System.Reflection;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+using Infrastructure;
 using Microsoft.OpenApi.Models;
 using Presenter;
 
@@ -42,15 +37,18 @@ builder.Services.AddSwaggerGen(c =>
     }
 });
 
-// Получаем строку подключения из конфигурации
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+var connectionString = builder.Configuration
+    .GetSection("PostgreSqlConnectionOptions")
+    .Get<Infrastructure.PostgreSqlConnectionOptions>()
+    ?.GetConnectionString();
 
-// Add application services including command handlers and repositories
 if (string.IsNullOrWhiteSpace(connectionString))
 {
-    throw new InvalidOperationException("Db connection string error");
+    throw new InvalidOperationException("PostgreSqlConnectionOptions is missing in configuration");
 }
-builder.Services.AddApplicationServices(connectionString);
+
+builder.Services.AddPostgres(connectionString);
+builder.Services.AddApplicationServices();
 
 var app = builder.Build();
 

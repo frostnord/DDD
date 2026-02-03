@@ -33,6 +33,25 @@ namespace Infrastructure.Repositories
             return Result.Success<IEnumerable<BuyerEntity>>(buyers);
         }
 
+        public async Task<Result<(IEnumerable<BuyerEntity> Items, int TotalCount)>> SearchAsync(
+            int page,
+            int pageSize)
+        {
+            var normalizedPage = page < 1 ? 1 : page;
+            var normalizedPageSize = pageSize < 1 ? 1 : pageSize;
+
+            var query = _context.Buyers.AsQueryable();
+
+            var totalCount = await query.CountAsync();
+            var items = await query
+                .OrderBy(b => b.Id.Value)
+                .Skip((normalizedPage - 1) * normalizedPageSize)
+                .Take(normalizedPageSize)
+                .ToListAsync();
+
+            return Result.Success((items.AsEnumerable(), totalCount));
+        }
+
         public async Task<Result<BuyerEntity>> AddAsync(BuyerEntity buyerEntity)
         {
             await _context.Buyers.AddAsync(buyerEntity);

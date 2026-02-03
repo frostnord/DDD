@@ -147,5 +147,7 @@ public sealed class PropertyEntityConfiguration : IEntityTypeConfiguration<Prope
                     .HasColumnName("end_date");
             });
         });
+
+        builder.Navigation("_ownershipHistory").IsRequired();
     }
 }
