@@ -20,6 +20,7 @@ namespace Infrastructure.Repositories
         public async Task<Result<BuyerEntity>> GetByIdAsync(BuyerId id)
         {
             var buyer = await _context.Buyers
+                .AsNoTracking()
                 .FirstOrDefaultAsync(b => b.Id == id);
 
             return buyer != null
@@ -29,7 +30,7 @@ namespace Infrastructure.Repositories
 
         public async Task<Result<IEnumerable<BuyerEntity>>> GetAllAsync()
         {
-            var buyers = await _context.Buyers.ToListAsync();
+            var buyers = await _context.Buyers.AsNoTracking().ToListAsync();
             return Result.Success<IEnumerable<BuyerEntity>>(buyers);
         }
 
@@ -40,7 +41,7 @@ namespace Infrastructure.Repositories
             var normalizedPage = page < 1 ? 1 : page;
             var normalizedPageSize = pageSize < 1 ? 1 : pageSize;
 
-            var query = _context.Buyers.AsQueryable();
+            var query = _context.Buyers.AsNoTracking().AsQueryable();
 
             var totalCount = await query.CountAsync();
             var items = await query
@@ -81,7 +82,7 @@ namespace Infrastructure.Repositories
 
         public async Task<bool> ExistsAsync(BuyerId id)
         {
-            return await _context.Buyers.AnyAsync(b => b.Id == id);
+            return await _context.Buyers.AsNoTracking().AnyAsync(b => b.Id == id);
         }
     }
 }

@@ -23,6 +23,7 @@ namespace Infrastructure.Repositories
         public async Task<Result<BookingEntity>> GetByIdAsync(BookingId id)
         {
             var booking = await _context.Bookings
+                .AsNoTracking()
                 .FirstOrDefaultAsync(b => b.Id == id);
 
             return booking != null
@@ -33,6 +34,7 @@ namespace Infrastructure.Repositories
         public async Task<Result<IEnumerable<BookingEntity>>> GetByClientIdAsync(ClientId clientId)
         {
             var bookings = await _context.Bookings
+                .AsNoTracking()
                 .Where(b => b.ClientId == clientId)
                 .ToListAsync();
 
@@ -42,6 +44,7 @@ namespace Infrastructure.Repositories
         public async Task<Result<IEnumerable<BookingEntity>>> GetByPropertyIdAsync(PropertyId propertyId)
         {
             var bookings = await _context.Bookings
+                .AsNoTracking()
                 .Where(b => b.PropertyId == propertyId)
                 .ToListAsync();
 
@@ -75,12 +78,12 @@ namespace Infrastructure.Repositories
 
         public async Task<bool> ExistsAsync(BookingId id)
         {
-            return await _context.Bookings.AnyAsync(b => b.Id == id);
+            return await _context.Bookings.AsNoTracking().AnyAsync(b => b.Id == id);
         }
 
         public async Task<Result<IEnumerable<BookingEntity>>> GetAllAsync()
         {
-            return Result.Success<IEnumerable<BookingEntity>>(await _context.Bookings.ToListAsync());
+            return Result.Success<IEnumerable<BookingEntity>>(await _context.Bookings.AsNoTracking().ToListAsync());
         }
     }
 }

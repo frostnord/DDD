@@ -20,6 +20,7 @@ namespace Infrastructure.Repositories
         public async Task<Result<ClientEntity>> GetByIdAsync(ClientId id)
         {
             var client = await _context.Clients
+                .AsNoTracking()
                 .FirstOrDefaultAsync(c => c.Id == id);
 
             return client != null
@@ -29,7 +30,7 @@ namespace Infrastructure.Repositories
 
         public async Task<Result<IEnumerable<ClientEntity>>> GetAllAsync()
         {
-            var clients = await _context.Clients.ToListAsync();
+            var clients = await _context.Clients.AsNoTracking().ToListAsync();
             return Result.Success<IEnumerable<ClientEntity>>(clients);
         }
 
@@ -62,7 +63,7 @@ namespace Infrastructure.Repositories
 
         public async Task<bool> ExistsAsync(ClientId id)
         {
-            return await _context.Clients.AnyAsync(c => c.Id == id);
+            return await _context.Clients.AsNoTracking().AnyAsync(c => c.Id == id);
         }
     }
 }

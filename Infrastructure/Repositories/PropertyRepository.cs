@@ -26,6 +26,7 @@ namespace Infrastructure.Repositories
         public async Task<Result<PropertyEntity>> GetByIdAsync(PropertyId id)
         {
             var property = await _context.Properties
+                .AsNoTracking()
                 .FirstOrDefaultAsync(p => p.Id == id);
 
             return property != null
@@ -36,14 +37,14 @@ namespace Infrastructure.Repositories
 
         public async Task<Result<IEnumerable<PropertyEntity>>> GetAllAsync()
         {
-            var properties = await _context.Properties.ToListAsync();
+            var properties = await _context.Properties.AsNoTracking().ToListAsync();
             return Result.Success<IEnumerable<PropertyEntity>>(properties);
         }
 
         public async Task<Result<(IEnumerable<PropertyEntity> Items, int TotalCount)>> SearchAsync(
             SearchPropertiesQuery query)
         {
-            IQueryable<PropertyEntity> properties = _context.Properties;
+            IQueryable<PropertyEntity> properties = _context.Properties.AsNoTracking();
 
             if (!string.IsNullOrEmpty(query.City))
             {
@@ -182,7 +183,7 @@ namespace Infrastructure.Repositories
 
         public async Task<bool> ExistsAsync(PropertyId id)
         {
-            return await _context.Properties.AnyAsync(p => p.Id == id);
+            return await _context.Properties.AsNoTracking().AnyAsync(p => p.Id == id);
         }
     }
 }

@@ -22,6 +22,7 @@ namespace Infrastructure.Repositories
         public async Task<Result<CompletedDealEntity>> GetByIdAsync(CompletedDealId id)
         {
             var deal = await _context.CompletedDeals
+                .AsNoTracking()
                 .FirstOrDefaultAsync(d => d.Id == id);
 
             return deal != null
@@ -32,6 +33,7 @@ namespace Infrastructure.Repositories
         public async Task<Result<IEnumerable<CompletedDealEntity>>> GetByClientIdAsync(ClientId clientId)
         {
             var deals = await _context.CompletedDeals
+                .AsNoTracking()
                 .Where(d => d.BuyerClientId == clientId || d.SellerClientId == clientId)
                 .ToListAsync();
 
@@ -41,6 +43,7 @@ namespace Infrastructure.Repositories
         public async Task<Result<IEnumerable<CompletedDealEntity>>> GetByPropertyIdAsync(PropertyId propertyId)
         {
             var deals = await _context.CompletedDeals
+                .AsNoTracking()
                 .Where(d => d.PropertyId == propertyId)
                 .ToListAsync();
 
@@ -76,12 +79,12 @@ namespace Infrastructure.Repositories
 
         public async Task<bool> ExistsAsync(CompletedDealId id)
         {
-            return await _context.CompletedDeals.AnyAsync(d => d.Id == id);
+            return await _context.CompletedDeals.AsNoTracking().AnyAsync(d => d.Id == id);
         }
 
         public async Task<Result<IEnumerable<CompletedDealEntity>>> GetAllAsync()
         {
-            var deals = await _context.CompletedDeals.ToListAsync();
+            var deals = await _context.CompletedDeals.AsNoTracking().ToListAsync();
             return Result.Success<IEnumerable<CompletedDealEntity>>(deals);
         }
     }
