@@ -10,6 +10,7 @@ namespace UseCases.Interfaces.Repositories;
 public interface ISellerRepository
 {
     Task<Result<SellerEntity>> GetByIdAsync(SellerId id);
+    Task<Result<SellerEntity>> GetByClientIdAsync(ClientId clientId);
     Task<Result<IEnumerable<SellerEntity>>> GetAllAsync();
     Result<SellerEntity> Add(SellerEntity sellerEntity);
     Result<SellerEntity> Update(SellerEntity sellerEntity);

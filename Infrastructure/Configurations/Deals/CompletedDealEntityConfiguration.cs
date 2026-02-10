@@ -1,4 +1,6 @@
+using Domain.Customers.Buyer.VO;
 using Domain.Customers.Client.VO;
+using Domain.Customers.Seller.VO;
 using Domain.Deal;
 using Domain.Deal.VO;
 using Domain.Property.VO;
@@ -21,6 +23,16 @@ public sealed class CompletedDealEntityConfiguration : IEntityTypeConfiguration<
             .IsRequired()
             .HasConversion(v => v.Value, v => CompletedDealId.Create(v).Value)
             .HasColumnName("id");
+
+        builder.Property(x => x.BuyerId)
+            .IsRequired()
+            .HasConversion(v => v.Value, v => BuyerId.Create(v).Value)
+            .HasColumnName("buyer_id");
+
+        builder.Property(x => x.SellerId)
+            .IsRequired()
+            .HasConversion(v => v.Value, v => SellerId.Create(v).Value)
+            .HasColumnName("seller_id");
 
         builder.Property(x => x.BuyerClientId)
             .IsRequired()

@@ -7,6 +7,7 @@ using CSharpFunctionalExtensions;
 using Domain.Booking.VO;
 using Domain.Customers.Client.VO;
 using Domain.Deal;
+using Domain.Deal.VO;
 using Domain.Property.VO;
 using Moq;
 using Presenter.Controllers;

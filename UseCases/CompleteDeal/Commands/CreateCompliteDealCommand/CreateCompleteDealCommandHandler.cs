@@ -39,8 +39,8 @@ public class CreateCompleteDealCommandHandler : ICommandHandler<CreateCompleteDe
             return Result.Failure<CompletedDealEntity>($"Client with ID {command.BuyerClientId} does not exist");
         }
 
-        var buyerRoleExists = await _unitOfWork.Buyers.ExistsByClientIdAsync(buyerIdResult.Value);
-        if (!buyerRoleExists)
+        var buyerRoleResult = await _unitOfWork.Buyers.GetByClientIdAsync(buyerIdResult.Value);
+        if (buyerRoleResult.IsFailure)
         {
             return Result.Failure<CompletedDealEntity>($"Client with ID {command.BuyerClientId} is not registered as buyer");
         }
@@ -51,10 +51,15 @@ public class CreateCompleteDealCommandHandler : ICommandHandler<CreateCompleteDe
             return Result.Failure<CompletedDealEntity>($"Client with ID {command.SellerClientId} does not exist");
         }
 
-        var sellerRoleExists = await _unitOfWork.Sellers.ExistsByClientIdAsync(sellerIdResult.Value);
-        if (!sellerRoleExists)
+        var sellerRoleResult = await _unitOfWork.Sellers.GetByClientIdAsync(sellerIdResult.Value);
+        if (sellerRoleResult.IsFailure)
         {
             return Result.Failure<CompletedDealEntity>($"Client with ID {command.SellerClientId} is not registered as seller");
+        }
+
+        if (buyerRoleResult.Value.ClientId == sellerRoleResult.Value.ClientId)
+        {
+            return Result.Failure<CompletedDealEntity>("Покупатель и продавец не могут совпадать");
         }
 
         var propertyIdResult = PropertyId.Create(command.PropertyId);
@@ -86,6 +91,8 @@ public class CreateCompleteDealCommandHandler : ICommandHandler<CreateCompleteDe
         }
 
         var completedDealResult = CompletedDealEntity.Create(
+            buyerRoleResult.Value.Id,
+            sellerRoleResult.Value.Id,
             buyerIdResult.Value,
             sellerIdResult.Value,
             propertyIdResult.Value,

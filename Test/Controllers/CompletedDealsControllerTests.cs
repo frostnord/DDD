@@ -4,8 +4,11 @@ using System.Net;
 using System.Threading.Tasks;
 using AutoMapper;
 using CSharpFunctionalExtensions;
+using Domain.Customers.Buyer.VO;
 using Domain.Customers.Client.VO;
+using Domain.Customers.Seller.VO;
 using Domain.Deal;
+using Domain.Deal.VO;
 using Domain.Property.VO;
 using Domain.ValueObjects;
 using Microsoft.AspNetCore.Mvc;
@@ -14,6 +17,7 @@ using Presenter.Controllers;
 using Presenter.DTOs.CompletedDealDTO;
 using Presenter.Utilities;
 using UseCases.CompleteDeal;
+using UseCases.CompleteDeal.Commands.CreateCompliteDealCommand;
 using UseCases.CompleteDeal.Commands.DeleteCompletedDeal;
 using UseCases.CompleteDeal.Queries.GetAllCompletedDeals;
 using UseCases.CompleteDeal.Queries.GetCompletedDealById;
@@ -65,14 +69,25 @@ namespace Test.Controllers
             decimal? dealAmount = null, 
             DealType? dealType = null)
         {
-            var buyerId = ClientId.Create(buyerClientId ?? Guid.NewGuid()).Value;
-            var sellerId = ClientId.Create(sellerClientId ?? Guid.NewGuid()).Value;
+            var buyerClientIdValue = ClientId.Create(buyerClientId ?? Guid.NewGuid()).Value;
+            var sellerClientIdValue = ClientId.Create(sellerClientId ?? Guid.NewGuid()).Value;
             var propertyIdValue = PropertyId.Create(propertyId ?? Guid.NewGuid()).Value;
             var dealDateValue = dealDate ?? DateTime.UtcNow.AddDays(-1);
             var dealAmountValue = Price.Create(dealAmount ?? 1000m).Value;
             var dealTypeValue = dealType ?? DealType.Purchase;
 
-            return CompletedDealEntity.Create(buyerId, sellerId, propertyIdValue, dealDateValue, dealAmountValue, dealTypeValue).Value;
+            var buyerRoleIdValue = BuyerId.Create(Guid.NewGuid()).Value;
+            var sellerRoleIdValue = SellerId.Create(Guid.NewGuid()).Value;
+
+            return CompletedDealEntity.Create(
+                buyerRoleIdValue,
+                sellerRoleIdValue,
+                buyerClientIdValue,
+                sellerClientIdValue,
+                propertyIdValue,
+                dealDateValue,
+                dealAmountValue,
+                dealTypeValue).Value;
         }
 
         private static IEnumerable<CompletedDealDto> GetItemsFromEnvelope(Envelope envelope)

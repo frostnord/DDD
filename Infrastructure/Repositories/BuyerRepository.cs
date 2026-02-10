@@ -29,6 +29,17 @@ namespace Infrastructure.Repositories
                 : Result.Failure<BuyerEntity>($"Buyer with ID {id.Value} not found");
         }
 
+        public async Task<Result<BuyerEntity>> GetByClientIdAsync(ClientId clientId)
+        {
+            var buyer = await _context.Buyers
+                .AsNoTracking()
+                .FirstOrDefaultAsync(b => b.ClientId == clientId);
+
+            return buyer != null
+                ? Result.Success(buyer)
+                : Result.Failure<BuyerEntity>($"Buyer for ClientId {clientId.Value} not found");
+        }
+
         public async Task<Result<IEnumerable<BuyerEntity>>> GetAllAsync()
         {
             var buyers = await _context.Buyers.AsNoTracking().ToListAsync();

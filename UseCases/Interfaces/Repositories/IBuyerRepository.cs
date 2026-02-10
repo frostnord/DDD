@@ -10,6 +10,7 @@ namespace UseCases.Interfaces.Repositories;
 public interface IBuyerRepository
 {
     Task<Result<BuyerEntity>> GetByIdAsync(BuyerId id);
+    Task<Result<BuyerEntity>> GetByClientIdAsync(ClientId clientId);
     Task<Result<IEnumerable<BuyerEntity>>> GetAllAsync();
     Task<Result<(IEnumerable<BuyerEntity> Items, int TotalCount)>> SearchAsync(int page, int pageSize);
     Result<BuyerEntity> Add(BuyerEntity buyerEntity);
