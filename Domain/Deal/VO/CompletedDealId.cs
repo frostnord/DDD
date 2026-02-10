@@ -1,8 +1,7 @@
-using System;
 using CSharpFunctionalExtensions;
 using Domain.ValueObjects;
 
-namespace Domain.Deal;
+namespace Domain.Deal.VO;
 
 public class CompletedDealId : TypedId<CompletedDealId>
 {

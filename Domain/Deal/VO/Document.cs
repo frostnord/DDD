@@ -1,8 +1,6 @@
-using System;
-using System.Collections.Generic;
 using CSharpFunctionalExtensions;
 
-namespace Domain.Deal
+namespace Domain.Deal.VO
 {
     /// <summary>
     /// Объект значения, представляющий документ
