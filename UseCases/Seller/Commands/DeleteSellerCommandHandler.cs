@@ -2,17 +2,17 @@ using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Seller.VO;
 using UseCases.Interfaces.Commands;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 
 namespace UseCases.Seller.Commands;
 
 public class DeleteSellerCommandHandler : ICommandHandler<DeleteSellerCommand>
 {
-    private readonly ISellerRepository _sellerRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public DeleteSellerCommandHandler(ISellerRepository sellerRepository)
+    public DeleteSellerCommandHandler(IUnitOfWork unitOfWork)
     {
-        _sellerRepository = sellerRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Result> HandleAsync(DeleteSellerCommand command)
@@ -23,13 +23,20 @@ public class DeleteSellerCommandHandler : ICommandHandler<DeleteSellerCommand>
             return Result.Failure(sellerIdResult.Error);
         }
 
-        var sellerResult = await _sellerRepository.GetByIdAsync(sellerIdResult.Value);
+        var sellerResult = await _unitOfWork.Sellers.GetByIdAsync(sellerIdResult.Value);
         if (sellerResult.IsFailure)
         {
             return Result.Failure(sellerResult.Error);
         }
 
-        var deleteResult = await _sellerRepository.DeleteAsync(sellerIdResult.Value);
-        return deleteResult;
+        var deleteResult = _unitOfWork.Sellers.Delete(sellerIdResult.Value);
+        if (deleteResult.IsFailure)
+        {
+            return deleteResult;
+        }
+
+        await _unitOfWork.SaveChangesAsync();
+
+        return Result.Success();
     }
 }

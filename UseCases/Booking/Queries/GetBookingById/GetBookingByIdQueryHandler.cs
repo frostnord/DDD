@@ -2,18 +2,18 @@ using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Booking.VO;
 using UseCases.Interfaces.Queries;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 using UseCases.UseCases.DTO.Booking;
 
 namespace UseCases.Booking.Queries.GetBookingById;
 
 public class GetBookingByIdQueryHandler : IQueryHandler<GetBookingByIdQuery, Result<BookingDto>>
 {
-    private readonly IBookingRepository _bookingRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public GetBookingByIdQueryHandler(IBookingRepository bookingRepository)
+    public GetBookingByIdQueryHandler(IUnitOfWork unitOfWork)
     {
-        _bookingRepository = bookingRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Result<BookingDto>> HandleAsync(GetBookingByIdQuery query)
@@ -24,7 +24,7 @@ public class GetBookingByIdQueryHandler : IQueryHandler<GetBookingByIdQuery, Res
             return Result.Failure<BookingDto>(bookingIdResult.Error);
         }
 
-        var bookingResult = await _bookingRepository.GetByIdAsync(bookingIdResult.Value);
+        var bookingResult = await _unitOfWork.Bookings.GetByIdAsync(bookingIdResult.Value);
         if (bookingResult.IsFailure)
         {
             return Result.Failure<BookingDto>(bookingResult.Error);

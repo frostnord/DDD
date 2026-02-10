@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
 using Domain.Deal;
+using Domain.Deal.VO;
 using Domain.Property.VO;
 
 namespace UseCases.Interfaces.Repositories;
@@ -13,8 +14,8 @@ public interface IDealRepository
     Task<Result<IEnumerable<DealEntity>>> GetByClientIdAsync(ClientId clientId);
     Task<Result<IEnumerable<DealEntity>>> GetByPropertyIdAsync(PropertyId propertyId);
     Task<Result<IEnumerable<DealEntity>>> GetAllAsync();
-    Task<Result<DealEntity>> AddAsync(DealEntity dealEntity);
-    Task<Result> UpdateAsync(DealEntity dealEntity);
-    Task<Result> DeleteAsync(DealId id);
+    Result<DealEntity> Add(DealEntity dealEntity);
+    Result Update(DealEntity dealEntity);
+    Result Delete(DealId id);
     Task<bool> ExistsAsync(DealId id);
 }

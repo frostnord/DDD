@@ -4,17 +4,17 @@ using Domain.Property;
 using Domain.Property.VO;
 using Domain.ValueObjects;
 using UseCases.Interfaces.Commands;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 
 namespace UseCases.Property.Commands.UpdateProperty;
 
 public class UpdatePropertyCommandHandler : ICommandHandler<UpdatePropertyCommand>
 {
-    private readonly IPropertyRepository _propertyRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public UpdatePropertyCommandHandler(IPropertyRepository propertyRepository)
+    public UpdatePropertyCommandHandler(IUnitOfWork unitOfWork)
     {
-        _propertyRepository = propertyRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Result> HandleAsync(UpdatePropertyCommand command)
@@ -23,10 +23,11 @@ public class UpdatePropertyCommandHandler : ICommandHandler<UpdatePropertyComman
         if (propertyIdVO.IsFailure)
             return Result.Failure(propertyIdVO.Error);
 
-        var propertyResult = await _propertyRepository.GetByIdAsync(propertyIdVO.Value);
+        var propertyResult = await _unitOfWork.Properties.GetByIdAsync(propertyIdVO.Value);
         if (propertyResult.IsFailure)
+        {
             return Result.Failure(propertyResult.Error);
-
+        }
         var property = propertyResult.Value;
 
         var (Street, City, HomeNumber, ZipCode, Country) = command.AddressDto;
@@ -75,6 +76,14 @@ public class UpdatePropertyCommandHandler : ICommandHandler<UpdatePropertyComman
         property.UpdateDetails(detailsVO.Value);
         property.UpdateOwner(ownershipRecordVO.Value);
 
-        return await _propertyRepository.UpdateAsync(property);
+        var updateResult = _unitOfWork.Properties.Update(property);
+        if (updateResult.IsFailure)
+        {
+            return Result.Failure(updateResult.Error);
+        }
+
+        await _unitOfWork.SaveChangesAsync();
+
+        return Result.Success();
     }
 }

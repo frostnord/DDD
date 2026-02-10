@@ -5,18 +5,18 @@ using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
 using Domain.Property.VO;
 using UseCases.Interfaces.Queries;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 using UseCases.UseCases.DTO.Booking;
 
 namespace UseCases.Booking.Queries.SearchBookingsQuery;
 
 public class SearchBookingsQueryHandler : IQueryHandler<SearchBookingsQuery, Result<SearchBookingsQueryResponse>>
 {
-    private readonly IBookingRepository _bookingRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public SearchBookingsQueryHandler(IBookingRepository bookingRepository)
+    public SearchBookingsQueryHandler(IUnitOfWork unitOfWork)
     {
-        _bookingRepository = bookingRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Result<SearchBookingsQueryResponse>> HandleAsync(SearchBookingsQuery query)
@@ -36,7 +36,7 @@ public class SearchBookingsQueryHandler : IQueryHandler<SearchBookingsQuery, Res
                 return Result.Failure<SearchBookingsQueryResponse>(clientIdResult.Error);
             }
 
-            bookingsResult = await _bookingRepository.GetByClientIdAsync(clientIdResult.Value);
+            bookingsResult = await _unitOfWork.Bookings.GetByClientIdAsync(clientIdResult.Value);
         }
         else
         {
@@ -46,7 +46,7 @@ public class SearchBookingsQueryHandler : IQueryHandler<SearchBookingsQuery, Res
                 return Result.Failure<SearchBookingsQueryResponse>(propertyIdResult.Error);
             }
 
-            bookingsResult = await _bookingRepository.GetByPropertyIdAsync(propertyIdResult.Value);
+            bookingsResult = await _unitOfWork.Bookings.GetByPropertyIdAsync(propertyIdResult.Value);
         }
 
         if (bookingsResult.IsFailure)

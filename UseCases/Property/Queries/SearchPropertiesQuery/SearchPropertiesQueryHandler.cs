@@ -1,6 +1,6 @@
 using CSharpFunctionalExtensions;
 using UseCases.Interfaces.Queries;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 using UseCases.Property.Queries.GetPropertyById;
 using UseCases.UseCases.DTO.Property;
 
@@ -8,16 +8,16 @@ namespace UseCases.Property.Queries.SearchPropertiesQuery;
 
 public class SearchPropertiesQueryHandler : IQueryHandler<SearchPropertiesQuery, Result<SearchPropertiesQueryResponse>>
 {
-    private readonly IPropertyRepository _propertyRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public SearchPropertiesQueryHandler(IPropertyRepository propertyRepository)
+    public SearchPropertiesQueryHandler(IUnitOfWork unitOfWork)
     {
-        _propertyRepository = propertyRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Result<SearchPropertiesQueryResponse>> HandleAsync(SearchPropertiesQuery query)
     {
-        var searchResult = await _propertyRepository.SearchAsync(query);
+        var searchResult = await _unitOfWork.Properties.SearchAsync(query);
         if (searchResult.IsFailure)
             return Result.Failure<SearchPropertiesQueryResponse>(searchResult.Error);
 

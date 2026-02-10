@@ -1,18 +1,19 @@
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Deal;
+using Domain.Deal.VO;
 using UseCases.Interfaces.Commands;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 
 namespace UseCases.Deal.Commands;
 
 public class CancelDealCommandHandler : ICommandHandler<CancelDealCommand>
 {
-    private readonly IDealRepository _dealRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public CancelDealCommandHandler(IDealRepository dealRepository)
+    public CancelDealCommandHandler(IUnitOfWork unitOfWork)
     {
-        _dealRepository = dealRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Result> HandleAsync(CancelDealCommand command)
@@ -23,7 +24,7 @@ public class CancelDealCommandHandler : ICommandHandler<CancelDealCommand>
             return Result.Failure(dealId.Error);
         }
 
-        var dealResult = await _dealRepository.GetByIdAsync(dealId.Value);
+        var dealResult = await _unitOfWork.Deals.GetByIdAsync(dealId.Value);
         if (dealResult.IsFailure)
         {
             return Result.Failure(dealResult.Error);
@@ -37,11 +38,13 @@ public class CancelDealCommandHandler : ICommandHandler<CancelDealCommand>
 
         deal.Cancel();
 
-        var updateResult = await _dealRepository.UpdateAsync(deal);
+        var updateResult = _unitOfWork.Deals.Update(deal);
         if (updateResult.IsFailure)
         {
             return Result.Failure(updateResult.Error);
         }
+
+        await _unitOfWork.SaveChangesAsync();
 
         return Result.Success();
     }

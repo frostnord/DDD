@@ -51,27 +51,25 @@ namespace Infrastructure.Repositories
             return Result.Success<IEnumerable<BookingEntity>>(bookings);
         }
 
-        public async Task<Result> SaveAsync(BookingEntity bookingEntity)
+        public Result Save(BookingEntity bookingEntity)
         {
             if (bookingEntity == null)
                 return Result.Failure("Booking cannot be null");
 
             _context.Bookings.Update(bookingEntity);
-            await _context.SaveChangesAsync();
 
             return Result.Success();
         }
 
-        public async Task<Result> DeleteAsync(BookingId id)
+        public Result Delete(BookingId id)
         {
-            var booking = await _context.Bookings.FirstOrDefaultAsync(b => b.Id == id);
+            var booking = _context.Bookings.FirstOrDefault(b => b.Id == id);
             if (booking == null)
             {
                 return Result.Failure($"Booking with ID {id.Value} not found");
             }
 
             _context.Bookings.Remove(booking);
-            await _context.SaveChangesAsync();
 
             return Result.Success();
         }

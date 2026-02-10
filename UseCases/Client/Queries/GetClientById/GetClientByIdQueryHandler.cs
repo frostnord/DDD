@@ -3,17 +3,17 @@ using CSharpFunctionalExtensions;
 using Domain.Customers.Client;
 using Domain.Customers.Client.VO;
 using UseCases.Interfaces.Queries;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 
 namespace UseCases.Client.Queries.GetClientById;
 
 public class GetClientByIdQueryHandler : IQueryHandler<GetClientByIdQuery, Result<ClientEntity>>
 {
-    private readonly IClientRepository _clientRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public GetClientByIdQueryHandler(IClientRepository clientRepository)
+    public GetClientByIdQueryHandler(IUnitOfWork unitOfWork)
     {
-        _clientRepository = clientRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Result<ClientEntity>> HandleAsync(GetClientByIdQuery query)
@@ -22,7 +22,7 @@ public class GetClientByIdQueryHandler : IQueryHandler<GetClientByIdQuery, Resul
         if (clientIdVO.IsFailure)
             return Result.Failure<ClientEntity>($"Invalid client ID: {clientIdVO.Error}");
             
-        var client = await _clientRepository.GetByIdAsync(clientIdVO.Value);
+        var client = await _unitOfWork.Clients.GetByIdAsync(clientIdVO.Value);
         if (client.IsFailure)
             return Result.Failure<ClientEntity>($"Client with ID {query.ClientId} not found");
             

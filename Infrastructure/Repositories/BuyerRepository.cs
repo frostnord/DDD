@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Buyer;
 using Domain.Customers.Buyer.VO;
+using Domain.Customers.Client.VO;
 using Microsoft.EntityFrameworkCore;
 using UseCases.Interfaces.Repositories;
 
@@ -53,36 +54,38 @@ namespace Infrastructure.Repositories
             return Result.Success((items.AsEnumerable(), totalCount));
         }
 
-        public async Task<Result<BuyerEntity>> AddAsync(BuyerEntity buyerEntity)
+        public Result<BuyerEntity> Add(BuyerEntity buyerEntity)
         {
-            await _context.Buyers.AddAsync(buyerEntity);
-            await _context.SaveChangesAsync();
+            _context.Buyers.Add(buyerEntity);
             return Result.Success(buyerEntity);
         }
 
-        public async Task<Result> UpdateAsync(BuyerEntity buyerEntity)
+        public Result Update(BuyerEntity buyerEntity)
         {
             _context.Buyers.Update(buyerEntity);
-            await _context.SaveChangesAsync();
             return Result.Success();
         }
 
-        public async Task<Result> DeleteAsync(BuyerId id)
+        public Result Delete(BuyerId id)
         {
-            var buyer = await _context.Buyers.FirstOrDefaultAsync(b => b.Id == id);
+            var buyer = _context.Buyers.FirstOrDefault(b => b.Id == id);
             if (buyer == null)
             {
                 return Result.Failure($"Buyer with ID {id.Value} not found");
             }
 
             _context.Buyers.Remove(buyer);
-            await _context.SaveChangesAsync();
             return Result.Success();
         }
 
         public async Task<bool> ExistsAsync(BuyerId id)
         {
             return await _context.Buyers.AsNoTracking().AnyAsync(b => b.Id == id);
+        }
+
+        public async Task<bool> ExistsByClientIdAsync(ClientId clientId)
+        {
+            return await _context.Buyers.AsNoTracking().AnyAsync(b => b.ClientId == clientId);
         }
     }
 }

@@ -1,19 +1,20 @@
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Deal;
+using Domain.Deal.VO;
 using UseCases.Interfaces.Queries;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 using UseCases.UseCases.DTO.Deal;
 
 namespace UseCases.Deal.Queries.GetDealById;
 
 public class GetDealByIdQueryHandler : IQueryHandler<GetDealByIdQuery, Result<DealDto>>
 {
-    private readonly IDealRepository _dealRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public GetDealByIdQueryHandler(IDealRepository dealRepository)
+    public GetDealByIdQueryHandler(IUnitOfWork unitOfWork)
     {
-        _dealRepository = dealRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Result<DealDto>> HandleAsync(GetDealByIdQuery query)
@@ -24,7 +25,7 @@ public class GetDealByIdQueryHandler : IQueryHandler<GetDealByIdQuery, Result<De
             return Result.Failure<DealDto>(dealIdResult.Error);
         }
 
-        var dealResult = await _dealRepository.GetByIdAsync(dealIdResult.Value);
+        var dealResult = await _unitOfWork.Deals.GetByIdAsync(dealIdResult.Value);
         if (dealResult.IsFailure)
         {
             return Result.Failure<DealDto>(dealResult.Error);

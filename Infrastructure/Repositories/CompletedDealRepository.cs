@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
 using Domain.Deal;
+using Domain.Deal.VO;
 using Domain.Property.VO;
 using Microsoft.EntityFrameworkCore;
 using UseCases.Interfaces.Repositories;
@@ -50,30 +51,27 @@ namespace Infrastructure.Repositories
             return Result.Success<IEnumerable<CompletedDealEntity>>(deals);
         }
 
-        public async Task<Result<CompletedDealEntity>> AddAsync(CompletedDealEntity dealEntity)
+        public Result<CompletedDealEntity> Add(CompletedDealEntity dealEntity)
         {
-            await _context.CompletedDeals.AddAsync(dealEntity);
-            await _context.SaveChangesAsync();
+            _context.CompletedDeals.Add(dealEntity);
             return Result.Success(dealEntity);
         }
 
-        public async Task<Result> UpdateAsync(CompletedDealEntity dealEntity)
+        public Result Update(CompletedDealEntity dealEntity)
         {
             _context.CompletedDeals.Update(dealEntity);
-            await _context.SaveChangesAsync();
             return Result.Success();
         }
 
-        public async Task<Result> DeleteAsync(CompletedDealId id)
+        public Result Delete(CompletedDealId id)
         {
-            var deal = await _context.CompletedDeals.FirstOrDefaultAsync(d => d.Id == id);
+            var deal = _context.CompletedDeals.FirstOrDefault(d => d.Id == id);
             if (deal == null)
             {
                 return Result.Failure($"Completed deal with ID {id.Value} not found");
             }
 
             _context.CompletedDeals.Remove(deal);
-            await _context.SaveChangesAsync();
             return Result.Success();
         }
 

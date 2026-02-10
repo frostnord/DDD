@@ -4,17 +4,17 @@ using Domain.Customers.Client;
 using Domain.Customers.Client.VO;
 using Domain.ValueObjects;
 using UseCases.Interfaces.Commands;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 
 namespace UseCases.Client.Commands.UpdateClient;
 
 public class UpdateClientCommandHandler : ICommandHandler<UpdateClientCommand, ClientEntity>
 {
-    private readonly IClientRepository _clientRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public UpdateClientCommandHandler(IClientRepository clientRepository)
+    public UpdateClientCommandHandler(IUnitOfWork unitOfWork)
     {
-        _clientRepository = clientRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Result<ClientEntity>> HandleAsync(UpdateClientCommand command)
@@ -25,7 +25,7 @@ public class UpdateClientCommandHandler : ICommandHandler<UpdateClientCommand, C
             return Result.Failure<ClientEntity>($"Invalid client ID: {clientId.Error}");
         }
 
-        var clientResult = await _clientRepository.GetByIdAsync(clientId.Value);
+        var clientResult = await _unitOfWork.Clients.GetByIdAsync(clientId.Value);
         if (clientResult.IsFailure)
         {
             return Result.Failure<ClientEntity>($"Client with ID {command.ClientId} does not exist");
@@ -72,11 +72,13 @@ public class UpdateClientCommandHandler : ICommandHandler<UpdateClientCommand, C
             return Result.Failure<ClientEntity>(updateResult.Error);
         }
 
-        var saveResult = await _clientRepository.UpdateAsync(clientResult.Value);
+        var saveResult = _unitOfWork.Clients.Update(clientResult.Value);
         if (saveResult.IsFailure)
         {
             return Result.Failure<ClientEntity>(saveResult.Error);
         }
+
+        await _unitOfWork.SaveChangesAsync();
 
         return Result.Success(clientResult.Value);
     }

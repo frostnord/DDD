@@ -8,24 +8,18 @@ using Domain.Customers.Client.VO;
 using Domain.Property.VO;
 using Domain.ValueObjects;
 using UseCases.Interfaces.Commands;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 
 namespace UseCases.Booking.Commands.CreateBooking;
 
 public class CreateBookingCommandHandler : ICommandHandler<CreateBookingCommand, Guid>
 {
-    private readonly IBookingRepository _bookingRepository;
-    private readonly IClientRepository _clientRepository;
-    private readonly IPropertyRepository _propertyRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
     public CreateBookingCommandHandler(
-        IBookingRepository bookingRepository,
-        IClientRepository clientRepository,
-        IPropertyRepository propertyRepository)
+        IUnitOfWork unitOfWork)
     {
-        _bookingRepository = bookingRepository;
-        _clientRepository = clientRepository;
-        _propertyRepository = propertyRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Result<Guid>> HandleAsync(CreateBookingCommand command)
@@ -57,7 +51,7 @@ public class CreateBookingCommandHandler : ICommandHandler<CreateBookingCommand,
         }
 
         // Проверяем, существует ли клиент
-        var clientResult = await _clientRepository.GetByIdAsync(clientIdResult.Value);
+        var clientResult = await _unitOfWork.Clients.GetByIdAsync(clientIdResult.Value);
         if (clientResult.IsFailure)
         {
             return Result.Failure<Guid>(
@@ -65,7 +59,7 @@ public class CreateBookingCommandHandler : ICommandHandler<CreateBookingCommand,
         }
 
         // Проверяем, существует ли недвижимость
-        var propertyResult = await _propertyRepository.GetByIdAsync(propertyIdResult.Value);
+        var propertyResult = await _unitOfWork.Properties.GetByIdAsync(propertyIdResult.Value);
         if (propertyResult.IsFailure)
         {
             return Result.Failure<Guid>(
@@ -81,7 +75,7 @@ public class CreateBookingCommandHandler : ICommandHandler<CreateBookingCommand,
         }
 
         // Проверяем, что на этот период нет уже забронированных визитов
-        var existingBookingsResult = await _bookingRepository.GetByPropertyIdAsync(propertyIdResult.Value);
+        var existingBookingsResult = await _unitOfWork.Bookings.GetByPropertyIdAsync(propertyIdResult.Value);
         if (existingBookingsResult.IsFailure)
         {
             return Result.Failure<Guid>(
@@ -113,11 +107,13 @@ public class CreateBookingCommandHandler : ICommandHandler<CreateBookingCommand,
         }
 
         // Сохраняем бронирование
-        var saveResult = await _bookingRepository.SaveAsync(bookingResult.Value);
+        var saveResult = _unitOfWork.Bookings.Save(bookingResult.Value);
         if (saveResult.IsFailure)
         {
             return Result.Failure<Guid>(saveResult.Error);
         }
+
+        await _unitOfWork.SaveChangesAsync();
 
         return Result.Success(bookingResult.Value.Id.Value);
     }

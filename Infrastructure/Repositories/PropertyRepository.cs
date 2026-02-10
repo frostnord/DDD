@@ -154,30 +154,27 @@ namespace Infrastructure.Repositories
             return Result.Success((items.AsEnumerable(), totalCount));
         }
 
-        public async Task<Result<PropertyEntity>> AddAsync(PropertyEntity propertyEntity)
+        public Result<PropertyEntity> Add(PropertyEntity propertyEntity)
         {
-            await _context.Properties.AddAsync(propertyEntity);
-            await _context.SaveChangesAsync();
+            _context.Properties.Add(propertyEntity);
             return Result.Success(propertyEntity);
         }
 
-        public async Task<Result> UpdateAsync(PropertyEntity propertyEntity)
+        public Result Update(PropertyEntity propertyEntity)
         {
             _context.Properties.Update(propertyEntity);
-            await _context.SaveChangesAsync();
             return Result.Success();
         }
 
-        public async Task<Result> DeleteAsync(PropertyId id)
+        public Result Delete(PropertyId id)
         {
-            var property = await _context.Properties.FirstOrDefaultAsync(p => p.Id == id);
+            var property = _context.Properties.FirstOrDefault(p => p.Id == id);
             if (property == null)
             {
                 return Result.Failure($"Property with ID {id.Value} not found");
             }
 
             _context.Properties.Remove(property);
-            await _context.SaveChangesAsync();
             return Result.Success();
         }
 

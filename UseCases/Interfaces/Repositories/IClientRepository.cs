@@ -10,8 +10,8 @@ public interface IClientRepository
 {
     Task<Result<ClientEntity>> GetByIdAsync(ClientId id);
     Task<Result<IEnumerable<ClientEntity>>> GetAllAsync();
-    Task<Result<ClientEntity>> AddAsync(ClientEntity clientEntity);
-    Task<Result> UpdateAsync(ClientEntity clientEntity);
-    Task<Result> DeleteAsync(ClientId id);
+    Result<ClientEntity> Add(ClientEntity clientEntity);
+    Result Update(ClientEntity clientEntity);
+    Result Delete(ClientId id);
     Task<bool> ExistsAsync(ClientId id);
 }

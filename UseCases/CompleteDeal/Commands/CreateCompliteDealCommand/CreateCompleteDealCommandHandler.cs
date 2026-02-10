@@ -1,29 +1,22 @@
-using System;
-using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
 using Domain.Deal;
+using Domain.Deal.VO;
 using Domain.Property.VO;
 using Domain.ValueObjects;
 using UseCases.Interfaces.Commands;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 
-namespace UseCases.CompleteDeal;
+namespace UseCases.CompleteDeal.Commands.CreateCompliteDealCommand;
 
 public class CreateCompleteDealCommandHandler : ICommandHandler<CreateCompleteDealCommand, CompletedDealEntity>
 {
-    private readonly ICompletedDealRepository _completedDealRepository;
-    private readonly IClientRepository _clientRepository;
-    private readonly IPropertyRepository _propertyRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
     public CreateCompleteDealCommandHandler(
-        ICompletedDealRepository completedDealRepository,
-        IClientRepository clientRepository,
-        IPropertyRepository propertyRepository)
+        IUnitOfWork unitOfWork)
     {
-        _completedDealRepository = completedDealRepository;
-        _clientRepository = clientRepository;
-        _propertyRepository = propertyRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Result<CompletedDealEntity>> HandleAsync(CreateCompleteDealCommand command)
@@ -40,16 +33,28 @@ public class CreateCompleteDealCommandHandler : ICommandHandler<CreateCompleteDe
             return Result.Failure<CompletedDealEntity>(sellerIdResult.Error);
         }
 
-        var buyerExistsResult = await _clientRepository.GetByIdAsync(buyerIdResult.Value);
+        var buyerExistsResult = await _unitOfWork.Clients.GetByIdAsync(buyerIdResult.Value);
         if (buyerExistsResult.IsFailure)
         {
             return Result.Failure<CompletedDealEntity>($"Client with ID {command.BuyerClientId} does not exist");
         }
 
-        var sellerExistsResult = await _clientRepository.GetByIdAsync(sellerIdResult.Value);
+        var buyerRoleExists = await _unitOfWork.Buyers.ExistsByClientIdAsync(buyerIdResult.Value);
+        if (!buyerRoleExists)
+        {
+            return Result.Failure<CompletedDealEntity>($"Client with ID {command.BuyerClientId} is not registered as buyer");
+        }
+
+        var sellerExistsResult = await _unitOfWork.Clients.GetByIdAsync(sellerIdResult.Value);
         if (sellerExistsResult.IsFailure)
         {
             return Result.Failure<CompletedDealEntity>($"Client with ID {command.SellerClientId} does not exist");
+        }
+
+        var sellerRoleExists = await _unitOfWork.Sellers.ExistsByClientIdAsync(sellerIdResult.Value);
+        if (!sellerRoleExists)
+        {
+            return Result.Failure<CompletedDealEntity>($"Client with ID {command.SellerClientId} is not registered as seller");
         }
 
         var propertyIdResult = PropertyId.Create(command.PropertyId);
@@ -58,7 +63,7 @@ public class CreateCompleteDealCommandHandler : ICommandHandler<CreateCompleteDe
             return Result.Failure<CompletedDealEntity>(propertyIdResult.Error);
         }
 
-        var propertyExistsResult = await _propertyRepository.GetByIdAsync(propertyIdResult.Value);
+        var propertyExistsResult = await _unitOfWork.Properties.GetByIdAsync(propertyIdResult.Value);
         if (propertyExistsResult.IsFailure)
         {
             return Result.Failure<CompletedDealEntity>($"Property with ID {command.PropertyId} does not exist");
@@ -93,6 +98,15 @@ public class CreateCompleteDealCommandHandler : ICommandHandler<CreateCompleteDe
             return Result.Failure<CompletedDealEntity>(completedDealResult.Error);
         }
 
-        return await _completedDealRepository.AddAsync(completedDealResult.Value);
+        return await _unitOfWork.ExecuteInTransactionAsync(async _ =>
+        {
+            var saveResult = _unitOfWork.CompletedDeals.Add(completedDealResult.Value);
+            if (saveResult.IsFailure)
+            {
+                return Result.Failure<CompletedDealEntity>(saveResult.Error);
+            }
+
+            return Result.Success(completedDealResult.Value);
+        });
     }
 }

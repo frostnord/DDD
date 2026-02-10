@@ -34,30 +34,27 @@ namespace Infrastructure.Repositories
             return Result.Success<IEnumerable<ClientEntity>>(clients);
         }
 
-        public async Task<Result<ClientEntity>> AddAsync(ClientEntity clientEntity)
+        public Result<ClientEntity> Add(ClientEntity clientEntity)
         {
-            await _context.Clients.AddAsync(clientEntity);
-            await _context.SaveChangesAsync();
+            _context.Clients.Add(clientEntity);
             return Result.Success(clientEntity);
         }
 
-        public async Task<Result> UpdateAsync(ClientEntity clientEntity)
+        public Result Update(ClientEntity clientEntity)
         {
             _context.Clients.Update(clientEntity);
-            await _context.SaveChangesAsync();
             return Result.Success();
         }
 
-        public async Task<Result> DeleteAsync(ClientId id)
+        public Result Delete(ClientId id)
         {
-            var client = await _context.Clients.FirstOrDefaultAsync(c => c.Id == id);
+            var client = _context.Clients.FirstOrDefault(c => c.Id == id);
             if (client == null)
             {
                 return Result.Failure($"Client with ID {id.Value} not found");
             }
 
             _context.Clients.Remove(client);
-            await _context.SaveChangesAsync();
             return Result.Success();
         }
 

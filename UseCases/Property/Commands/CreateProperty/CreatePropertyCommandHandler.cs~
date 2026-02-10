@@ -4,6 +4,7 @@ using Domain.Property;
 using Domain.Property.VO;
 using Domain.ValueObjects;
 using UseCases.Interfaces.Commands;
+using UseCases.Interfaces.Repositories;
 using UseCases.Interfaces.Services;
 using System;
 using System.Threading.Tasks;
@@ -12,10 +13,12 @@ namespace UseCases.Property.Commands.CreateProperty;
 
 public class CreatePropertyCommandHandler : ICommandHandler<CreatePropertyCommand, Guid>
 {
+    private readonly IPropertyRepository _propertyRepository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public CreatePropertyCommandHandler(IUnitOfWork unitOfWork)
+    public CreatePropertyCommandHandler(IPropertyRepository propertyRepository, IUnitOfWork unitOfWork)
     {
+        _propertyRepository = propertyRepository;
         _unitOfWork = unitOfWork;
     }
 
@@ -94,7 +97,7 @@ public class CreatePropertyCommandHandler : ICommandHandler<CreatePropertyComman
         var property = propertyResult.Value;
         property.SetFirstOwner(ownerRecordVO.Value);
 
-        var saveResult = _unitOfWork.Properties.Add(property);
+        var saveResult = _propertyRepository.Add(property);
         if (saveResult.IsFailure)
         {
             return Result.Failure<Guid>(saveResult.Error);

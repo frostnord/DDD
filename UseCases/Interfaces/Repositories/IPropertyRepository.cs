@@ -14,8 +14,8 @@ public interface IPropertyRepository
     Task<Result<PropertyEntity>> GetByIdAsync(PropertyId id);
     Task<Result<IEnumerable<PropertyEntity>>> GetAllAsync();
     Task<Result<(IEnumerable<PropertyEntity> Items, int TotalCount)>> SearchAsync(SearchPropertiesQuery query);
-    Task<Result<PropertyEntity>> AddAsync(PropertyEntity propertyEntity);
-    Task<Result> UpdateAsync(PropertyEntity propertyEntity);
-    Task<Result> DeleteAsync(PropertyId id);
+    Result<PropertyEntity> Add(PropertyEntity propertyEntity);
+    Result Update(PropertyEntity propertyEntity);
+    Result Delete(PropertyId id);
     Task<bool> ExistsAsync(PropertyId id);
 }

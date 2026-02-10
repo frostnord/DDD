@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
 using Domain.Deal;
+using Domain.Deal.VO;
 using Domain.Property.VO;
 using Microsoft.EntityFrameworkCore;
 using UseCases.Interfaces.Repositories;
@@ -50,30 +51,27 @@ namespace Infrastructure.Repositories
             return Result.Success<IEnumerable<DealEntity>>(deals);
         }
 
-        public async Task<Result<DealEntity>> AddAsync(DealEntity dealEntity)
+        public Result<DealEntity> Add(DealEntity dealEntity)
         {
-            await _context.Deals.AddAsync(dealEntity);
-            await _context.SaveChangesAsync();
+            _context.Deals.Add(dealEntity);
             return Result.Success(dealEntity);
         }
 
-        public async Task<Result> UpdateAsync(DealEntity dealEntity)
+        public Result Update(DealEntity dealEntity)
         {
             _context.Deals.Update(dealEntity);
-            await _context.SaveChangesAsync();
             return Result.Success();
         }
 
-        public async Task<Result> DeleteAsync(DealId id)
+        public Result Delete(DealId id)
         {
-            var deal = await _context.Deals.FirstOrDefaultAsync(d => d.Id == id);
+            var deal = _context.Deals.FirstOrDefault(d => d.Id == id);
             if (deal == null)
             {
                 return Result.Failure($"Deal with ID {id.Value} not found");
             }
 
             _context.Deals.Remove(deal);
-            await _context.SaveChangesAsync();
             return Result.Success();
         }
 

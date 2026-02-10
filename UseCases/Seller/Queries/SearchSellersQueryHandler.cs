@@ -4,23 +4,23 @@ using System.Linq;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using UseCases.Interfaces.Queries;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 using UseCases.DTO.Seller;
 
 namespace UseCases.Seller.Queries;
 
 public class SearchSellersQueryHandler : IQueryHandler<SearchSellersQuery, Result<SearchSellersQueryResponse>>
 {
-    private readonly ISellerRepository _sellerRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public SearchSellersQueryHandler(ISellerRepository sellerRepository)
+    public SearchSellersQueryHandler(IUnitOfWork unitOfWork)
     {
-        _sellerRepository = sellerRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Result<SearchSellersQueryResponse>> HandleAsync(SearchSellersQuery query)
     {
-        var sellersResult = await _sellerRepository.GetAllAsync();
+        var sellersResult = await _unitOfWork.Sellers.GetAllAsync();
         if (sellersResult.IsFailure)
         {
             return Result.Failure<SearchSellersQueryResponse>(sellersResult.Error);

@@ -2,17 +2,17 @@ using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Buyer.VO;
 using UseCases.Interfaces.Commands;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 
 namespace UseCases.Buyer.Commands.DeleteBuyer;
 
 public class DeleteBuyerCommandHandler : ICommandHandler<DeleteBuyerCommand>
 {
-    private readonly IBuyerRepository _buyerRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public DeleteBuyerCommandHandler(IBuyerRepository buyerRepository)
+    public DeleteBuyerCommandHandler(IUnitOfWork unitOfWork)
     {
-        _buyerRepository = buyerRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Result> HandleAsync(DeleteBuyerCommand command)
@@ -21,12 +21,20 @@ public class DeleteBuyerCommandHandler : ICommandHandler<DeleteBuyerCommand>
         if (buyerId.IsFailure)
             return Result.Failure(buyerId.Error);
 
-        var buyerResult = await _buyerRepository.GetByIdAsync(buyerId.Value);
+        var buyerResult = await _unitOfWork.Buyers.GetByIdAsync(buyerId.Value);
         if (buyerResult.IsFailure)
         {
             return Result.Failure($"Buyer with ID {command.BuyerId} does not exist");
         }
 
-        return await _buyerRepository.DeleteAsync(buyerId.Value);
+        var deleteResult = _unitOfWork.Buyers.Delete(buyerId.Value);
+        if (deleteResult.IsFailure)
+        {
+            return deleteResult;
+        }
+
+        await _unitOfWork.SaveChangesAsync();
+
+        return Result.Success();
     }
 }

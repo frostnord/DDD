@@ -2,17 +2,17 @@ using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Booking.VO;
 using UseCases.Interfaces.Commands;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 
 namespace UseCases.Booking.Commands.CancelBooking;
 
 public class CancelBookingCommandHandler : ICommandHandler<CancelBookingCommand>
 {
-    private readonly IBookingRepository _bookingRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public CancelBookingCommandHandler(IBookingRepository bookingRepository)
+    public CancelBookingCommandHandler(IUnitOfWork unitOfWork)
     {
-        _bookingRepository = bookingRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Result> HandleAsync(CancelBookingCommand command)
@@ -23,7 +23,7 @@ public class CancelBookingCommandHandler : ICommandHandler<CancelBookingCommand>
             return Result.Failure($"Invalid booking ID: {bookingId.Error}");
         }
 
-        var bookingResult = await _bookingRepository.GetByIdAsync(bookingId.Value);
+        var bookingResult = await _unitOfWork.Bookings.GetByIdAsync(bookingId.Value);
         if (bookingResult.IsFailure)
         {
             return Result.Failure($"Booking with ID {command.BookingId} not found");
@@ -32,11 +32,13 @@ public class CancelBookingCommandHandler : ICommandHandler<CancelBookingCommand>
         var booking = bookingResult.Value;
         booking.Cancel();
 
-        var saveResult = await _bookingRepository.SaveAsync(booking);
+        var saveResult = _unitOfWork.Bookings.Save(booking);
         if (saveResult.IsFailure)
         {
             return Result.Failure(saveResult.Error);
         }
+
+        await _unitOfWork.SaveChangesAsync();
 
         return Result.Success();
     }

@@ -5,24 +5,18 @@ using Domain.Customers.Client.VO;
 using Domain.Deal;
 using Domain.Property.VO;
 using UseCases.Interfaces.Commands;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 
 namespace UseCases.Deal.Commands;
 
 public class CreateDealCommandHandler : ICommandHandler<CreateDealCommand, Guid>
 {
-    private readonly IDealRepository _dealRepository;
-    private readonly IPropertyRepository _propertyRepository;
-    private readonly IClientRepository _clientRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
     public CreateDealCommandHandler(
-        IDealRepository dealRepository,
-        IPropertyRepository propertyRepository,
-        IClientRepository clientRepository)
+        IUnitOfWork unitOfWork)
     {
-        _dealRepository = dealRepository;
-        _propertyRepository = propertyRepository;
-        _clientRepository = clientRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Result<Guid>> HandleAsync(CreateDealCommand command)
@@ -52,14 +46,14 @@ public class CreateDealCommandHandler : ICommandHandler<CreateDealCommand, Guid>
         }
 
         // Проверяем, существует ли клиент
-        var clientResult = await _clientRepository.GetByIdAsync(clientIdResult.Value);
+        var clientResult = await _unitOfWork.Clients.GetByIdAsync(clientIdResult.Value);
         if (clientResult.IsFailure)
         {
             return Result.Failure<Guid>($"Client with ID {command.ClientId} does not exist");
         }
 
         // Проверяем, существует ли недвижимость
-        var propertyResult = await _propertyRepository.GetByIdAsync(propertyIdResult.Value);
+        var propertyResult = await _unitOfWork.Properties.GetByIdAsync(propertyIdResult.Value);
         if (propertyResult.IsFailure)
         {
             return Result.Failure<Guid>($"Property with ID {command.PropertyId} does not exist");
@@ -86,11 +80,13 @@ public class CreateDealCommandHandler : ICommandHandler<CreateDealCommand, Guid>
         }
 
         // Сохраняем сделку
-        var saveResult = await _dealRepository.AddAsync(dealResult.Value);
+        var saveResult = _unitOfWork.Deals.Add(dealResult.Value);
         if (saveResult.IsFailure)
         {
             return Result.Failure<Guid>(saveResult.Error);
         }
+
+        await _unitOfWork.SaveChangesAsync();
 
         return Result.Success(dealResult.Value.Id.Value);
     }

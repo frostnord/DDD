@@ -3,22 +3,22 @@ using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client;
 using UseCases.Interfaces.Queries;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 
 namespace UseCases.Client.Queries.GetAllClient;
 
 public class GetAllClientsQueryHandler : IQueryHandler<GetAllClientsQuery, Result<IEnumerable<ClientEntity>>>
 {
-    private readonly IClientRepository _clientRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public GetAllClientsQueryHandler(IClientRepository clientRepository)
+    public GetAllClientsQueryHandler(IUnitOfWork unitOfWork)
     {
-        _clientRepository = clientRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Result<IEnumerable<ClientEntity>>> HandleAsync(GetAllClientsQuery query)
     {
-        var clients = await _clientRepository.GetAllAsync();
+        var clients = await _unitOfWork.Clients.GetAllAsync();
         if (clients.IsFailure)
             return Result.Failure<IEnumerable<ClientEntity>>(clients.Error);
             

@@ -45,14 +45,14 @@ public interface IBookingRepository
     /// </summary>
     /// <param name="bookingEntity">Бронирование для сохранения</param>
     /// <returns>Результат операции</returns>
-    Task<Result> SaveAsync(Domain.Booking.BookingEntity bookingEntity);
+    Result Save(Domain.Booking.BookingEntity bookingEntity);
 
     /// <summary>
     /// Удаляет бронирование из репозитория
     /// </summary>
     /// <param name="id">Идентификатор бронирования для удаления</param>
     /// <returns>Результат операции</returns>
-    Task<Result> DeleteAsync(BookingId id);
+    Result Delete(BookingId id);
 
     /// <summary>
     /// Проверяет, существует ли бронирование с указанным идентификатором
