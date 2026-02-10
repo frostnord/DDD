@@ -2,6 +2,7 @@ using AutoMapper;
 using Domain.Deal;
 using Presenter.DTOs.CompletedDealDTO;
 using UseCases.CompleteDeal;
+using UseCases.CompleteDeal.Commands.CreateCompliteDealCommand;
 using UseCasesCompletedDealDto = UseCases.UseCases.DTO.CompletedDeal.CompletedDealDto;
 
 namespace Presenter.Mappings

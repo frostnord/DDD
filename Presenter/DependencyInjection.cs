@@ -9,7 +9,6 @@ using Domain.Deal;
 using Domain.Property;
 using Domain.Property.VO;
 using Infrastructure;
-using Infrastructure.Repositories;
 using Microsoft.Extensions.DependencyInjection;
 using UseCases.Booking.Commands;
 using UseCases.Booking.Commands.CancelBooking;
@@ -27,6 +26,7 @@ using UseCases.Client.Queries;
 using UseCases.Client.Queries.GetAllClient;
 using UseCases.Client.Queries.GetClientById;
 using UseCases.CompleteDeal;
+using UseCases.CompleteDeal.Commands.CreateCompliteDealCommand;
 using UseCases.CompleteDeal.Commands.DeleteCompletedDeal;
 using UseCases.CompleteDeal.Queries.GetAllCompletedDeals;
 using UseCases.CompleteDeal.Queries.GetCompletedDealById;
@@ -40,7 +40,7 @@ using UseCases.DTO.Seller;
 using UseCases.Interfaces;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Queries;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 using UseCases.Property;
 using UseCases.Property.Commands.CreateProperty;
 using UseCases.Property.Commands.DeleteProperty;
@@ -103,15 +103,7 @@ namespace Presenter
             // Регистрация обработчиков запросов для продавцов
             services.AddScoped<IQueryHandler<GetSellerByIdQuery, Result<SellerDto>>, GetSellerByIdQueryHandler>();
             services.AddScoped<IQueryHandler<SearchSellersQuery, Result<SearchSellersQueryResponse>>, SearchSellersQueryHandler>();
-
-            // Регистрация репозиториев
-            services.AddScoped<IDealRepository, DealRepository>();
-            services.AddScoped<IClientRepository, ClientRepository>();
-            services.AddScoped<IBuyerRepository, BuyerRepository>();
-            services.AddScoped<ISellerRepository, SellerRepository>();
-            services.AddScoped<IBookingRepository, BookingRepository>();
-            services.AddScoped<ICompletedDealRepository, CompletedDealRepository>();
-            services.AddScoped<IPropertyRepository, PropertyRepository>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
         }
     }
 }

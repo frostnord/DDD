@@ -18,6 +18,8 @@ namespace Domain.Property
         /// Адрес объекта недвижимости
         /// </summary>
         public Address Address { get; private set; }
+        
+        
 
         /// <summary>
         /// Цена объекта недвижимости

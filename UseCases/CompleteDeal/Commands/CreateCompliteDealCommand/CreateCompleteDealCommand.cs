@@ -1,8 +1,7 @@
-using System;
 using Domain.Deal;
 using UseCases.Interfaces.Commands;
 
-namespace UseCases.CompleteDeal;
+namespace UseCases.CompleteDeal.Commands.CreateCompliteDealCommand;
 
 public sealed record CreateCompleteDealCommand(
     Guid BuyerClientId,

@@ -4,6 +4,7 @@ using System.Linq;
 using CSharpFunctionalExtensions;
 using Domain.Booking.VO;
 using Domain.Customers.Client.VO;
+using Domain.Deal.VO;
 using Domain.Property.VO;
 
 namespace Domain.Deal

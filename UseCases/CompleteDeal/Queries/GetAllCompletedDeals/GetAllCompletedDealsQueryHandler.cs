@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Deal;
 using UseCases.Interfaces.Queries;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 using UseCases.UseCases.DTO.CompletedDeal;
 
 namespace UseCases.CompleteDeal.Queries.GetAllCompletedDeals;
@@ -12,16 +12,16 @@ namespace UseCases.CompleteDeal.Queries.GetAllCompletedDeals;
 public class GetAllCompletedDealsQueryHandler
     : IQueryHandler<GetAllCompletedDealsQuery, Result<IEnumerable<CompletedDealDto>>>
 {
-    private readonly ICompletedDealRepository _completedDealRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public GetAllCompletedDealsQueryHandler(ICompletedDealRepository completedDealRepository)
+    public GetAllCompletedDealsQueryHandler(IUnitOfWork unitOfWork)
     {
-        _completedDealRepository = completedDealRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Result<IEnumerable<CompletedDealDto>>> HandleAsync(GetAllCompletedDealsQuery query)
     {
-        var dealsResult = await _completedDealRepository.GetAllAsync();
+        var dealsResult = await _unitOfWork.CompletedDeals.GetAllAsync();
         if (dealsResult.IsFailure)
         {
             return Result.Failure<IEnumerable<CompletedDealDto>>(dealsResult.Error);

@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using Domain.Deal;
+using Domain.Deal.VO;
 
 namespace Presenter.DTOs.DealDTO
 {

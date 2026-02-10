@@ -1,5 +1,6 @@
 using System;
 using Domain.Deal;
+using Domain.Deal.VO;
 using UseCases.Interfaces.Commands;
 
 namespace UseCases.Deal.Commands;

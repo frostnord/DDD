@@ -5,7 +5,7 @@ using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
 using Domain.Deal;
 using UseCases.Interfaces.Queries;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 using UseCases.UseCases.DTO.CompletedDeal;
 
 namespace UseCases.CompleteDeal.Queries.GetCompletedDealsByClientId;
@@ -13,11 +13,11 @@ namespace UseCases.CompleteDeal.Queries.GetCompletedDealsByClientId;
 public class GetCompletedDealsByClientIdQueryHandler
     : IQueryHandler<GetCompletedDealsByClientIdQuery, Result<IEnumerable<CompletedDealDto>>>
 {
-    private readonly ICompletedDealRepository _completedDealRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public GetCompletedDealsByClientIdQueryHandler(ICompletedDealRepository completedDealRepository)
+    public GetCompletedDealsByClientIdQueryHandler(IUnitOfWork unitOfWork)
     {
-        _completedDealRepository = completedDealRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task<Result<IEnumerable<CompletedDealDto>>> HandleAsync(GetCompletedDealsByClientIdQuery query)
@@ -28,7 +28,7 @@ public class GetCompletedDealsByClientIdQueryHandler
             return Result.Failure<IEnumerable<CompletedDealDto>>(clientIdResult.Error);
         }
 
-        var dealsResult = await _completedDealRepository.GetByClientIdAsync(clientIdResult.Value);
+        var dealsResult = await _unitOfWork.CompletedDeals.GetByClientIdAsync(clientIdResult.Value);
         if (dealsResult.IsFailure)
         {
             return Result.Failure<IEnumerable<CompletedDealDto>>(dealsResult.Error);

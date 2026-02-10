@@ -1,5 +1,6 @@
 using System;
 using Domain.Deal;
+using Domain.Deal.VO;
 
 namespace UseCases.UseCases.DTO.Deal;
 

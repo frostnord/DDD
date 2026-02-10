@@ -9,6 +9,7 @@ using Microsoft.AspNetCore.Mvc;
 using Presenter.DTOs.CompletedDealDTO;
 using Presenter.Utilities;
 using UseCases.CompleteDeal;
+using UseCases.CompleteDeal.Commands.CreateCompliteDealCommand;
 using UseCases.CompleteDeal.Commands.DeleteCompletedDeal;
 using UseCases.CompleteDeal.Queries.GetAllCompletedDeals;
 using UseCases.CompleteDeal.Queries.GetCompletedDealById;

@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
+using Domain.Deal.VO;
 using Domain.Property.VO;
 using Domain.ValueObjects;
 
