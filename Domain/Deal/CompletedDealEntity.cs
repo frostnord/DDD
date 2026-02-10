@@ -1,7 +1,9 @@
 using System;
 using System.Collections.Generic;
 using CSharpFunctionalExtensions;
+using Domain.Customers.Buyer.VO;
 using Domain.Customers.Client.VO;
+using Domain.Customers.Seller.VO;
 using Domain.Deal.VO;
 using Domain.Property.VO;
 using Domain.ValueObjects;
@@ -13,6 +15,16 @@ namespace Domain.Deal
     /// </summary>
     public class CompletedDealEntity : Entity<CompletedDealId>
     {
+        /// <summary>
+        /// Идентификатор покупателя (роль)
+        /// </summary>
+        public BuyerId BuyerId { get; private set; }
+
+        /// <summary>
+        /// Идентификатор продавца (роль)
+        /// </summary>
+        public SellerId SellerId { get; private set; }
+
         /// <summary>
         /// Клиент-покупатель
         /// </summary>
@@ -53,10 +65,20 @@ namespace Domain.Deal
         /// </summary>
         public DateTime? UpdatedAt { get; private set; }
 
-        protected CompletedDealEntity(CompletedDealId id, ClientId buyerClientId, ClientId sellerClientId,
-            PropertyId propertyId, DateTime dealDate, Price dealAmount, DealType dealType)
+        protected CompletedDealEntity(
+            CompletedDealId id,
+            BuyerId buyerId,
+            SellerId sellerId,
+            ClientId buyerClientId,
+            ClientId sellerClientId,
+            PropertyId propertyId,
+            DateTime dealDate,
+            Price dealAmount,
+            DealType dealType)
             : base(id)
         {
+            BuyerId = buyerId;
+            SellerId = sellerId;
             BuyerClientId = buyerClientId;
             SellerClientId = sellerClientId;
             PropertyId = propertyId;
@@ -65,7 +87,7 @@ namespace Domain.Deal
             DealType = dealType;
             CreatedAt = DateTime.UtcNow;
         }
-        
+
         // EF Core конструктор
         protected CompletedDealEntity()
         {
@@ -74,17 +96,32 @@ namespace Domain.Deal
         /// <summary>
         /// Создает новый экземпляр совершенной сделки через фабричный метод
         /// </summary>
-        /// <param name="buyerClientId">Идентификатор покупателя</param>
-        /// <param name="sellerClientId">Идентификатор продавца</param>
+        /// <param name="buyerId">Идентификатор покупателя (роль)</param>
+        /// <param name="sellerId">Идентификатор продавца (роль)</param>
+        /// <param name="buyerClientId">Идентификатор клиента-покупателя</param>
+        /// <param name="sellerClientId">Идентификатор клиента-продавца</param>
         /// <param name="propertyId">Идентификатор объекта недвижимости</param>
         /// <param name="dealDate">Дата совершения сделки</param>
         /// <param name="dealAmount">Сумма сделки</param>
         /// <param name="dealType">Тип сделки</param>
         /// <returns>Результат с совершенной сделкой или ошибкой</returns>
-        public static Result<CompletedDealEntity> Create(ClientId buyerClientId, ClientId sellerClientId,
-            PropertyId propertyId, DateTime dealDate, Price dealAmount, DealType dealType)
+        public static Result<CompletedDealEntity> Create(
+            BuyerId buyerId,
+            SellerId sellerId,
+            ClientId buyerClientId,
+            ClientId sellerClientId,
+            PropertyId propertyId,
+            DateTime dealDate,
+            Price dealAmount,
+            DealType dealType)
         {
             var validationErrors = new List<string>();
+
+            if (buyerId == null || buyerId.Value == Guid.Empty)
+                validationErrors.Add("Идентификатор покупателя (роль) не может быть пустым");
+
+            if (sellerId == null || sellerId.Value == Guid.Empty)
+                validationErrors.Add("Идентификатор продавца (роль) не может быть пустым");
 
             if (buyerClientId == null || buyerClientId.Value == Guid.Empty)
                 validationErrors.Add("Идентификатор покупателя не может быть пустым");
@@ -114,7 +151,16 @@ namespace Domain.Deal
                 return Result.Failure<CompletedDealEntity>(string.Join("; ", validationErrors));
             }
 
-            var deal = new CompletedDealEntity(id, buyerClientId, sellerClientId, propertyId, dealDate, dealAmount, dealType);
+            var deal = new CompletedDealEntity(
+                id,
+                buyerId,
+                sellerId,
+                buyerClientId,
+                sellerClientId,
+                propertyId,
+                dealDate,
+                dealAmount,
+                dealType);
             return Result.Success(deal);
         }
     }

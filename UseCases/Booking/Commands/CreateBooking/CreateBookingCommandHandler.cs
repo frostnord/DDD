@@ -50,71 +50,72 @@ public class CreateBookingCommandHandler : ICommandHandler<CreateBookingCommand,
             return Result.Failure<Guid>($"Invalid total price: {totalPriceResult.Error}");
         }
 
-        // Проверяем, существует ли клиент
-        var clientResult = await _unitOfWork.Clients.GetByIdAsync(clientIdResult.Value);
-        if (clientResult.IsFailure)
+        return await _unitOfWork.ExecuteInTransactionAsync(async _ =>
         {
-            return Result.Failure<Guid>(
-                $"Client with ID {command.ClientId} does not exist");
-        }
+            // Проверяем, существует ли клиент
+            var clientResult = await _unitOfWork.Clients.GetByIdAsync(clientIdResult.Value);
+            if (clientResult.IsFailure)
+            {
+                return Result.Failure<Guid>(
+                    $"Client with ID {command.ClientId} does not exist");
+            }
 
-        // Проверяем, существует ли недвижимость
-        var propertyResult = await _unitOfWork.Properties.GetByIdAsync(propertyIdResult.Value);
-        if (propertyResult.IsFailure)
-        {
-            return Result.Failure<Guid>(
-                $"Property with ID {command.PropertyId} does not exist");
-        }
+            // Проверяем, существует ли недвижимость
+            var propertyResult = await _unitOfWork.Properties.GetByIdAsync(propertyIdResult.Value);
+            if (propertyResult.IsFailure)
+            {
+                return Result.Failure<Guid>(
+                    $"Property with ID {command.PropertyId} does not exist");
+            }
 
-        // Проверяем, что недвижимость доступна для бронирования
-        var property = propertyResult.Value;
-        if (property.Status != PropertyStatus.ForSale)
-        {
-            return Result.Failure<Guid>(
-                $"Property with ID {command.PropertyId} is not available for booking");
-        }
+            // Проверяем, что недвижимость доступна для бронирования
+            var property = propertyResult.Value;
+            if (property.Status != PropertyStatus.ForSale)
+            {
+                return Result.Failure<Guid>(
+                    $"Property with ID {command.PropertyId} is not available for booking");
+            }
 
-        // Проверяем, что на этот период нет уже забронированных визитов
-        var existingBookingsResult = await _unitOfWork.Bookings.GetByPropertyIdAsync(propertyIdResult.Value);
-        if (existingBookingsResult.IsFailure)
-        {
-            return Result.Failure<Guid>(
-                $"Failed to retrieve existing bookings for property with ID {command.PropertyId}");
-        }
+            // Проверяем, что на этот период нет уже забронированных визитов
+            var existingBookingsResult = await _unitOfWork.Bookings.GetByPropertyIdAsync(propertyIdResult.Value);
+            if (existingBookingsResult.IsFailure)
+            {
+                return Result.Failure<Guid>(
+                    $"Failed to retrieve existing bookings for property with ID {command.PropertyId}");
+            }
 
-        var existingBookings = existingBookingsResult.Value;
-        var hasConflictingBooking = existingBookings.Any(b =>
-            (bookingPeriodResult.Value.StartDate.Date <= b.BookingPeriod.EndDate.Date &&
-             bookingPeriodResult.Value.EndDate.Date >= b.BookingPeriod.StartDate.Date));
+            var existingBookings = existingBookingsResult.Value;
+            var hasConflictingBooking = existingBookings.Any(b =>
+                (bookingPeriodResult.Value.StartDate.Date <= b.BookingPeriod.EndDate.Date &&
+                 bookingPeriodResult.Value.EndDate.Date >= b.BookingPeriod.StartDate.Date));
 
-        if (hasConflictingBooking)
-        {
-            return Result.Failure<Guid>(
-                $"Property with ID {command.PropertyId} is already booked for the requested period");
-        }
+            if (hasConflictingBooking)
+            {
+                return Result.Failure<Guid>(
+                    $"Property with ID {command.PropertyId} is already booked for the requested period");
+            }
 
-        // Создаем бронирование
-        var bookingResult = BookingEntity.Create(
-            clientIdResult.Value,
-            propertyIdResult.Value,
-            bookingPeriodResult.Value,
-            totalPriceResult.Value
-        );
+            // Создаем бронирование
+            var bookingResult = BookingEntity.Create(
+                clientIdResult.Value,
+                propertyIdResult.Value,
+                bookingPeriodResult.Value,
+                totalPriceResult.Value
+            );
 
-        if (bookingResult.IsFailure)
-        {
-            return Result.Failure<Guid>(bookingResult.Error);
-        }
+            if (bookingResult.IsFailure)
+            {
+                return Result.Failure<Guid>(bookingResult.Error);
+            }
 
-        // Сохраняем бронирование
-        var saveResult = _unitOfWork.Bookings.Save(bookingResult.Value);
-        if (saveResult.IsFailure)
-        {
-            return Result.Failure<Guid>(saveResult.Error);
-        }
+            // Сохраняем бронирование
+            var saveResult = _unitOfWork.Bookings.Save(bookingResult.Value);
+            if (saveResult.IsFailure)
+            {
+                return Result.Failure<Guid>(saveResult.Error);
+            }
 
-        await _unitOfWork.SaveChangesAsync();
-
-        return Result.Success(bookingResult.Value.Id.Value);
+            return Result.Success(bookingResult.Value.Id.Value);
+        });
     }
 }
