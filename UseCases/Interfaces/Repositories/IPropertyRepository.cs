@@ -12,6 +12,7 @@ namespace UseCases.Interfaces.Repositories;
 public interface IPropertyRepository
 {
     Task<Result<PropertyEntity>> GetByIdAsync(PropertyId id);
+    Task<Result<PropertyEntity>> GetByIdForUpdateAsync(PropertyId id);
     Task<Result<IEnumerable<PropertyEntity>>> GetAllAsync();
     Task<Result<(IEnumerable<PropertyEntity> Items, int TotalCount)>> SearchAsync(SearchPropertiesQuery query);
     Result<PropertyEntity> Add(PropertyEntity propertyEntity);

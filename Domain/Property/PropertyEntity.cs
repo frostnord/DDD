@@ -209,46 +209,25 @@ namespace Domain.Property
             UpdatedAt = DateTime.UtcNow;
         }
 
+        public Result Reserve()
+        {
+            if (Status != PropertyStatus.ForSale)
+            {
+                return Result.Failure($"Property cannot be reserved when status is '{Status.Name}'");
+            }
+
+            Status = PropertyStatus.Reserved;
+            UpdatedAt = DateTime.UtcNow;
+
+            return Result.Success();
+        }
+
         public override string ToString()
         {
             return
                 $"Недвижимость [ID: {Id}, Адрес: {Address}, Цена: {Price}, Статус: {Status.GetDisplayName()}, Площадь: {PropertyDetails.Area}, Комнат: {PropertyDetails.NumberOfRooms}, Этаж: {PropertyDetails.Floor}/{PropertyDetails.TotalFloors}]";
         }
 
-        // public void ChangePrice(decimal newPrice)
-        // {
-        //     if (Status == PropertyStatus.Sold)
-        //         throw new InvalidPropertyStateException("Нельзя изменить цену проданного объекта.");
-        //
-        //     var oldPrice = CurrentPrice.Amount;
-        //     CurrentPrice = CurrentPrice.Change(newPrice);
-        //     _priceHistory.Add(CurrentPrice);
-        //
-        //     AddEvent(new PropertyPriceChangedEvent(Id, oldPrice, newPrice));
-        // }
-        //
-        // public void Reserve()
-        // {
-        //     if (Status != PropertyStatus.Available)
-        //         throw new InvalidPropertyStateException("Зарезервировать можно только доступный объект.");
-        //     ChangeStatus(PropertyStatus.Reserved);
-        // }
-        //
-        // public void MarkAsSold()
-        // {
-        //     if (Status != PropertyStatus.Reserved)
-        //         throw new InvalidPropertyStateException("Продать можно только забронированный объект.");
-        //     ChangeStatus(PropertyStatus.Sold);
-        // }
-        //
-        // private void ChangeStatus(PropertyStatus newStatus)
-        // {
-        //     Status = newStatus;
-        //     AddEvent(new PropertyStatusChangedEvent(Id, newStatus));
-        // }
-        //
-        // private void AddEvent(IDomainEvent @event) => _events.Add(@event);
-        // public IReadOnlyCollection<IDomainEvent> DomainEvents => _events.AsReadOnly();
         public void UpdateAddress(Address address)
         {
             Address = address;
@@ -265,5 +244,35 @@ namespace Domain.Property
         {
             AddOwnershipRecord(ownerRecord);
         }
+        
+        // public void ChangePrice(decimal newPrice)
+        // {
+        //     if (Status == PropertyStatus.Sold)
+        //         throw new InvalidPropertyStateException("Нельзя изменить цену проданного объекта.");
+        //
+        //     var oldPrice = CurrentPrice.Amount;
+        //     CurrentPrice = CurrentPrice.Change(newPrice);
+        //     _priceHistory.Add(CurrentPrice);
+        //
+        //     AddEvent(new PropertyPriceChangedEvent(Id, oldPrice, newPrice));
+        // }
+        //
+       
+        // public void MarkAsSold()
+        // {
+        //     if (Status != PropertyStatus.Reserved)
+        //         throw new InvalidPropertyStateException("Продать можно только забронированный объект.");
+        //     ChangeStatus(PropertyStatus.Sold);
+        // }
+        //
+        // private void ChangeStatus(PropertyStatus newStatus)
+        // {
+        //     Status = newStatus;
+        //     AddEvent(new PropertyStatusChangedEvent(Id, newStatus));
+        // }
+        //
+        // private void AddEvent(IDomainEvent @event) => _events.Add(@event);
+        // public IReadOnlyCollection<IDomainEvent> DomainEvents => _events.AsReadOnly();
+
     }
 }

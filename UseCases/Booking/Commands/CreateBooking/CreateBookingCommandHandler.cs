@@ -61,7 +61,7 @@ public class CreateBookingCommandHandler : ICommandHandler<CreateBookingCommand,
             }
 
             // Проверяем, существует ли недвижимость
-            var propertyResult = await _unitOfWork.Properties.GetByIdAsync(propertyIdResult.Value);
+            var propertyResult = await _unitOfWork.Properties.GetByIdForUpdateAsync(propertyIdResult.Value);
             if (propertyResult.IsFailure)
             {
                 return Result.Failure<Guid>(
@@ -113,6 +113,12 @@ public class CreateBookingCommandHandler : ICommandHandler<CreateBookingCommand,
             if (saveResult.IsFailure)
             {
                 return Result.Failure<Guid>(saveResult.Error);
+            }
+
+            var reserveResult = property.Reserve();
+            if (reserveResult.IsFailure)
+            {
+                return Result.Failure<Guid>(reserveResult.Error);
             }
 
             return Result.Success(bookingResult.Value.Id.Value);

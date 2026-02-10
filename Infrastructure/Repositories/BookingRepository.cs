@@ -56,7 +56,7 @@ namespace Infrastructure.Repositories
             if (bookingEntity == null)
                 return Result.Failure("Booking cannot be null");
 
-            _context.Bookings.Update(bookingEntity);
+            _context.Bookings.Add(bookingEntity);
 
             return Result.Success();
         }

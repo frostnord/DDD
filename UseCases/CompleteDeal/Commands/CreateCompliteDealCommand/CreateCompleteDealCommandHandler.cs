@@ -1,3 +1,5 @@
+using System;
+using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
 using Domain.Deal;
@@ -86,10 +88,15 @@ public class CreateCompleteDealCommandHandler : ICommandHandler<CreateCompleteDe
                 return Result.Failure<CompletedDealEntity>("Покупатель и продавец не могут совпадать");
             }
 
-            var propertyExistsResult = await _unitOfWork.Properties.GetByIdAsync(propertyIdResult.Value);
+            var propertyExistsResult = await _unitOfWork.Properties.GetByIdForUpdateAsync(propertyIdResult.Value);
             if (propertyExistsResult.IsFailure)
             {
                 return Result.Failure<CompletedDealEntity>($"Property with ID {command.PropertyId} does not exist");
+            }
+
+            if (propertyExistsResult.Value.Status == PropertyStatus.Sold)
+            {
+                return Result.Failure<CompletedDealEntity>($"Property with ID {command.PropertyId} is already sold");
             }
 
             var completedDealResult = CompletedDealEntity.Create(

@@ -34,6 +34,17 @@ namespace Infrastructure.Repositories
                 : Result.Failure<PropertyEntity>($"Property with ID {id.Value} not found");
         }
 
+        public async Task<Result<PropertyEntity>> GetByIdForUpdateAsync(PropertyId id)
+        {
+            var property = await _context.Properties
+                .FromSqlInterpolated($@"SELECT * FROM property WHERE id = {id.Value} FOR UPDATE")
+                .FirstOrDefaultAsync(p => p.Id == id);
+
+            return property != null
+                ? Result.Success(property)
+                : Result.Failure<PropertyEntity>($"Property with ID {id.Value} not found");
+        }
+
 
         public async Task<Result<IEnumerable<PropertyEntity>>> GetAllAsync()
         {

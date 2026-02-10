@@ -55,7 +55,7 @@ public class CreateDealCommandHandler : ICommandHandler<CreateDealCommand, Guid>
             }
 
             // Проверяем, существует ли недвижимость
-            var propertyResult = await _unitOfWork.Properties.GetByIdAsync(propertyIdResult.Value);
+            var propertyResult = await _unitOfWork.Properties.GetByIdForUpdateAsync(propertyIdResult.Value);
             if (propertyResult.IsFailure)
             {
                 return Result.Failure<Guid>($"Property with ID {command.PropertyId} does not exist");
