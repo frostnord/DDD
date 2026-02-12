@@ -6,8 +6,8 @@ public record BookingDto(
     Guid Id,
     Guid ClientId,
     Guid PropertyId,
-    DateTime StartDate,
-    DateTime EndDate,
-    decimal TotalPrice,
+    DateTime ReservedAt,
+    DateTime ReservedUntil,
+    string Status,
     DateTime CreatedAt,
     DateTime? UpdatedAt);

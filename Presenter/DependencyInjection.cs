@@ -13,7 +13,6 @@ using Microsoft.Extensions.DependencyInjection;
 using UseCases.Booking.Commands;
 using UseCases.Booking.Commands.CancelBooking;
 using UseCases.Booking.Commands.ConfirmBooking;
-using UseCases.Booking.Commands.CreateBooking;
 using UseCases.Booking.Queries.GetBookingById;
 using UseCases.Booking.Queries.SearchBookingsQuery;
 using UseCases.Buyer;

@@ -32,23 +32,21 @@ public sealed class BookingEntityConfiguration : IEntityTypeConfiguration<Bookin
         builder.Property(x => x.UpdatedAt)
             .HasColumnName("updated_at");
 
-        // Общая цена бронирования (VO Price)
-        builder.Property(x => x.TotalPrice)
+        builder.Property(x => x.ReservedAt)
             .IsRequired()
-            .HasConversion(toDb => toDb.Value, fromDb => Price.Create(fromDb).Value)
-            .HasColumnName("total_price");
+            .HasColumnName("reserved_at");
 
-        // Период бронирования (owned type Period)
-        builder.OwnsOne(x => x.BookingPeriod, periodBuilder =>
-        {
-            periodBuilder.Property(p => p.StartDate)
-                .IsRequired()
-                .HasColumnName("start_date");
+        builder.Property(x => x.ReservedUntil)
+            .IsRequired()
+            .HasColumnName("reserved_until");
 
-            periodBuilder.Property(p => p.EndDate)
-                .IsRequired()
-                .HasColumnName("end_date");
-        });
+        builder.Property(x => x.Status)
+            .IsRequired()
+            .HasColumnName("status")
+            .HasConversion(
+                v => v.Name,
+                v => BookingStatus.FromName(v))
+            .HasMaxLength(BookingStatus.MAX_STATUS_LENGTH);
 
         // Ссылки на агрегаты (ограничиваем каскадное удаление)
         builder.Property(x => x.ClientId)

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
@@ -26,7 +27,7 @@ public class SearchBookingsQueryHandler : IQueryHandler<SearchBookingsQuery, Res
             return Result.Failure<SearchBookingsQueryResponse>("Нужен id клиента или недвижимости");
         }
 
-        Result<System.Collections.Generic.IEnumerable<Domain.Booking.BookingEntity>> bookingsResult;
+        var nowUtc = DateTime.UtcNow;
 
         if (query.ClientId != null)
         {
@@ -36,34 +37,64 @@ public class SearchBookingsQueryHandler : IQueryHandler<SearchBookingsQuery, Res
                 return Result.Failure<SearchBookingsQueryResponse>(clientIdResult.Error);
             }
 
-            bookingsResult = await _unitOfWork.Bookings.GetByClientIdAsync(clientIdResult.Value);
-        }
-        else
-        {
-            var propertyIdResult = PropertyId.Create(query.PropertyId!.Value);
-            if (propertyIdResult.IsFailure)
+            var holdsResult = await _unitOfWork.Properties.GetActiveHoldsByClientIdAsync(clientIdResult.Value, nowUtc);
+            if (holdsResult.IsFailure)
             {
-                return Result.Failure<SearchBookingsQueryResponse>(propertyIdResult.Error);
+                return Result.Failure<SearchBookingsQueryResponse>(holdsResult.Error);
             }
 
-            bookingsResult = await _unitOfWork.Bookings.GetByPropertyIdAsync(propertyIdResult.Value);
+            var dtos = holdsResult.Value
+                .Select(p =>
+                {
+                    p.RefreshHoldState(nowUtc);
+
+                    return new BookingDto(
+                        p.Id.Value,
+                        p.ReservedByClientId!.Value,
+                        p.Id.Value,
+                        p.ReservedAt ?? nowUtc,
+                        p.ReservedUntil!.Value,
+                        "Active",
+                        p.CreatedAt,
+                        p.UpdatedAt);
+                })
+                .ToList();
+
+            return Result.Success(new SearchBookingsQueryResponse(dtos));
         }
 
-        if (bookingsResult.IsFailure)
+        var propertyIdResult = PropertyId.Create(query.PropertyId!.Value);
+        if (propertyIdResult.IsFailure)
         {
-            return Result.Failure<SearchBookingsQueryResponse>(bookingsResult.Error);
+            return Result.Failure<SearchBookingsQueryResponse>(propertyIdResult.Error);
         }
 
-        var dtos = bookingsResult.Value.Select(b => new BookingDto(
-            b.Id.Value,
-            b.ClientId.Value,
-            b.PropertyId.Value,
-            b.BookingPeriod.StartDate,
-            b.BookingPeriod.EndDate,
-            b.TotalPrice.Value,
-            b.CreatedAt,
-            b.UpdatedAt)).ToList();
+        var holdResult = await _unitOfWork.Properties.GetActiveHoldByPropertyIdAsync(propertyIdResult.Value, nowUtc);
+        if (holdResult.IsFailure)
+        {
+            return Result.Failure<SearchBookingsQueryResponse>(holdResult.Error);
+        }
 
-        return Result.Success(new SearchBookingsQueryResponse(dtos));
+        var items = new List<BookingDto>();
+        if (holdResult.Value != null)
+        {
+            var p = holdResult.Value;
+            p.RefreshHoldState(nowUtc);
+
+            if (p.ReservedByClientId != null && p.ReservedUntil != null && p.ReservedUntil.Value > nowUtc)
+            {
+                items.Add(new BookingDto(
+                    p.Id.Value,
+                    p.ReservedByClientId.Value,
+                    p.Id.Value,
+                    p.ReservedAt ?? nowUtc,
+                    p.ReservedUntil.Value,
+                    "Active",
+                    p.CreatedAt,
+                    p.UpdatedAt));
+            }
+        }
+
+        return Result.Success(new SearchBookingsQueryResponse(items));
     }
 }

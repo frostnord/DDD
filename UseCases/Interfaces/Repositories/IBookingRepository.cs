@@ -40,12 +40,17 @@ public interface IBookingRepository
     /// <returns>Список бронирований объекта недвижимости</returns>
     Task<Result<IEnumerable<BookingEntity>>> GetByPropertyIdAsync(PropertyId propertyId);
 
+    Task<Result<BookingEntity?>> GetActiveHoldByPropertyIdAsync(PropertyId propertyId, DateTime nowUtc);
+
+    Task<Result<BookingEntity?>> GetActiveHoldByPropertyAndClientIdAsync(PropertyId propertyId, ClientId clientId,
+        DateTime nowUtc);
+
     /// <summary>
     /// Сохраняет бронирование в репозитории
     /// </summary>
     /// <param name="bookingEntity">Бронирование для сохранения</param>
     /// <returns>Результат операции</returns>
-    Result Save(Domain.Booking.BookingEntity bookingEntity);
+    Result Add(Domain.Booking.BookingEntity bookingEntity);
 
     /// <summary>
     /// Удаляет бронирование из репозитория

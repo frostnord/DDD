@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
-using Domain.Booking.VO;
+using Domain.Property.VO;
 using UseCases.Interfaces.Queries;
 using UseCases.Interfaces.Services;
 using UseCases.UseCases.DTO.Booking;
@@ -18,28 +18,41 @@ public class GetBookingByIdQueryHandler : IQueryHandler<GetBookingByIdQuery, Res
 
     public async Task<Result<BookingDto>> HandleAsync(GetBookingByIdQuery query)
     {
-        var bookingIdResult = BookingId.Create(query.BookingId);
-        if (bookingIdResult.IsFailure)
+        var propertyIdResult = PropertyId.Create(query.BookingId);
+        if (propertyIdResult.IsFailure)
         {
-            return Result.Failure<BookingDto>(bookingIdResult.Error);
+            return Result.Failure<BookingDto>(propertyIdResult.Error);
         }
 
-        var bookingResult = await _unitOfWork.Bookings.GetByIdAsync(bookingIdResult.Value);
-        if (bookingResult.IsFailure)
+        var propertyResult = await _unitOfWork.Properties.GetByIdAsync(propertyIdResult.Value);
+        if (propertyResult.IsFailure)
         {
-            return Result.Failure<BookingDto>(bookingResult.Error);
+            return Result.Failure<BookingDto>(propertyResult.Error);
         }
 
-        var entity = bookingResult.Value;
+        var property = propertyResult.Value;
+        var nowUtc = System.DateTime.UtcNow;
+        property.RefreshHoldState(nowUtc);
+
+        if (property.ReservedUntil == null || property.ReservedByClientId == null)
+        {
+            return Result.Failure<BookingDto>("Hold not found");
+        }
+
+        if (property.ReservedUntil.Value <= nowUtc)
+        {
+            return Result.Failure<BookingDto>("Hold not found");
+        }
+
         var dto = new BookingDto(
-            entity.Id.Value,
-            entity.ClientId.Value,
-            entity.PropertyId.Value,
-            entity.BookingPeriod.StartDate,
-            entity.BookingPeriod.EndDate,
-            entity.TotalPrice.Value,
-            entity.CreatedAt,
-            entity.UpdatedAt);
+            property.Id.Value,
+            property.ReservedByClientId.Value,
+            property.Id.Value,
+            property.ReservedAt ?? nowUtc,
+            property.ReservedUntil.Value,
+            "Active",
+            property.CreatedAt,
+            property.UpdatedAt);
 
         return Result.Success(dto);
     }

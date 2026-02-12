@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
+using Domain.Customers.Client.VO;
 using Domain.Property;
 using Domain.Property.VO;
 using Microsoft.EntityFrameworkCore;
@@ -163,6 +164,30 @@ namespace Infrastructure.Repositories
                 .ToListAsync();
 
             return Result.Success((items.AsEnumerable(), totalCount));
+        }
+
+        public async Task<Result<PropertyEntity?>> GetActiveHoldByPropertyIdAsync(PropertyId propertyId, DateTime nowUtc)
+        {
+            var property = await _context.Properties
+                .AsNoTracking()
+                .Where(p => p.Id == propertyId
+                            && p.ReservedUntil != null
+                            && p.ReservedUntil > nowUtc)
+                .FirstOrDefaultAsync();
+
+            return Result.Success(property);
+        }
+
+        public async Task<Result<IEnumerable<PropertyEntity>>> GetActiveHoldsByClientIdAsync(ClientId clientId, DateTime nowUtc)
+        {
+            var properties = await _context.Properties
+                .AsNoTracking()
+                .Where(p => p.ReservedByClientId == clientId
+                            && p.ReservedUntil != null
+                            && p.ReservedUntil > nowUtc)
+                .ToListAsync();
+
+            return Result.Success<IEnumerable<PropertyEntity>>(properties);
         }
 
         public Result<PropertyEntity> Add(PropertyEntity propertyEntity)

@@ -1,6 +1,6 @@
 using AutoMapper;
 using Presenter.DTOs.BookingDTO;
-using UseCases.Booking.Commands.CreateBooking;
+using UseCases.Booking.Commands;
 using UseCasesBookingDto = UseCases.UseCases.DTO.Booking.BookingDto;
 
 namespace Presenter.Mappings

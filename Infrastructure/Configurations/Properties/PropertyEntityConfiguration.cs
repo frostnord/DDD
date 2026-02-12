@@ -51,6 +51,18 @@ public sealed class PropertyEntityConfiguration : IEntityTypeConfiguration<Prope
                 v => PropertyStatus.FromName(v))
             .HasMaxLength(PropertyStatus.MAX_STATUS_LENGTH);
 
+        builder.Property(x => x.ReservedByClientId)
+            .HasConversion(
+                toDb => toDb == null ? (Guid?)null : toDb.Value,
+                fromDb => fromDb == null ? null : ClientId.Create(fromDb.Value).Value)
+            .HasColumnName("reserved_by_client_id");
+
+        builder.Property(x => x.ReservedAt)
+            .HasColumnName("reserved_at");
+
+        builder.Property(x => x.ReservedUntil)
+            .HasColumnName("reserved_until");
+
         // Настройка свойства Address (составного значения)
         builder.OwnsOne(x => x.Address, addressBuilder =>
         {

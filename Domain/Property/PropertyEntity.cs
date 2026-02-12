@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using CSharpFunctionalExtensions;
+using Domain.Customers.Client.VO;
 using Domain.Property.VO;
 using Domain.ValueObjects;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -30,6 +31,12 @@ namespace Domain.Property
         /// Статус объекта недвижимости
         /// </summary>
         public PropertyStatus Status { get; private set; }
+
+        public ClientId? ReservedByClientId { get; private set; }
+
+        public DateTime? ReservedAt { get; private set; }
+
+        public DateTime? ReservedUntil { get; private set; }
 
         /// <summary>
         /// История владения объектом недвижимости (только для чтения)
@@ -209,17 +216,112 @@ namespace Domain.Property
             UpdatedAt = DateTime.UtcNow;
         }
 
-        public Result Reserve()
+        public Result PlaceHold(ClientId clientId, DateTime nowUtc, TimeSpan duration)
         {
-            if (Status != PropertyStatus.ForSale)
+            if (clientId == null)
+            {
+                return Result.Failure("ClientId is required");
+            }
+
+            if (duration <= TimeSpan.Zero)
+            {
+                return Result.Failure("Hold duration must be positive");
+            }
+
+            NormalizeHold(nowUtc);
+
+            if (Status == PropertyStatus.Sold)
             {
                 return Result.Failure($"Property cannot be reserved when status is '{Status.Name}'");
             }
 
+            if (ReservedUntil.HasValue && ReservedUntil.Value > nowUtc)
+            {
+                return Result.Failure($"Property is already reserved until {ReservedUntil.Value:o}");
+            }
+
+            ReservedByClientId = clientId;
+            ReservedAt = nowUtc;
+            ReservedUntil = nowUtc.Add(duration);
             Status = PropertyStatus.Reserved;
-            UpdatedAt = DateTime.UtcNow;
+            UpdatedAt = nowUtc;
 
             return Result.Success();
+        }
+
+        public Result CancelHoldByClient(ClientId clientId, DateTime nowUtc)
+        {
+            if (clientId == null)
+            {
+                return Result.Failure("ClientId is required");
+            }
+
+            NormalizeHold(nowUtc);
+
+            if (ReservedUntil == null)
+            {
+                return Result.Failure("Hold not found or already expired");
+            }
+
+            if (ReservedByClientId == null || ReservedByClientId != clientId)
+            {
+                return Result.Failure("Hold belongs to another client");
+            }
+
+            ReservedByClientId = null;
+            ReservedAt = null;
+            ReservedUntil = null;
+            Status = PropertyStatus.ForSale;
+            UpdatedAt = nowUtc;
+
+            return Result.Success();
+        }
+
+        public Result ForceReleaseHold(DateTime nowUtc)
+        {
+            NormalizeHold(nowUtc);
+
+            if (ReservedUntil == null)
+            {
+                return Result.Success();
+            }
+
+            ReservedByClientId = null;
+            ReservedAt = null;
+            ReservedUntil = null;
+            Status = PropertyStatus.ForSale;
+            UpdatedAt = nowUtc;
+
+            return Result.Success();
+        }
+
+        public void RefreshHoldState(DateTime nowUtc)
+        {
+            NormalizeHold(nowUtc);
+        }
+
+        private void NormalizeHold(DateTime nowUtc)
+        {
+            if (!ReservedUntil.HasValue)
+            {
+                return;
+            }
+
+            if (ReservedUntil.Value > nowUtc)
+            {
+                return;
+            }
+
+            ReservedByClientId = null;
+            ReservedAt = null;
+            ReservedUntil = null;
+
+            if (Status == PropertyStatus.Reserved)
+            {
+                Status = PropertyStatus.ForSale;
+            }
+
+            UpdatedAt = nowUtc;
         }
 
         public override string ToString()

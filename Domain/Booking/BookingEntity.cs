@@ -4,7 +4,6 @@ using CSharpFunctionalExtensions;
 using Domain.Booking.VO;
 using Domain.Customers.Client.VO;
 using Domain.Property.VO;
-using Domain.ValueObjects;
 
 namespace Domain.Booking;
 
@@ -26,14 +25,19 @@ public class BookingEntity : Entity<BookingId>
     public PropertyId PropertyId { get; private set; }
 
     /// <summary>
-    /// Период бронирования
+    /// Дата начала hold-резервации
     /// </summary>
-    public Period BookingPeriod { get; private set; }
+    public DateTime ReservedAt { get; private set; }
 
     /// <summary>
-    /// Общая цена бронирования
+    /// Дата окончания hold-резервации
     /// </summary>
-    public Price TotalPrice { get; private set; }
+    public DateTime ReservedUntil { get; private set; }
+
+    /// <summary>
+    /// Статус бронирования (hold)
+    /// </summary>
+    public BookingStatus Status { get; private set; }
 
 
     /// <summary>
@@ -47,16 +51,14 @@ public class BookingEntity : Entity<BookingId>
     public DateTime? UpdatedAt { get; private set; }
 
     /// <summary>
-    /// Создает новый экземпляр бронирования через фабричный метод
+    /// Создает новый экземпляр hold-бронирования через фабричный метод
     /// </summary>
     /// <param name="clientId">Идентификатор клиента, совершающего бронирование</param>
     /// <param name="propertyId">Идентификатор объекта недвижимости, который бронируется</param>
-    /// <param name="agencyId">Идентификатор агентства, осуществляющего бронирование</param>
-    /// <param name="bookingPeriod">Период бронирования</param>
-    /// <param name="totalPrice">Общая цена бронирования</param>
+    /// <param name="reservedUntil">Дата окончания hold-резервации</param>
     /// <returns>Результат с бронированием или ошибкой</returns>
-    public static Result<BookingEntity> Create(ClientId clientId, PropertyId propertyId,
-        Period bookingPeriod, Price totalPrice)
+    public static Result<BookingEntity> CreateHold(ClientId clientId, PropertyId propertyId,
+        DateTime reservedUntil)
     {
         var validationErrors = new List<string>();
 
@@ -66,11 +68,11 @@ public class BookingEntity : Entity<BookingId>
         if (propertyId == null)
             validationErrors.Add("Идентификатор объекта недвижимости не может быть пустым");
 
-        if (bookingPeriod == null)
-            validationErrors.Add("Период бронирования не может быть пустым");
+        if (reservedUntil == default(DateTime))
+            validationErrors.Add("Дата окончания бронирования не может быть пустой");
 
-        if (totalPrice == null)
-            validationErrors.Add("Общая цена не может быть пустой");
+        if (reservedUntil <= DateTime.UtcNow)
+            validationErrors.Add("Дата окончания бронирования должна быть в будущем");
 
         if (validationErrors.Count > 0)
         {
@@ -78,7 +80,8 @@ public class BookingEntity : Entity<BookingId>
         }
 
         var id = BookingId.Create(Guid.NewGuid()).Value;
-        var booking = new BookingEntity(id, clientId, propertyId, bookingPeriod, totalPrice);
+        var reservedAt = DateTime.UtcNow;
+        var booking = new BookingEntity(id, clientId, propertyId, reservedAt, reservedUntil);
         return Result.Success(booking);
     }
 
@@ -88,17 +91,17 @@ public class BookingEntity : Entity<BookingId>
     /// <param name="id">Уникальный идентификатор бронирования</param>
     /// <param name="clientId">Идентификатор клиента, совершающего бронирование</param>
     /// <param name="propertyId">Идентификатор объекта недвижимости, который бронируется</param>
-    /// <param name="agencyId">Идентификатор агентства, осуществляющего бронирование</param>
-    /// <param name="bookingPeriod">Период бронирования</param>
-    /// <param name="totalPrice">Общая цена бронирования</param>
-    protected BookingEntity(BookingId id, ClientId clientId, PropertyId propertyId, 
-        Period bookingPeriod, Price totalPrice)
+    /// <param name="reservedAt">Дата начала hold-резервации</param>
+    /// <param name="reservedUntil">Дата окончания hold-резервации</param>
+    protected BookingEntity(BookingId id, ClientId clientId, PropertyId propertyId,
+        DateTime reservedAt, DateTime reservedUntil)
         : base(id)
     {
         ClientId = clientId;
         PropertyId = propertyId;
-        BookingPeriod = bookingPeriod;
-        TotalPrice = totalPrice;
+        ReservedAt = reservedAt;
+        ReservedUntil = reservedUntil;
+        Status = BookingStatus.Active;
         CreatedAt = DateTime.UtcNow;
     }
     
@@ -113,6 +116,11 @@ public class BookingEntity : Entity<BookingId>
     /// <exception cref="InvalidOperationException">Вызывается, если бронирование нельзя подтвердить</exception>
     public void Confirm()
     {
+        if (Status != BookingStatus.Active)
+        {
+            throw new InvalidOperationException($"Нельзя подтвердить бронирование в статусе '{Status.Name}'");
+        }
+
         UpdatedAt = DateTime.UtcNow;
     }
 
@@ -122,6 +130,12 @@ public class BookingEntity : Entity<BookingId>
     /// <exception cref="InvalidOperationException">Вызывается, если бронирование нельзя отменить</exception>
     public void Cancel()
     {
+        if (Status != BookingStatus.Active)
+        {
+            throw new InvalidOperationException($"Нельзя отменить бронирование в статусе '{Status.Name}'");
+        }
+
+        Status = BookingStatus.Cancelled;
         UpdatedAt = DateTime.UtcNow;
     }
 
@@ -131,6 +145,23 @@ public class BookingEntity : Entity<BookingId>
     /// <exception cref="InvalidOperationException">Вызывается, если бронирование нельзя завершить</exception>
     public void Complete()
     {
+        if (Status != BookingStatus.Active)
+        {
+            throw new InvalidOperationException($"Нельзя завершить бронирование в статусе '{Status.Name}'");
+        }
+
+        Status = BookingStatus.Completed;
+        UpdatedAt = DateTime.UtcNow;
+    }
+
+    public void Expire()
+    {
+        if (Status != BookingStatus.Active)
+        {
+            throw new InvalidOperationException($"Нельзя истечь бронирование в статусе '{Status.Name}'");
+        }
+
+        Status = BookingStatus.Expired;
         UpdatedAt = DateTime.UtcNow;
     }
 }

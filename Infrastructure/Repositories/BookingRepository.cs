@@ -41,6 +41,35 @@ namespace Infrastructure.Repositories
             return Result.Success<IEnumerable<BookingEntity>>(bookings);
         }
 
+        public async Task<Result<BookingEntity?>> GetActiveHoldByPropertyIdAsync(PropertyId propertyId, DateTime nowUtc)
+        {
+            var booking = await _context.Bookings
+                .AsNoTracking()
+                .Where(b => b.PropertyId == propertyId
+                            && b.Status == BookingStatus.Active
+                            && b.ReservedUntil > nowUtc)
+                .OrderByDescending(b => b.ReservedUntil)
+                .FirstOrDefaultAsync();
+
+            return Result.Success(booking);
+        }
+
+        public async Task<Result<BookingEntity?>> GetActiveHoldByPropertyAndClientIdAsync(PropertyId propertyId,
+            ClientId clientId,
+            DateTime nowUtc)
+        {
+            var booking = await _context.Bookings
+                .AsNoTracking()
+                .Where(b => b.PropertyId == propertyId
+                            && b.ClientId == clientId
+                            && b.Status == BookingStatus.Active
+                            && b.ReservedUntil > nowUtc)
+                .OrderByDescending(b => b.ReservedUntil)
+                .FirstOrDefaultAsync();
+
+            return Result.Success(booking);
+        }
+
         public async Task<Result<IEnumerable<BookingEntity>>> GetByPropertyIdAsync(PropertyId propertyId)
         {
             var bookings = await _context.Bookings
@@ -51,7 +80,7 @@ namespace Infrastructure.Repositories
             return Result.Success<IEnumerable<BookingEntity>>(bookings);
         }
 
-        public Result Save(BookingEntity bookingEntity)
+        public Result Add(BookingEntity bookingEntity)
         {
             if (bookingEntity == null)
                 return Result.Failure("Booking cannot be null");

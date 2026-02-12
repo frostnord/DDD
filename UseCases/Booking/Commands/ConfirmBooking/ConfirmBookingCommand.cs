@@ -3,4 +3,4 @@ using UseCases.Interfaces.Commands;
 
 namespace UseCases.Booking.Commands.ConfirmBooking;
 
-public record ConfirmBookingCommand(Guid BookingId) : ICommand;
+public sealed record ConfirmBookingCommand(Guid PropertyId, Guid ClientId) : ICommand;

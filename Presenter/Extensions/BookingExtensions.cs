@@ -13,9 +13,9 @@ namespace Presenter.Extensions
                 bookingEntity.Id.Value,
                 bookingEntity.ClientId.Value,
                 bookingEntity.PropertyId.Value,
-                bookingEntity.BookingPeriod.StartDate,
-                bookingEntity.BookingPeriod.EndDate,
-                bookingEntity.TotalPrice.Value,
+                bookingEntity.ReservedAt,
+                bookingEntity.ReservedUntil,
+                bookingEntity.Status.Name,
                 bookingEntity.CreatedAt,
                 bookingEntity.UpdatedAt
             );

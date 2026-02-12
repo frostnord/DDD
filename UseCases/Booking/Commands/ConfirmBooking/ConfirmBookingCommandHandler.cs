@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
-using Domain.Booking.VO;
+using Domain.Customers.Client.VO;
+using Domain.Property.VO;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Services;
 
@@ -17,29 +18,41 @@ public class ConfirmBookingCommandHandler : ICommandHandler<ConfirmBookingComman
 
     public async Task<Result> HandleAsync(ConfirmBookingCommand command)
     {
-        var bookingId = BookingId.Create(command.BookingId);
-        if (bookingId.IsFailure)
+        var propertyIdResult = PropertyId.Create(command.PropertyId);
+        if (propertyIdResult.IsFailure)
         {
-            return Result.Failure($"Invalid booking ID: {bookingId.Error}");
+            return Result.Failure($"Invalid property ID: {propertyIdResult.Error}");
         }
 
-        var bookingResult = await _unitOfWork.Bookings.GetByIdAsync(bookingId.Value);
-        if (bookingResult.IsFailure)
+        var clientIdResult = ClientId.Create(command.ClientId);
+        if (clientIdResult.IsFailure)
         {
-            return Result.Failure($"Booking with ID {command.BookingId} not found");
+            return Result.Failure($"Invalid client ID: {clientIdResult.Error}");
         }
 
-        var booking = bookingResult.Value;
-        booking.Confirm();
-
-        var saveResult = _unitOfWork.Bookings.Save(booking);
-        if (saveResult.IsFailure)
+        return await _unitOfWork.ExecuteInTransactionAsync(async _ =>
         {
-            return Result.Failure(saveResult.Error);
-        }
+            var propertyResult = await _unitOfWork.Properties.GetByIdForUpdateAsync(propertyIdResult.Value);
+            if (propertyResult.IsFailure)
+            {
+                return Result.Failure(propertyResult.Error);
+            }
 
-        await _unitOfWork.SaveChangesAsync();
+            var property = propertyResult.Value;
+            var nowUtc = DateTime.UtcNow;
+            property.RefreshHoldState(nowUtc);
 
-        return Result.Success();
+            if (property.ReservedUntil == null || property.ReservedByClientId != clientIdResult.Value)
+            {
+                return Result.Failure("Hold not found or does not belong to client");
+            }
+
+            if (property.ReservedUntil.Value <= nowUtc)
+            {
+                return Result.Failure("Hold already expired");
+            }
+
+            return Result.Success();
+        });
     }
 }

@@ -8,11 +8,11 @@ using Moq;
 using Presenter.Controllers;
 using Presenter.DTOs.BookingDTO;
 using Presenter.Utilities;
+using UseCases.Booking.Commands;
 using UseCases.Booking.Queries.GetBookingById;
 using UseCases.Booking.Queries.SearchBookingsQuery;
 using UseCases.Booking.Commands.CancelBooking;
 using UseCases.Booking.Commands.ConfirmBooking;
-using UseCases.Booking.Commands.CreateBooking;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Queries;
 using UseCasesBookingDto = UseCases.UseCases.DTO.Booking.BookingDto;
@@ -30,7 +30,7 @@ namespace Test.Controllers
         private readonly Mock<IQueryHandler<GetBookingByIdQuery, Result<UseCasesBookingDto>>> _mockGetBookingByIdHandler;
         private readonly Mock<IQueryHandler<UseCasesSearchBookingsQuery, Result<SearchBookingsQueryResponse>>> _mockSearchBookingsHandler;
         private readonly Mock<IMapper> _mockMapper;
-        private readonly BookingsController _controller;
+        private readonly ReservationsController _controller;
 
         public BookingsControllerTests()
         {
@@ -40,7 +40,7 @@ namespace Test.Controllers
             _mockGetBookingByIdHandler = new Mock<IQueryHandler<GetBookingByIdQuery, Result<UseCasesBookingDto>>>();
             _mockSearchBookingsHandler = new Mock<IQueryHandler<UseCasesSearchBookingsQuery, Result<SearchBookingsQueryResponse>>>();
             _mockMapper = new Mock<IMapper>();
-            _controller = new BookingsController(
+            _controller = new ReservationsController(
                 _mockCreateBookingHandler.Object,
                 _mockConfirmBookingHandler.Object,
                 _mockCancelBookingHandler.Object,
@@ -56,18 +56,12 @@ namespace Test.Controllers
             var request = new CreateBookingRequest
             {
                 ClientId = Guid.NewGuid(),
-                PropertyId = Guid.NewGuid(),
-                StartDate = DateTime.UtcNow.AddDays(1),
-                EndDate = DateTime.UtcNow.AddDays(3),
-                TotalPrice = 100
+                PropertyId = Guid.NewGuid()
             };
 
             var command = new CreateBookingCommand(
                 request.ClientId,
-                request.PropertyId,
-                request.StartDate,
-                request.EndDate,
-                request.TotalPrice);
+                request.PropertyId);
 
             _mockMapper.Setup(m => m.Map<CreateBookingCommand>(request)).Returns(command);
 
@@ -93,18 +87,12 @@ namespace Test.Controllers
             var request = new CreateBookingRequest
             {
                 ClientId = Guid.NewGuid(),
-                PropertyId = Guid.NewGuid(),
-                StartDate = DateTime.UtcNow.AddDays(1),
-                EndDate = DateTime.UtcNow.AddDays(3),
-                TotalPrice = 100
+                PropertyId = Guid.NewGuid()
             };
 
             var command = new CreateBookingCommand(
                 request.ClientId,
-                request.PropertyId,
-                request.StartDate,
-                request.EndDate,
-                request.TotalPrice);
+                request.PropertyId);
 
             _mockMapper.Setup(m => m.Map<CreateBookingCommand>(request)).Returns(command);
 
@@ -131,9 +119,9 @@ namespace Test.Controllers
                 bookingId,
                 Guid.NewGuid(),
                 Guid.NewGuid(),
-                DateTime.UtcNow.AddDays(1),
-                DateTime.UtcNow.AddDays(3),
-                1000,
+                DateTime.UtcNow,
+                DateTime.UtcNow.AddMinutes(5),
+                "Active",
                 DateTime.UtcNow,
                 null);
 
@@ -141,9 +129,9 @@ namespace Test.Controllers
                 useCasesDto.Id,
                 useCasesDto.ClientId,
                 useCasesDto.PropertyId,
-                useCasesDto.StartDate,
-                useCasesDto.EndDate,
-                useCasesDto.TotalPrice,
+                useCasesDto.ReservedAt,
+                useCasesDto.ReservedUntil,
+                useCasesDto.Status,
                 useCasesDto.CreatedAt,
                 useCasesDto.UpdatedAt);
 
@@ -208,15 +196,15 @@ namespace Test.Controllers
                     Guid.NewGuid(),
                     clientId,
                     Guid.NewGuid(),
-                    DateTime.UtcNow.AddDays(1),
-                    DateTime.UtcNow.AddDays(3),
-                    10,
+                    DateTime.UtcNow,
+                    DateTime.UtcNow.AddMinutes(5),
+                    "Active",
                     DateTime.UtcNow,
                     null)
             };
 
             var presenterDtos = useCasesDtos
-                .Select(d => new BookingDto(d.Id, d.ClientId, d.PropertyId, d.StartDate, d.EndDate, d.TotalPrice, d.CreatedAt, d.UpdatedAt))
+                .Select(d => new BookingDto(d.Id, d.ClientId, d.PropertyId, d.ReservedAt, d.ReservedUntil, d.Status, d.CreatedAt, d.UpdatedAt))
                 .ToList();
 
             _mockSearchBookingsHandler
@@ -240,14 +228,15 @@ namespace Test.Controllers
         public async Task ConfirmBooking_ExistingId_ReturnsOkResult()
         {
             // Arrange
-            var bookingId = Guid.NewGuid();
+            var propertyId = Guid.NewGuid();
+            var clientId = Guid.NewGuid();
 
             var result = Result.Success();
             _mockConfirmBookingHandler.Setup(x => x.HandleAsync(It.IsAny<ConfirmBookingCommand>()))
                 .ReturnsAsync(result);
 
             // Act
-            var actionResult = await _controller.ConfirmBooking(bookingId);
+            var actionResult = await _controller.ConfirmBooking(propertyId, clientId);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(actionResult);
@@ -258,14 +247,15 @@ namespace Test.Controllers
         public async Task ConfirmBooking_InvalidRequest_ReturnsBadRequest()
         {
             // Arrange
-            var bookingId = Guid.NewGuid();
+            var propertyId = Guid.NewGuid();
+            var clientId = Guid.NewGuid();
 
             var errorResult = Result.Failure("Validation error");
             _mockConfirmBookingHandler.Setup(x => x.HandleAsync(It.IsAny<ConfirmBookingCommand>()))
                 .ReturnsAsync(errorResult);
 
             // Act
-            var actionResult = await _controller.ConfirmBooking(bookingId);
+            var actionResult = await _controller.ConfirmBooking(propertyId, clientId);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(actionResult);
@@ -278,14 +268,15 @@ namespace Test.Controllers
         public async Task CancelBooking_ExistingId_ReturnsOkResult()
         {
             // Arrange
-            var bookingId = Guid.NewGuid();
+            var propertyId = Guid.NewGuid();
+            var clientId = Guid.NewGuid();
 
             var result = Result.Success();
             _mockCancelBookingHandler.Setup(x => x.HandleAsync(It.IsAny<CancelBookingCommand>()))
                 .ReturnsAsync(result);
 
             // Act
-            var actionResult = await _controller.CancelBooking(bookingId);
+            var actionResult = await _controller.CancelBooking(propertyId, clientId);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(actionResult);
@@ -296,14 +287,15 @@ namespace Test.Controllers
         public async Task CancelBooking_InvalidRequest_ReturnsBadRequest()
         {
             // Arrange
-            var bookingId = Guid.NewGuid();
+            var propertyId = Guid.NewGuid();
+            var clientId = Guid.NewGuid();
 
             var errorResult = Result.Failure("Validation error");
             _mockCancelBookingHandler.Setup(x => x.HandleAsync(It.IsAny<CancelBookingCommand>()))
                 .ReturnsAsync(errorResult);
 
             // Act
-            var actionResult = await _controller.CancelBooking(bookingId);
+            var actionResult = await _controller.CancelBooking(propertyId, clientId);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(actionResult);

@@ -11,7 +11,6 @@ using Presenter.Utilities;
 using UseCases.Booking.Commands;
 using UseCases.Booking.Commands.CancelBooking;
 using UseCases.Booking.Commands.ConfirmBooking;
-using UseCases.Booking.Commands.CreateBooking;
 using UseCases.Booking.Queries.GetBookingById;
 using UseCases.Booking.Queries.SearchBookingsQuery;
 using UseCases.Interfaces.Commands;
@@ -29,8 +28,8 @@ namespace Presenter.Controllers
     /// Реализует CRUD-операции и бизнес-процессы, связанные с бронированиями недвижимости
     /// </summary>
     [ApiController]
-    [Route("api/[controller]")]
-    public class BookingsController : ControllerBase
+    [Route("api/reservations")]
+    public class ReservationsController : ControllerBase
     {
         private readonly ICommandHandler<CreateBookingCommand, Guid> _createBookingHandler;
         private readonly ICommandHandler<ConfirmBookingCommand> _confirmBookingHandler;
@@ -48,7 +47,7 @@ namespace Presenter.Controllers
         /// <param name="getBookingByIdHandler">Обработчик запроса получения бронирования по идентификатору</param>
         /// <param name="searchBookingsHandler">Обработчик запроса поиска бронирований</param>
         /// <param name="mapper">AutoMapper</param>
-        public BookingsController(
+        public ReservationsController(
             ICommandHandler<CreateBookingCommand, Guid> createBookingHandler,
             ICommandHandler<ConfirmBookingCommand> confirmBookingHandler,
             ICommandHandler<CancelBookingCommand> cancelBookingHandler,
@@ -139,9 +138,9 @@ namespace Presenter.Controllers
         /// <param name="id">Идентификатор бронирования для подтверждения</param>
         /// <returns>Результат подтверждения бронирования</returns>
         [HttpPut("{id}/confirm")]
-        public async Task<Envelope> ConfirmBooking(Guid id)
+        public async Task<Envelope> ConfirmBooking(Guid id, [FromQuery] Guid clientId)
         {
-            var command = new ConfirmBookingCommand ( id );
+            var command = new ConfirmBookingCommand(id, clientId);
             var result = await _confirmBookingHandler.HandleAsync(command);
 
             if (result.IsFailure)
@@ -158,9 +157,9 @@ namespace Presenter.Controllers
         /// <param name="id">Идентификатор бронирования для отмены</param>
         /// <returns>Результат отмены бронирования</returns>
         [HttpPut("{id}/cancel")]
-        public async Task<Envelope> CancelBooking(Guid id)
+        public async Task<Envelope> CancelBooking(Guid id, [FromQuery] Guid clientId)
         {
-            var command = new CancelBookingCommand ( id );
+            var command = new CancelBookingCommand(id, clientId);
             var result = await _cancelBookingHandler.HandleAsync(command);
 
             if (result.IsFailure)
