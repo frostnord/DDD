@@ -362,50 +362,8 @@ namespace Infrastructure.Migrations
                                 .HasForeignKey("DealEntityId");
                         });
 
-                    b.OwnsMany("Domain.Deal.VO.Document", "Documents", b1 =>
-                        {
-                            b1.Property<Guid>("deal_id")
-                                .HasColumnType("uuid");
-
-                            b1.Property<Guid>("Id")
-                                .ValueGeneratedOnAdd()
-                                .HasColumnType("uuid")
-                                .HasColumnName("document_id");
-
-                            b1.Property<DateTime>("CreatedAt")
-                                .HasColumnType("timestamp with time zone")
-                                .HasColumnName("created_at");
-
-                            b1.Property<string>("DocumentType")
-                                .IsRequired()
-                                .HasMaxLength(100)
-                                .HasColumnType("character varying(100)")
-                                .HasColumnName("document_type");
-
-                            b1.Property<string>("FilePath")
-                                .IsRequired()
-                                .HasMaxLength(500)
-                                .HasColumnType("character varying(500)")
-                                .HasColumnName("file_path");
-
-                            b1.Property<string>("Title")
-                                .IsRequired()
-                                .HasMaxLength(200)
-                                .HasColumnType("character varying(200)")
-                                .HasColumnName("title");
-
-                            b1.HasKey("deal_id", "Id");
-
-                            b1.ToTable("deal_documents", (string)null);
-
-                            b1.WithOwner()
-                                .HasForeignKey("deal_id");
-                        });
-
                     b.Navigation("Details")
                         .IsRequired();
-
-                    b.Navigation("Documents");
                 });
 
             modelBuilder.Entity("Domain.Property.PropertyEntity", b =>
