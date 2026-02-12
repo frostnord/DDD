@@ -29,6 +29,7 @@ public class CreateCompleteDealCommandHandler : ICommandHandler<CreateCompleteDe
             return Result.Failure<CompletedDealEntity>(buyerIdResult.Error);
         }
 
+        
         var sellerIdResult = ClientId.Create(command.SellerClientId);
         if (sellerIdResult.IsFailure)
         {
