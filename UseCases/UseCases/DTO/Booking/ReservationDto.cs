@@ -2,7 +2,7 @@ using System;
 
 namespace UseCases.UseCases.DTO.Booking;
 
-public record BookingDto(
+public record ReservationDto(
     Guid Id,
     Guid ClientId,
     Guid PropertyId,

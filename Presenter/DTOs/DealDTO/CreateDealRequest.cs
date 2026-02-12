@@ -23,11 +23,6 @@ namespace Presenter.DTOs.DealDTO
         public Guid PropertyId { get; init; }
 
         /// <summary>
-        /// Идентификатор бронирования, связанного со сделкой (опционально)
-        /// </summary>
-        public Guid? BookingId { get; init; }
-
-        /// <summary>
         /// Детали сделки
         /// </summary>
         [Required(ErrorMessage = "Детали сделки обязательны")]

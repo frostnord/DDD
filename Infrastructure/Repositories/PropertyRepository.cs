@@ -166,7 +166,7 @@ namespace Infrastructure.Repositories
             return Result.Success((items.AsEnumerable(), totalCount));
         }
 
-        public async Task<Result<PropertyEntity?>> GetActiveHoldByPropertyIdAsync(PropertyId propertyId, DateTime nowUtc)
+        public async Task<Result<PropertyEntity?>> GetActiveReservationByPropertyIdAsync(PropertyId propertyId, DateTime nowUtc)
         {
             var property = await _context.Properties
                 .AsNoTracking()
@@ -178,7 +178,7 @@ namespace Infrastructure.Repositories
             return Result.Success(property);
         }
 
-        public async Task<Result<IEnumerable<PropertyEntity>>> GetActiveHoldsByClientIdAsync(ClientId clientId, DateTime nowUtc)
+        public async Task<Result<IEnumerable<PropertyEntity>>> GetActiveReservationByClientIdAsync(ClientId clientId, DateTime nowUtc)
         {
             var properties = await _context.Properties
                 .AsNoTracking()

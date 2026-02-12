@@ -1,7 +1,9 @@
 using AutoMapper;
 using Presenter.DTOs.BookingDTO;
 using UseCases.Booking.Commands;
-using UseCasesBookingDto = UseCases.UseCases.DTO.Booking.BookingDto;
+using UseCases.Property.Commands;
+using UseCases.Reservation.Commands;
+using UseCases.UseCases.DTO.Booking;
 
 namespace Presenter.Mappings
 {
@@ -9,9 +11,9 @@ namespace Presenter.Mappings
     {
         public BookingMappingProfile()
         {
-            CreateMap<CreateBookingRequest, CreateBookingCommand>();
+            CreateMap<CreateBookingRequest, CreateReservationCommand>();
 
-            CreateMap<UseCasesBookingDto, BookingDto>();
+            CreateMap<ReservationDto, BookingDto>();
         }
     }
 }

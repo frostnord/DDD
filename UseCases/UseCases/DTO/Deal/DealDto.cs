@@ -8,7 +8,6 @@ public sealed record DealDto(
     Guid Id,
     Guid ClientId,
     Guid PropertyId,
-    Guid? BookingId,
     DealDetails Details,
     string Status,
     DateTime CreatedAt,

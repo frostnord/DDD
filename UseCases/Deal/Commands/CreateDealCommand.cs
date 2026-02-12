@@ -8,6 +8,5 @@ namespace UseCases.Deal.Commands;
 public record CreateDealCommand(
     Guid ClientId,
     Guid PropertyId,
-    Guid? BookingId,
     DealDetails Details
 ) : ICommand<Guid>;

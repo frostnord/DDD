@@ -17,7 +17,6 @@ public sealed class UnitOfWork : IUnitOfWork
     private IClientRepository? _clientRepository;
     private IBuyerRepository? _buyerRepository;
     private ISellerRepository? _sellerRepository;
-    private IBookingRepository? _bookingRepository;
     private ICompletedDealRepository? _completedDealRepository;
 
     public UnitOfWork(AppDbContext context)
@@ -30,7 +29,6 @@ public sealed class UnitOfWork : IUnitOfWork
     public IClientRepository Clients => _clientRepository ??= new ClientRepository(_context);
     public IBuyerRepository Buyers => _buyerRepository ??= new BuyerRepository(_context);
     public ISellerRepository Sellers => _sellerRepository ??= new SellerRepository(_context);
-    public IBookingRepository Bookings => _bookingRepository ??= new BookingRepository(_context);
     public ICompletedDealRepository CompletedDeals => _completedDealRepository ??= new CompletedDealRepository(_context);
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)

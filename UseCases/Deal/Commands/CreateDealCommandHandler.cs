@@ -97,7 +97,6 @@ public class CreateDealCommandHandler : ICommandHandler<CreateDealCommand, Guid>
             var dealResult = DealEntity.Create(
                 clientIdResult.Value,
                 propertyIdResult.Value,
-                null,
                 command.Details
             );
 

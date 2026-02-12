@@ -1,22 +1,23 @@
-using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
 using Domain.Property.VO;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Services;
 
-namespace UseCases.Booking.Commands.ConfirmBooking;
+namespace UseCases.Reservation.Commands;
 
-public class ConfirmBookingCommandHandler : ICommandHandler<ConfirmBookingCommand>
+public sealed record CancelReservationCommand(Guid PropertyId, Guid ClientId) : ICommand;
+
+public class CancelReservationCommandHandler : ICommandHandler<CancelReservationCommand>
 {
     private readonly IUnitOfWork _unitOfWork;
 
-    public ConfirmBookingCommandHandler(IUnitOfWork unitOfWork)
+    public CancelReservationCommandHandler(IUnitOfWork unitOfWork)
     {
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result> HandleAsync(ConfirmBookingCommand command)
+    public async Task<Result> HandleAsync(CancelReservationCommand command)
     {
         var propertyIdResult = PropertyId.Create(command.PropertyId);
         if (propertyIdResult.IsFailure)
@@ -42,14 +43,16 @@ public class ConfirmBookingCommandHandler : ICommandHandler<ConfirmBookingComman
             var nowUtc = DateTime.UtcNow;
             property.RefreshHoldState(nowUtc);
 
-            if (property.ReservedUntil == null || property.ReservedByClientId != clientIdResult.Value)
+            var cancelResult = property.CancelHoldByClient(clientIdResult.Value, nowUtc);
+            if (cancelResult.IsFailure)
             {
-                return Result.Failure("Hold not found or does not belong to client");
+                return Result.Failure(cancelResult.Error);
             }
 
-            if (property.ReservedUntil.Value <= nowUtc)
+            var updateResult = _unitOfWork.Properties.Update(property);
+            if (updateResult.IsFailure)
             {
-                return Result.Failure("Hold already expired");
+                return Result.Failure(updateResult.Error);
             }
 
             return Result.Success();

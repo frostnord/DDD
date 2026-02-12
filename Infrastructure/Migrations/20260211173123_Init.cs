@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Microsoft.EntityFrameworkCore.Migrations;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -7,29 +7,11 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Infrastructure.Migrations
 {
     /// <inheritdoc />
-    public partial class initMigration : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.CreateTable(
-                name: "booking",
-                columns: table => new
-                {
-                    id = table.Column<Guid>(type: "uuid", nullable: false),
-                    client_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    property_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    start_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    end_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    total_price = table.Column<decimal>(type: "numeric", nullable: false),
-                    created_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    updated_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("pk_booking", x => x.id);
-                });
-
             migrationBuilder.CreateTable(
                 name: "buyers",
                 columns: table => new
@@ -71,6 +53,8 @@ namespace Infrastructure.Migrations
                 columns: table => new
                 {
                     id = table.Column<Guid>(type: "uuid", nullable: false),
+                    buyer_id = table.Column<Guid>(type: "uuid", nullable: false),
+                    seller_id = table.Column<Guid>(type: "uuid", nullable: false),
                     buyer_client_id = table.Column<Guid>(type: "uuid", nullable: false),
                     seller_client_id = table.Column<Guid>(type: "uuid", nullable: false),
                     property_id = table.Column<Guid>(type: "uuid", nullable: false),
@@ -92,7 +76,6 @@ namespace Infrastructure.Migrations
                     id = table.Column<Guid>(type: "uuid", nullable: false),
                     client_id = table.Column<Guid>(type: "uuid", nullable: false),
                     property_id = table.Column<Guid>(type: "uuid", nullable: false),
-                    booking_id = table.Column<Guid>(type: "uuid", nullable: true),
                     deal_date = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
                     deal_amount = table.Column<decimal>(type: "numeric", nullable: false),
                     deal_type = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
@@ -118,6 +101,9 @@ namespace Infrastructure.Migrations
                     country = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     price = table.Column<decimal>(type: "numeric", nullable: false),
                     status = table.Column<string>(type: "character varying(20)", maxLength: 20, nullable: false),
+                    reserved_by_client_id = table.Column<Guid>(type: "uuid", nullable: true),
+                    reserved_at = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
+                    reserved_until = table.Column<DateTime>(type: "timestamp with time zone", nullable: true),
                     description = table.Column<string>(type: "character varying(1000)", maxLength: 1000, nullable: false),
                     area = table.Column<decimal>(type: "numeric", nullable: false),
                     number_of_rooms = table.Column<int>(type: "integer", nullable: false),
@@ -215,9 +201,6 @@ namespace Infrastructure.Migrations
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "booking");
-
             migrationBuilder.DropTable(
                 name: "buyers");
 

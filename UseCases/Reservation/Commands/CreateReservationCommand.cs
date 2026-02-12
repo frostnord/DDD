@@ -4,24 +4,24 @@ using Domain.Property.VO;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Services;
 
-namespace UseCases.Booking.Commands;
+namespace UseCases.Reservation.Commands;
 
-public sealed record CreateBookingCommand(
+public sealed record CreateReservationCommand(
     Guid ClientId,
     Guid PropertyId
 ) : ICommand<Guid>;
 
-public class CreateBookingCommandHandler : ICommandHandler<CreateBookingCommand, Guid>
+public class CreateReservationCommandHandler : ICommandHandler<CreateReservationCommand, Guid>
 {
     private readonly IUnitOfWork _unitOfWork;
 
-    public CreateBookingCommandHandler(
+    public CreateReservationCommandHandler(
         IUnitOfWork unitOfWork)
     {
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<Guid>> HandleAsync(CreateBookingCommand command)
+    public async Task<Result<Guid>> HandleAsync(CreateReservationCommand command)
     {
         // Создаем идентификатор клиента
         var clientIdResult = ClientId.Create(command.ClientId);

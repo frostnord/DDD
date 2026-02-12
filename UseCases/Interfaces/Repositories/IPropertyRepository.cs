@@ -16,8 +16,8 @@ public interface IPropertyRepository
     Task<Result<PropertyEntity>> GetByIdForUpdateAsync(PropertyId id);
     Task<Result<IEnumerable<PropertyEntity>>> GetAllAsync();
     Task<Result<(IEnumerable<PropertyEntity> Items, int TotalCount)>> SearchAsync(SearchPropertiesQuery query);
-    Task<Result<PropertyEntity?>> GetActiveHoldByPropertyIdAsync(PropertyId propertyId, DateTime nowUtc);
-    Task<Result<IEnumerable<PropertyEntity>>> GetActiveHoldsByClientIdAsync(ClientId clientId, DateTime nowUtc);
+    Task<Result<PropertyEntity?>> GetActiveReservationByPropertyIdAsync(PropertyId propertyId, DateTime nowUtc);
+    Task<Result<IEnumerable<PropertyEntity>>> GetActiveReservationByClientIdAsync(ClientId clientId, DateTime nowUtc);
     Result<PropertyEntity> Add(PropertyEntity propertyEntity);
     Result Update(PropertyEntity propertyEntity);
     Result Delete(PropertyId id);

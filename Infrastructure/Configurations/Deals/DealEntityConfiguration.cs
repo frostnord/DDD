@@ -1,10 +1,10 @@
 using System;
-using Domain.Booking.VO;
 using Domain.Customers.Client.VO;
 using Domain.Deal;
 using Domain.Deal.VO;
 using Domain.Property.VO;
 using Domain.ValueObjects;
+
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
@@ -34,12 +34,6 @@ public sealed class DealEntityConfiguration : IEntityTypeConfiguration<DealEntit
         builder.Property(x => x.PropertyId)
             .HasConversion(toDb => toDb.Value, fromDb => PropertyId.Create(fromDb).Value)
             .HasColumnName("property_id");
-
-        builder.Property(x => x.BookingId)
-            .HasConversion(
-                toDb => toDb != null ? toDb.Value : Guid.Empty,
-                fromDb => fromDb == Guid.Empty ? null : BookingId.Create(fromDb).Value)
-            .HasColumnName("booking_id");
 
         // Настройка деталей сделки (составного значения)
         builder.OwnsOne(x => x.Details, detailsBuilder =>

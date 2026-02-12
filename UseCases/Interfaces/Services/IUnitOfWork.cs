@@ -12,7 +12,6 @@ public interface IUnitOfWork
     IClientRepository Clients { get; }
     IBuyerRepository Buyers { get; }
     ISellerRepository Sellers { get; }
-    IBookingRepository Bookings { get; }
     ICompletedDealRepository CompletedDeals { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);

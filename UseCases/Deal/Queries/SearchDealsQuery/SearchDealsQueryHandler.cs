@@ -68,7 +68,6 @@ public class SearchDealsQueryHandler : IQueryHandler<SearchDealsQuery, Result<Se
             d.Id.Value,
             d.ClientId.Value,
             d.PropertyId.Value,
-            d.BookingId?.Value,
             d.Details,
             d.Status.Name,
             d.CreatedAt,

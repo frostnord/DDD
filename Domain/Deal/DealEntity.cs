@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using CSharpFunctionalExtensions;
-using Domain.Booking.VO;
 using Domain.Customers.Client.VO;
 using Domain.Deal.VO;
 using Domain.Property.VO;
@@ -11,7 +10,7 @@ namespace Domain.Deal
 {
     /// <summary>
     /// Сущность сделки в системе управления недвижимостью
-    /// Объединяет Property, Client, Booking и документы в единую сделку
+    /// Объединяет Property, Client и документы в единую сделку
     /// </summary>
     public class DealEntity : Entity<DealId>
     {
@@ -26,11 +25,6 @@ namespace Domain.Deal
         /// Идентификатор объекта недвижимости, участвующего в сделке
         /// </summary>
         public PropertyId PropertyId { get; private set; }
-
-        /// <summary>
-        /// Идентификатор бронирования, связанного со сделкой
-        /// </summary>
-        public BookingId? BookingId { get; private set; }
 
         /// <summary>
         /// Детали сделки
@@ -62,20 +56,18 @@ namespace Domain.Deal
         /// </summary>
         /// <param name="clientId">Идентификатор клиента</param>
         /// <param name="propertyId">Идентификатор объекта недвижимости</param>
-        /// <param name="bookingId">Идентификатор бронирования (опционально)</param>
         /// <param name="details">Детали сделки</param>
-        protected DealEntity(DealId id, ClientId clientId, PropertyId propertyId, BookingId? bookingId, DealDetails details)
+        protected DealEntity(DealId id, ClientId clientId, PropertyId propertyId, DealDetails details)
             : base(id)
         {
             ClientId = clientId;
             PropertyId = propertyId;
-            BookingId = bookingId;
             Details = details;
             Status = DealStatus.Created;
             CreatedAt = DateTime.UtcNow;
             _documents = new List<Document>();
         }
-        
+
         // EF Core конструктор
         protected DealEntity()
         {
@@ -87,11 +79,9 @@ namespace Domain.Deal
         /// </summary>
         /// <param name="clientId">Идентификатор клиента</param>
         /// <param name="propertyId">Идентификатор объекта недвижимости</param>
-        /// <param name="bookingId">Идентификатор бронирования (опционально)</param>
         /// <param name="details">Детали сделки</param>
         /// <returns>Результат с сделкой или ошибкой</returns>
-        public static Result<DealEntity> Create(ClientId clientId, PropertyId propertyId, BookingId? bookingId,
-            DealDetails details)
+        public static Result<DealEntity> Create(ClientId clientId, PropertyId propertyId, DealDetails details)
         {
             var validationErrors = new List<string>();
 
@@ -111,10 +101,9 @@ namespace Domain.Deal
                 return Result.Failure<DealEntity>(string.Join("; ", validationErrors));
             }
 
-            var deal = new DealEntity(id, clientId, propertyId, bookingId, details);
+            var deal = new DealEntity(id, clientId, propertyId, details);
             return Result.Success(deal);
         }
-
 
         // public void Close()
         // {

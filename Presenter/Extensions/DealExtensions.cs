@@ -13,7 +13,6 @@ namespace Presenter.Extensions
                 deal.Id.Value,
                 deal.ClientId.Value,
                 deal.PropertyId.Value,
-                deal.BookingId?.Value,
                 deal.Details,
                 deal.Status.Name,
                 deal.CreatedAt,

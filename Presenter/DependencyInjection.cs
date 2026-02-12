@@ -1,8 +1,6 @@
 using System;
 using System.Collections.Generic;
 using CSharpFunctionalExtensions;
-using Domain.Booking;
-using Domain.Booking.VO;
 using Domain.Customers.Buyer;
 using Domain.Customers.Seller;
 using Domain.Deal;
@@ -10,11 +8,6 @@ using Domain.Property;
 using Domain.Property.VO;
 using Infrastructure;
 using Microsoft.Extensions.DependencyInjection;
-using UseCases.Booking.Commands;
-using UseCases.Booking.Commands.CancelBooking;
-using UseCases.Booking.Commands.ConfirmBooking;
-using UseCases.Booking.Queries.GetBookingById;
-using UseCases.Booking.Queries.SearchBookingsQuery;
 using UseCases.Buyer;
 using UseCases.Buyer.Commands.CreateBuyer;
 using UseCases.Client.Commands;
@@ -41,12 +34,16 @@ using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Queries;
 using UseCases.Interfaces.Services;
 using UseCases.Property;
+using UseCases.Property.Commands;
 using UseCases.Property.Commands.CreateProperty;
 using UseCases.Property.Commands.DeleteProperty;
 using UseCases.Property.Commands.UpdateProperty;
 using UseCases.Property.Queries;
 using UseCases.Property.Queries.GetPropertyById;
 using UseCases.Property.Queries.SearchPropertiesQuery;
+using UseCases.Reservation.Commands;
+using UseCases.Reservation.Queries;
+using UseCases.Reservation.Queries.SearchReservationQuery;
 using UseCases.Seller.Commands;
 using UseCases.Seller.Queries;
 using UseCases.UseCases.DTO.Property;
@@ -65,9 +62,9 @@ namespace Presenter
             services.AddScoped<ICommandHandler<CreateDealCommand, Guid>, CreateDealCommandHandler>();
             services.AddScoped<ICommandHandler<CreateBuyerCommand, Guid>, CreateBuyerCommandHandler>();
             services.AddScoped<ICommandHandler<CreateSellerCommand, Guid>, CreateSellerCommandHandler>();
-            services.AddScoped<ICommandHandler<CreateBookingCommand, Guid>, CreateBookingCommandHandler>();
-            services.AddScoped<ICommandHandler<ConfirmBookingCommand>, ConfirmBookingCommandHandler>();
-            services.AddScoped<ICommandHandler<CancelBookingCommand>, CancelBookingCommandHandler>();
+            services.AddScoped<ICommandHandler<CreateReservationCommand, Guid>, CreateReservationCommandHandler>();
+            services.AddScoped<ICommandHandler<ConfirmReservationCommand>, ConfirmReservationCommandHandler>();
+            services.AddScoped<ICommandHandler<CancelReservationCommand>, CancelReservationCommandHandler>();
             services
                 .AddScoped<ICommandHandler<CreateCompleteDealCommand, CompletedDealEntity>,
                     CreateCompleteDealCommandHandler>();
@@ -86,8 +83,8 @@ namespace Presenter
             // Регистрация Query Handlers
             services.AddScoped<IQueryHandler<GetPropertyByIdQuery, Result<PropertyDto>>, GetPropertyByIdQueryHandler>();
             services.AddScoped<IQueryHandler<SearchPropertiesQuery, Result<SearchPropertiesQueryResponse>>, SearchPropertiesQueryHandler>();
-            services.AddScoped<IQueryHandler<GetBookingByIdQuery, Result<UseCases.UseCases.DTO.Booking.BookingDto>>, GetBookingByIdQueryHandler>();
-            services.AddScoped<IQueryHandler<SearchBookingsQuery, Result<SearchBookingsQueryResponse>>, SearchBookingsQueryHandler>();
+            services.AddScoped<IQueryHandler<GetReservationByIdQuery, Result<UseCases.UseCases.DTO.Booking.ReservationDto>>, GetReservationByIdQueryHandler>();
+            services.AddScoped<IQueryHandler<SearchReservationQuery, Result<SearchBookingsQueryResponse>>, SearchReservationQueryHandler>();
             services.AddScoped<IQueryHandler<GetDealByIdQuery, Result<UseCases.UseCases.DTO.Deal.DealDto>>, GetDealByIdQueryHandler>();
             services.AddScoped<IQueryHandler<SearchDealsQuery, Result<SearchDealsQueryResponse>>, SearchDealsQueryHandler>();
             services.AddScoped<IQueryHandler<GetCompletedDealByIdQuery, Result<UseCases.UseCases.DTO.CompletedDeal.CompletedDealDto>>, GetCompletedDealByIdQueryHandler>();

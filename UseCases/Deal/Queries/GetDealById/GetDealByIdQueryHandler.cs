@@ -36,7 +36,6 @@ public class GetDealByIdQueryHandler : IQueryHandler<GetDealByIdQuery, Result<De
             entity.Id.Value,
             entity.ClientId.Value,
             entity.PropertyId.Value,
-            entity.BookingId?.Value,
             entity.Details,
             entity.Status.Name,
             entity.CreatedAt,

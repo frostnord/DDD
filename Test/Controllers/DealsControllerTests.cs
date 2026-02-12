@@ -4,7 +4,6 @@ using System.Reflection;
 using System.Threading.Tasks;
 using AutoMapper;
 using CSharpFunctionalExtensions;
-using Domain.Booking.VO;
 using Domain.Customers.Client.VO;
 using Domain.Deal;
 using Domain.Deal.VO;
@@ -54,16 +53,10 @@ namespace Test.Controllers
                 _mockMapper.Object);
         }
 
-        private static DealEntity CreateDealEntity(Guid? clientId = null, Guid? propertyId = null, Guid? bookingId = null, DealDetails? details = null)
+        private static DealEntity CreateDealEntity(Guid? clientId = null, Guid? propertyId = null, DealDetails? details = null)
         {
             var clientIdValue = ClientId.Create(clientId ?? Guid.NewGuid()).Value;
             var propertyIdValue = PropertyId.Create(propertyId ?? Guid.NewGuid()).Value;
-
-            BookingId? bookingIdValue = null;
-            if (bookingId.HasValue)
-            {
-                bookingIdValue = BookingId.Create(bookingId.Value).Value;
-            }
 
             var dealDetails = details ?? DealDetails.Create(
                 DateTime.UtcNow,
@@ -71,7 +64,7 @@ namespace Test.Controllers
                 "Test deal",
                 string.Empty).Value;
 
-            return DealEntity.Create(clientIdValue, propertyIdValue, bookingIdValue, dealDetails).Value;
+            return DealEntity.Create(clientIdValue, propertyIdValue, dealDetails).Value;
         }
 
         private static IEnumerable<DealResponse> ExtractItems(dynamic response)
@@ -91,11 +84,10 @@ namespace Test.Controllers
             {
                 ClientId = Guid.NewGuid(),
                 PropertyId = Guid.NewGuid(),
-                BookingId = Guid.NewGuid(),
                 Details = DealDetails.Create(DateTime.UtcNow, Domain.ValueObjects.Price.Create(1000).Value, "Test deal", string.Empty).Value
             };
 
-            var command = new CreateDealCommand(request.ClientId, request.PropertyId, request.BookingId, request.Details);
+            var command = new CreateDealCommand(request.ClientId, request.PropertyId, request.Details);
             _mockMapper.Setup(m => m.Map<CreateDealCommand>(request)).Returns(command);
 
             var createdDealId = Guid.NewGuid();
@@ -121,11 +113,10 @@ namespace Test.Controllers
             {
                 ClientId = Guid.NewGuid(),
                 PropertyId = Guid.NewGuid(),
-                BookingId = Guid.NewGuid(),
                 Details = DealDetails.Create(DateTime.UtcNow, Domain.ValueObjects.Price.Create(1000).Value, "Test deal", string.Empty).Value
             };
 
-            var command = new CreateDealCommand(request.ClientId, request.PropertyId, request.BookingId, request.Details);
+            var command = new CreateDealCommand(request.ClientId, request.PropertyId, request.Details);
             _mockMapper.Setup(m => m.Map<CreateDealCommand>(request)).Returns(command);
 
             var errorResult = Result.Failure<Guid>("Validation error");
@@ -148,16 +139,14 @@ namespace Test.Controllers
             var dealIdGuid = Guid.NewGuid();
             var clientId = ClientId.Create(Guid.NewGuid()).Value;
             var propertyId = PropertyId.Create(Guid.NewGuid()).Value;
-            var bookingId = BookingId.Create(Guid.NewGuid()).Value;
             var details = DealDetails.Create(DateTime.UtcNow, Domain.ValueObjects.Price.Create(100).Value, "Test deal", string.Empty).Value;
             
-            var deal = DealEntity.Create(clientId, propertyId, bookingId, details).Value;
+            var deal = DealEntity.Create(clientId, propertyId, details).Value;
 
             var useCasesDto = new UseCasesDealDto(
                 deal.Id.Value,
                 deal.ClientId.Value,
                 deal.PropertyId.Value,
-                deal.BookingId?.Value,
                 deal.Details,
                 deal.Status.Name,
                 deal.CreatedAt,
@@ -167,7 +156,6 @@ namespace Test.Controllers
                 useCasesDto.Id,
                 useCasesDto.ClientId,
                 useCasesDto.PropertyId,
-                useCasesDto.BookingId,
                 useCasesDto.Details,
                 useCasesDto.Status,
                 useCasesDto.CreatedAt,
@@ -187,7 +175,6 @@ namespace Test.Controllers
             Assert.Equal(deal.Id.Value, dealDto.Id);
             Assert.Equal(deal.ClientId.Value, dealDto.ClientId);
             Assert.Equal(deal.PropertyId.Value, dealDto.PropertyId);
-            Assert.Equal(deal.BookingId?.Value, dealDto.BookingId);
             Assert.Equal(deal.Status.Name, dealDto.Status);
         }
 
@@ -220,9 +207,8 @@ namespace Test.Controllers
             var details = DealDetails.Create(DateTime.UtcNow, Domain.ValueObjects.Price.Create(100).Value, "Test deal", string.Empty).Value;
             var clientIdVO = ClientId.Create(clientId).Value;
             var propertyIdVO = PropertyId.Create(Guid.NewGuid()).Value;
-            var bookingIdVO = BookingId.Create(Guid.NewGuid()).Value;
             
-            var deal = DealEntity.Create(clientIdVO, propertyIdVO, bookingIdVO, details).Value;
+            var deal = DealEntity.Create(clientIdVO, propertyIdVO, details).Value;
             
             var dealsList = new List<DealEntity> { deal };
 
@@ -230,7 +216,6 @@ namespace Test.Controllers
                 d.Id.Value,
                 d.ClientId.Value,
                 d.PropertyId.Value,
-                d.BookingId?.Value,
                 d.Details,
                 d.Status.Name,
                 d.CreatedAt,
@@ -240,7 +225,6 @@ namespace Test.Controllers
                 d.Id,
                 d.ClientId,
                 d.PropertyId,
-                d.BookingId,
                 d.Details,
                 d.Status,
                 d.CreatedAt,
@@ -279,9 +263,8 @@ namespace Test.Controllers
             var details = DealDetails.Create(DateTime.UtcNow, Domain.ValueObjects.Price.Create(100).Value, "Test deal", string.Empty).Value;
             var clientIdVO = ClientId.Create(Guid.NewGuid()).Value;
             var propertyIdVO = PropertyId.Create(propertyId).Value;
-            var bookingIdVO = BookingId.Create(Guid.NewGuid()).Value;
             
-            var deal = DealEntity.Create(clientIdVO, propertyIdVO, bookingIdVO, details).Value;
+            var deal = DealEntity.Create(clientIdVO, propertyIdVO, details).Value;
             
             var dealsList = new List<DealEntity> { deal };
 
@@ -289,7 +272,6 @@ namespace Test.Controllers
                 d.Id.Value,
                 d.ClientId.Value,
                 d.PropertyId.Value,
-                d.BookingId?.Value,
                 d.Details,
                 d.Status.Name,
                 d.CreatedAt,
@@ -299,7 +281,6 @@ namespace Test.Controllers
                 d.Id,
                 d.ClientId,
                 d.PropertyId,
-                d.BookingId,
                 d.Details,
                 d.Status,
                 d.CreatedAt,

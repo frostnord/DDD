@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
 using Domain.Property.VO;
@@ -9,18 +5,23 @@ using UseCases.Interfaces.Queries;
 using UseCases.Interfaces.Services;
 using UseCases.UseCases.DTO.Booking;
 
-namespace UseCases.Booking.Queries.SearchBookingsQuery;
+namespace UseCases.Reservation.Queries.SearchReservationQuery;
 
-public class SearchBookingsQueryHandler : IQueryHandler<SearchBookingsQuery, Result<SearchBookingsQueryResponse>>
+public sealed record SearchReservationQuery(
+    Guid? ClientId,
+    Guid? PropertyId
+) : IQuery<Result<SearchBookingsQueryResponse>>;
+
+public class SearchReservationQueryHandler : IQueryHandler<SearchReservationQuery, Result<SearchBookingsQueryResponse>>
 {
     private readonly IUnitOfWork _unitOfWork;
 
-    public SearchBookingsQueryHandler(IUnitOfWork unitOfWork)
+    public SearchReservationQueryHandler(IUnitOfWork unitOfWork)
     {
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<SearchBookingsQueryResponse>> HandleAsync(SearchBookingsQuery query)
+    public async Task<Result<SearchBookingsQueryResponse>> HandleAsync(SearchReservationQuery query)
     {
         if (query.ClientId == null && query.PropertyId == null)
         {
@@ -37,7 +38,7 @@ public class SearchBookingsQueryHandler : IQueryHandler<SearchBookingsQuery, Res
                 return Result.Failure<SearchBookingsQueryResponse>(clientIdResult.Error);
             }
 
-            var holdsResult = await _unitOfWork.Properties.GetActiveHoldsByClientIdAsync(clientIdResult.Value, nowUtc);
+            var holdsResult = await _unitOfWork.Properties.GetActiveReservationByClientIdAsync(clientIdResult.Value, nowUtc);
             if (holdsResult.IsFailure)
             {
                 return Result.Failure<SearchBookingsQueryResponse>(holdsResult.Error);
@@ -48,7 +49,7 @@ public class SearchBookingsQueryHandler : IQueryHandler<SearchBookingsQuery, Res
                 {
                     p.RefreshHoldState(nowUtc);
 
-                    return new BookingDto(
+                    return new ReservationDto(
                         p.Id.Value,
                         p.ReservedByClientId!.Value,
                         p.Id.Value,
@@ -69,13 +70,13 @@ public class SearchBookingsQueryHandler : IQueryHandler<SearchBookingsQuery, Res
             return Result.Failure<SearchBookingsQueryResponse>(propertyIdResult.Error);
         }
 
-        var holdResult = await _unitOfWork.Properties.GetActiveHoldByPropertyIdAsync(propertyIdResult.Value, nowUtc);
+        var holdResult = await _unitOfWork.Properties.GetActiveReservationByPropertyIdAsync(propertyIdResult.Value, nowUtc);
         if (holdResult.IsFailure)
         {
             return Result.Failure<SearchBookingsQueryResponse>(holdResult.Error);
         }
 
-        var items = new List<BookingDto>();
+        var items = new List<ReservationDto>();
         if (holdResult.Value != null)
         {
             var p = holdResult.Value;
@@ -83,7 +84,7 @@ public class SearchBookingsQueryHandler : IQueryHandler<SearchBookingsQuery, Res
 
             if (p.ReservedByClientId != null && p.ReservedUntil != null && p.ReservedUntil.Value > nowUtc)
             {
-                items.Add(new BookingDto(
+                items.Add(new ReservationDto(
                     p.Id.Value,
                     p.ReservedByClientId.Value,
                     p.Id.Value,

@@ -5,7 +5,7 @@ using Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Infrastructure.Configurations.Properties;
+namespace Infrastructure.Configurations;
 
 public sealed class PropertyEntityConfiguration : IEntityTypeConfiguration<PropertyEntity>
 {
