@@ -14,8 +14,6 @@ namespace Domain.Deal
     /// </summary>
     public class DealEntity : Entity<DealId>
     {
-        private List<Document> _documents;
-
         /// <summary>
         /// Идентификатор клиента, участвующего в сделке
         /// </summary>
@@ -30,11 +28,6 @@ namespace Domain.Deal
         /// Детали сделки
         /// </summary>
         public DealDetails Details { get; private set; }
-
-        /// <summary>
-        /// Список документов, связанных со сделкой
-        /// </summary>
-        public IReadOnlyList<Document> Documents => _documents.AsReadOnly();
 
         /// <summary>
         /// Статус сделки
@@ -65,13 +58,11 @@ namespace Domain.Deal
             Details = details;
             Status = DealStatus.Created;
             CreatedAt = DateTime.UtcNow;
-            _documents = new List<Document>();
         }
 
         // EF Core конструктор
         protected DealEntity()
         {
-            _documents = new List<Document>();
         }
 
         /// <summary>
@@ -128,36 +119,6 @@ namespace Domain.Deal
         //
         // private void AddEvent(IDomainEvent @event) => _events.Add(@event);
         // public IReadOnlyCollection<IDomainEvent> DomainEvents => _events.AsReadOnly();
-
-        /// <summary>
-        /// Добавляет документ к сделке
-        /// </summary>
-        /// <param name="document">Документ для добавления</param>
-        public void AddDocument(Document document)
-        {
-            if (document == null)
-                throw new ArgumentNullException(nameof(document), "Документ не может быть пустым");
-
-            if (!_documents.Contains(document))
-            {
-                _documents.Add(document);
-                UpdatedAt = DateTime.UtcNow;
-            }
-        }
-
-        /// <summary>
-        /// Удаляет документ из сделки
-        /// </summary>
-        /// <param name="documentId">Идентификатор документа для удаления</param>
-        public void RemoveDocument(Guid documentId)
-        {
-            var documentToRemove = _documents.FirstOrDefault(d => d.Id == documentId);
-            if (documentToRemove != null)
-            {
-                _documents.Remove(documentToRemove);
-                UpdatedAt = DateTime.UtcNow;
-            }
-        }
 
         /// <summary>
         /// Подтверждает сделку

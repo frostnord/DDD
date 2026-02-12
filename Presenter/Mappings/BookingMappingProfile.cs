@@ -1,7 +1,5 @@
 using AutoMapper;
 using Presenter.DTOs.BookingDTO;
-using UseCases.Booking.Commands;
-using UseCases.Property.Commands;
 using UseCases.Reservation.Commands;
 using UseCases.UseCases.DTO.Booking;
 

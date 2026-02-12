@@ -72,35 +72,5 @@ public sealed class DealEntityConfiguration : IEntityTypeConfiguration<DealEntit
 
         builder.Property(x => x.UpdatedAt)
             .HasColumnName("updated_at");
-
-        // Настройка документов как отдельной таблицы
-        builder.OwnsMany(x => x.Documents, documentBuilder =>
-        {
-            documentBuilder.ToTable("deal_documents");
-
-            documentBuilder.WithOwner().HasForeignKey("deal_id");
-
-            documentBuilder.Property(d => d.Id)
-                .HasColumnName("document_id");
-
-            documentBuilder.Property(d => d.Title)
-                .IsRequired()
-                .HasMaxLength(200)
-                .HasColumnName("title");
-
-            documentBuilder.Property(d => d.DocumentType)
-                .IsRequired()
-                .HasMaxLength(100)
-                .HasColumnName("document_type");
-
-            documentBuilder.Property(d => d.FilePath)
-                .IsRequired()
-                .HasMaxLength(500)
-                .HasColumnName("file_path");
-
-            documentBuilder.Property(d => d.CreatedAt)
-                .IsRequired()
-                .HasColumnName("created_at");
-        });
     }
 }
