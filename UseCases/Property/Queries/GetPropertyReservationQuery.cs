@@ -37,7 +37,6 @@ public class GetPropertyReservationQueryHandler : IQueryHandler<GetPropertyReser
 
         var property = propertyResult.Value;
         var nowUtc = System.DateTime.UtcNow;
-        property.RefreshHoldState(nowUtc);
 
         if (property.ReservedUntil == null || property.ReservedByClientId == null)
         {

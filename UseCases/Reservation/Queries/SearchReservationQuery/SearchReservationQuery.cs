@@ -50,19 +50,14 @@ public class SearchReservationQueryHandler : IQueryHandler<SearchReservationQuer
             }
 
             var dtos = holdsResult.Value
-                .Select(p =>
-                {
-                    p.RefreshHoldState(nowUtc);
-
-                    return new ReservationDto(
-                        p.ReservedByClientId!.Value,
-                        p.Id.Value,
-                        p.ReservedAt ?? nowUtc,
-                        p.ReservedUntil!.Value,
-                        "Active",
-                        p.CreatedAt,
-                        p.UpdatedAt);
-                })
+                .Select(p => new ReservationDto(
+                    p.ReservedByClientId!.Value,
+                    p.Id.Value,
+                    p.ReservedAt ?? nowUtc,
+                    p.ReservedUntil!.Value,
+                    "Active",
+                    p.CreatedAt,
+                    p.UpdatedAt))
                 .ToList();
 
             return Result.Success(new SearchBookingsQueryResponse(dtos));
