@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Deal;
@@ -18,7 +19,7 @@ public class GetCompletedDealByIdQueryHandler
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<CompletedDealDto>> HandleAsync(GetCompletedDealByIdQuery query)
+    public async Task<Result<CompletedDealDto>> HandleAsync(GetCompletedDealByIdQuery query, CancellationToken cancellationToken = default)
     {
         var idResult = CompletedDealId.Create(query.CompletedDealId);
         if (idResult.IsFailure)
@@ -26,7 +27,7 @@ public class GetCompletedDealByIdQueryHandler
             return Result.Failure<CompletedDealDto>(idResult.Error);
         }
 
-        var dealResult = await _unitOfWork.CompletedDeals.GetByIdAsync(idResult.Value);
+        var dealResult = await _unitOfWork.CompletedDeals.GetByIdAsync(idResult.Value, cancellationToken);
         if (dealResult.IsFailure)
         {
             return Result.Failure<CompletedDealDto>(dealResult.Error);

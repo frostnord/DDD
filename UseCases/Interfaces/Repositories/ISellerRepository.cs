@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
@@ -9,12 +10,12 @@ namespace UseCases.Interfaces.Repositories;
 
 public interface ISellerRepository
 {
-    Task<Result<SellerEntity>> GetByIdAsync(SellerId id);
-    Task<Result<SellerEntity>> GetByClientIdAsync(ClientId clientId);
-    Task<Result<IEnumerable<SellerEntity>>> GetAllAsync();
+    Task<Result<SellerEntity>> GetByIdAsync(SellerId id, CancellationToken cancellationToken = default);
+    Task<Result<SellerEntity>> GetByClientIdAsync(ClientId clientId, CancellationToken cancellationToken = default);
+    Task<Result<IEnumerable<SellerEntity>>> GetAllAsync(CancellationToken cancellationToken = default);
     Result<SellerEntity> Add(SellerEntity sellerEntity);
     Result<SellerEntity> Update(SellerEntity sellerEntity);
     Result Delete(SellerId id);
-    Task<bool> ExistsAsync(SellerId id);
-    Task<bool> ExistsByClientIdAsync(ClientId clientId);
+    Task<bool> ExistsAsync(SellerId id, CancellationToken cancellationToken = default);
+    Task<bool> ExistsByClientIdAsync(ClientId clientId, CancellationToken cancellationToken = default);
 }

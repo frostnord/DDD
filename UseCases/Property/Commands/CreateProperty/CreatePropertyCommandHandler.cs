@@ -6,6 +6,7 @@ using Domain.ValueObjects;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Services;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace UseCases.Property.Commands.CreateProperty;
@@ -19,7 +20,7 @@ public class CreatePropertyCommandHandler : ICommandHandler<CreatePropertyComman
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<Guid>> HandleAsync(CreatePropertyCommand command)
+    public async Task<Result<Guid>> HandleAsync(CreatePropertyCommand command, CancellationToken cancellationToken = default)
     {
         var (Street, City, HomeNumber, ZipCode, Country) = command.AddressDto;
         
@@ -100,7 +101,7 @@ public class CreatePropertyCommandHandler : ICommandHandler<CreatePropertyComman
             return Result.Failure<Guid>(saveResult.Error);
         }
 
-        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success(property.Id.Value);
     }

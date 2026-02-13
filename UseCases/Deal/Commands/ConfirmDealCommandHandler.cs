@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Deal;
@@ -16,7 +17,7 @@ public class ConfirmDealCommandHandler : ICommandHandler<ConfirmDealCommand>
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result> HandleAsync(ConfirmDealCommand command)
+    public async Task<Result> HandleAsync(ConfirmDealCommand command, CancellationToken cancellationToken = default)
     {
         var dealId = DealId.Create(command.DealId);
         if (dealId.IsFailure)
@@ -24,7 +25,7 @@ public class ConfirmDealCommandHandler : ICommandHandler<ConfirmDealCommand>
             return Result.Failure(dealId.Error);
         }
 
-        var dealResult = await _unitOfWork.Deals.GetByIdAsync(dealId.Value);
+        var dealResult = await _unitOfWork.Deals.GetByIdAsync(dealId.Value, cancellationToken);
         if (dealResult.IsFailure)
         {
             return Result.Failure(dealResult.Error);
@@ -46,7 +47,7 @@ public class ConfirmDealCommandHandler : ICommandHandler<ConfirmDealCommand>
             return Result.Failure(updateResult.Error);
         }
 
-        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

@@ -5,7 +5,7 @@ using Domain.Property.VO;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Infrastructure.Configurations.Customers;
+namespace Infrastructure.Configurations;
 
 public sealed class SellerEntityConfiguration : IEntityTypeConfiguration<SellerEntity>
 {

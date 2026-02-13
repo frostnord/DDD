@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Seller.VO;
@@ -15,7 +16,7 @@ public class DeleteSellerCommandHandler : ICommandHandler<DeleteSellerCommand>
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result> HandleAsync(DeleteSellerCommand command)
+    public async Task<Result> HandleAsync(DeleteSellerCommand command, CancellationToken cancellationToken = default)
     {
         var sellerIdResult = SellerId.Create(command.SellerId);
         if (sellerIdResult.IsFailure)
@@ -23,7 +24,7 @@ public class DeleteSellerCommandHandler : ICommandHandler<DeleteSellerCommand>
             return Result.Failure(sellerIdResult.Error);
         }
 
-        var sellerResult = await _unitOfWork.Sellers.GetByIdAsync(sellerIdResult.Value);
+        var sellerResult = await _unitOfWork.Sellers.GetByIdAsync(sellerIdResult.Value, cancellationToken);
         if (sellerResult.IsFailure)
         {
             return Result.Failure(sellerResult.Error);
@@ -35,7 +36,7 @@ public class DeleteSellerCommandHandler : ICommandHandler<DeleteSellerCommand>
             return deleteResult;
         }
 
-        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

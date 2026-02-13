@@ -8,7 +8,7 @@ using Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Infrastructure.Configurations.Deals;
+namespace Infrastructure.Configurations;
 
 public sealed class CompletedDealEntityConfiguration : IEntityTypeConfiguration<CompletedDealEntity>
 {

@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client;
@@ -17,7 +18,7 @@ public class UpdateClientCommandHandler : ICommandHandler<UpdateClientCommand, C
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<ClientEntity>> HandleAsync(UpdateClientCommand command)
+    public async Task<Result<ClientEntity>> HandleAsync(UpdateClientCommand command, CancellationToken cancellationToken = default)
     {
         var clientId = ClientId.Create(command.ClientId);
         if (clientId.IsFailure)
@@ -25,7 +26,7 @@ public class UpdateClientCommandHandler : ICommandHandler<UpdateClientCommand, C
             return Result.Failure<ClientEntity>($"Invalid client ID: {clientId.Error}");
         }
 
-        var clientResult = await _unitOfWork.Clients.GetByIdAsync(clientId.Value);
+        var clientResult = await _unitOfWork.Clients.GetByIdAsync(clientId.Value, cancellationToken);
         if (clientResult.IsFailure)
         {
             return Result.Failure<ClientEntity>($"Client with ID {command.ClientId} does not exist");
@@ -78,7 +79,7 @@ public class UpdateClientCommandHandler : ICommandHandler<UpdateClientCommand, C
             return Result.Failure<ClientEntity>(saveResult.Error);
         }
 
-        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success(clientResult.Value);
     }

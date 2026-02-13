@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
@@ -21,7 +22,7 @@ public class SearchDealsQueryHandler : IQueryHandler<SearchDealsQuery, Result<Se
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<SearchDealsQueryResponse>> HandleAsync(SearchDealsQuery query)
+    public async Task<Result<SearchDealsQueryResponse>> HandleAsync(SearchDealsQuery query, CancellationToken cancellationToken = default)
     {
         if (query.ClientId == null && query.PropertyId == null)
         {
@@ -38,7 +39,7 @@ public class SearchDealsQueryHandler : IQueryHandler<SearchDealsQuery, Result<Se
                 return Result.Failure<SearchDealsQueryResponse>(clientIdResult.Error);
             }
 
-            dealsResult = await _unitOfWork.Deals.GetByClientIdAsync(clientIdResult.Value);
+            dealsResult = await _unitOfWork.Deals.GetByClientIdAsync(clientIdResult.Value, cancellationToken);
         }
         else
         {
@@ -48,7 +49,7 @@ public class SearchDealsQueryHandler : IQueryHandler<SearchDealsQuery, Result<Se
                 return Result.Failure<SearchDealsQueryResponse>(propertyIdResult.Error);
             }
 
-            dealsResult = await _unitOfWork.Deals.GetByPropertyIdAsync(propertyIdResult.Value);
+            dealsResult = await _unitOfWork.Deals.GetByPropertyIdAsync(propertyIdResult.Value, cancellationToken);
         }
 
         if (dealsResult.IsFailure)

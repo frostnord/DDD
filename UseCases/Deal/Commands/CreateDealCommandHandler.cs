@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
@@ -20,7 +21,7 @@ public class CreateDealCommandHandler : ICommandHandler<CreateDealCommand, Guid>
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<Guid>> HandleAsync(CreateDealCommand command)
+    public async Task<Result<Guid>> HandleAsync(CreateDealCommand command, CancellationToken cancellationToken = default)
     {
         // Создаем идентификатор клиента
         var clientIdResult = ClientId.Create(command.ClientId);
@@ -35,17 +36,17 @@ public class CreateDealCommandHandler : ICommandHandler<CreateDealCommand, Guid>
             return Result.Failure<Guid>($"Invalid property ID: {command.PropertyId}");
         }
 
-        return await _unitOfWork.ExecuteInTransactionAsync(async _ =>
+        return await _unitOfWork.ExecuteInTransactionAsync(async innerCancellationToken =>
         {
             // Проверяем, существует ли клиент
-            var clientResult = await _unitOfWork.Clients.GetByIdAsync(clientIdResult.Value);
+            var clientResult = await _unitOfWork.Clients.GetByIdAsync(clientIdResult.Value, innerCancellationToken);
             if (clientResult.IsFailure)
             {
                 return Result.Failure<Guid>($"Client with ID {command.ClientId} does not exist");
             }
 
             // Проверяем, существует ли недвижимость
-            var propertyResult = await _unitOfWork.Properties.GetByIdForUpdateAsync(propertyIdResult.Value);
+            var propertyResult = await _unitOfWork.Properties.GetByIdForUpdateAsync(propertyIdResult.Value, innerCancellationToken);
             if (propertyResult.IsFailure)
             {
                 return Result.Failure<Guid>($"Property with ID {command.PropertyId} does not exist");
@@ -113,6 +114,6 @@ public class CreateDealCommandHandler : ICommandHandler<CreateDealCommand, Guid>
             }
 
             return Result.Success(dealResult.Value.Id.Value);
-        });
+        }, cancellationToken);
     }
 }

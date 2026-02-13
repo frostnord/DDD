@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Property.VO;
@@ -18,13 +19,13 @@ public class GetPropertyByIdQueryHandler : IQueryHandler<GetPropertyByIdQuery, R
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<PropertyDto>> HandleAsync(GetPropertyByIdQuery query)
+    public async Task<Result<PropertyDto>> HandleAsync(GetPropertyByIdQuery query, CancellationToken cancellationToken = default)
     {
         var propertyIdResult = PropertyId.Create(query.PropertyId);
         if (propertyIdResult.IsFailure)
             return Result.Failure<PropertyDto>(propertyIdResult.Error);
 
-        var propertyResult = await _unitOfWork.Properties.GetByIdAsync(propertyIdResult.Value);
+        var propertyResult = await _unitOfWork.Properties.GetByIdAsync(propertyIdResult.Value, cancellationToken);
         if (propertyResult.IsFailure)
             return Result.Failure<PropertyDto>(propertyResult.Error);
 

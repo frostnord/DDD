@@ -1,14 +1,12 @@
-using System;
 using Domain.Customers.Client.VO;
 using Domain.Deal;
 using Domain.Deal.VO;
 using Domain.Property.VO;
 using Domain.ValueObjects;
-
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Infrastructure.Configurations.Deals;
+namespace Infrastructure.Configurations;
 
 public sealed class DealEntityConfiguration : IEntityTypeConfiguration<DealEntity>
 {

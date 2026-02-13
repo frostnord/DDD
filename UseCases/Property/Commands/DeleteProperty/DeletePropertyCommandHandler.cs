@@ -1,5 +1,7 @@
 using CSharpFunctionalExtensions;
 using Domain.Property.VO;
+using System.Threading;
+using System.Threading.Tasks;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Services;
 
@@ -14,7 +16,7 @@ public class DeletePropertyCommandHandler : ICommandHandler<DeletePropertyComman
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result> HandleAsync(DeletePropertyCommand command)
+    public async Task<Result> HandleAsync(DeletePropertyCommand command, CancellationToken cancellationToken = default)
     {
         var propertyIdVO = PropertyId.Create(command.PropertyId);
         if (propertyIdVO.IsFailure)
@@ -26,7 +28,7 @@ public class DeletePropertyCommandHandler : ICommandHandler<DeletePropertyComman
             return Result.Failure(deleteResult.Error);
         }
 
-        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

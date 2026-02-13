@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Buyer;
@@ -20,13 +21,13 @@ public class CreateBuyerCommandHandler : ICommandHandler<CreateBuyerCommand, Gui
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<Guid>> HandleAsync(CreateBuyerCommand command)
+    public async Task<Result<Guid>> HandleAsync(CreateBuyerCommand command, CancellationToken cancellationToken = default)
     {
         var clientIdResult = ClientId.Create(command.ClientId);
         if (clientIdResult.IsFailure)
             return Result.Failure<Guid>(clientIdResult.Error);
 
-        var clientExists = await _unitOfWork.Clients.ExistsAsync(clientIdResult.Value);
+        var clientExists = await _unitOfWork.Clients.ExistsAsync(clientIdResult.Value, cancellationToken);
         if (!clientExists)
         {
             return Result.Failure<Guid>($"Client with ID {command.ClientId} does not exist");
@@ -88,7 +89,7 @@ public class CreateBuyerCommandHandler : ICommandHandler<CreateBuyerCommand, Gui
             return Result.Failure<Guid>(saveResult.Error);
         }
 
-        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success(buyerResult.Value.Id.Value);
     }

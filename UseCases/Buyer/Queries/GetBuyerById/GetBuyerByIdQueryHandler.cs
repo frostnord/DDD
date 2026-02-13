@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Buyer.VO;
@@ -17,13 +18,13 @@ public class GetBuyerByIdQueryHandler : IQueryHandler<GetBuyerByIdQuery, Result<
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<BuyerDto>> HandleAsync(GetBuyerByIdQuery query)
+    public async Task<Result<BuyerDto>> HandleAsync(GetBuyerByIdQuery query, CancellationToken cancellationToken = default)
     {
         var buyerId = BuyerId.Create(query.BuyerId);
         if (buyerId.IsFailure)
             return Result.Failure<BuyerDto>(buyerId.Error);
 
-        var buyerResult = await _unitOfWork.Buyers.GetByIdAsync(buyerId.Value);
+        var buyerResult = await _unitOfWork.Buyers.GetByIdAsync(buyerId.Value, cancellationToken);
         if (buyerResult.IsFailure)
         {
             return Result.Failure<BuyerDto>(buyerResult.Error);

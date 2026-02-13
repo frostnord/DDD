@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Deal;
@@ -20,7 +21,7 @@ public class GetCompletedDealsByPropertyIdQueryHandler
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<IEnumerable<CompletedDealDto>>> HandleAsync(GetCompletedDealsByPropertyIdQuery query)
+    public async Task<Result<IEnumerable<CompletedDealDto>>> HandleAsync(GetCompletedDealsByPropertyIdQuery query, CancellationToken cancellationToken = default)
     {
         var propertyIdResult = PropertyId.Create(query.PropertyId);
         if (propertyIdResult.IsFailure)
@@ -28,7 +29,7 @@ public class GetCompletedDealsByPropertyIdQueryHandler
             return Result.Failure<IEnumerable<CompletedDealDto>>(propertyIdResult.Error);
         }
 
-        var dealsResult = await _unitOfWork.CompletedDeals.GetByPropertyIdAsync(propertyIdResult.Value);
+        var dealsResult = await _unitOfWork.CompletedDeals.GetByPropertyIdAsync(propertyIdResult.Value, cancellationToken);
         if (dealsResult.IsFailure)
         {
             return Result.Failure<IEnumerable<CompletedDealDto>>(dealsResult.Error);

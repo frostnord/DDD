@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client;
@@ -16,9 +17,9 @@ public class GetAllClientsQueryHandler : IQueryHandler<GetAllClientsQuery, Resul
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<IEnumerable<ClientEntity>>> HandleAsync(GetAllClientsQuery query)
+    public async Task<Result<IEnumerable<ClientEntity>>> HandleAsync(GetAllClientsQuery query, CancellationToken cancellationToken = default)
     {
-        var clients = await _unitOfWork.Clients.GetAllAsync();
+        var clients = await _unitOfWork.Clients.GetAllAsync(cancellationToken);
         if (clients.IsFailure)
             return Result.Failure<IEnumerable<ClientEntity>>(clients.Error);
             

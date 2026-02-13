@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Buyer;
@@ -18,49 +19,50 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Result<BuyerEntity>> GetByIdAsync(BuyerId id)
+        public async Task<Result<BuyerEntity>> GetByIdAsync(BuyerId id, CancellationToken cancellationToken = default)
         {
             var buyer = await _context.Buyers
                 .AsNoTracking()
-                .FirstOrDefaultAsync(b => b.Id == id);
+                .FirstOrDefaultAsync(b => b.Id == id, cancellationToken);
 
             return buyer != null
                 ? Result.Success(buyer)
                 : Result.Failure<BuyerEntity>($"Buyer with ID {id.Value} not found");
         }
 
-        public async Task<Result<BuyerEntity>> GetByClientIdAsync(ClientId clientId)
+        public async Task<Result<BuyerEntity>> GetByClientIdAsync(ClientId clientId, CancellationToken cancellationToken = default)
         {
             var buyer = await _context.Buyers
                 .AsNoTracking()
-                .FirstOrDefaultAsync(b => b.ClientId == clientId);
+                .FirstOrDefaultAsync(b => b.ClientId == clientId, cancellationToken);
 
             return buyer != null
                 ? Result.Success(buyer)
                 : Result.Failure<BuyerEntity>($"Buyer for ClientId {clientId.Value} not found");
         }
 
-        public async Task<Result<IEnumerable<BuyerEntity>>> GetAllAsync()
+        public async Task<Result<IEnumerable<BuyerEntity>>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            var buyers = await _context.Buyers.AsNoTracking().ToListAsync();
+            var buyers = await _context.Buyers.AsNoTracking().ToListAsync(cancellationToken);
             return Result.Success<IEnumerable<BuyerEntity>>(buyers);
         }
 
         public async Task<Result<(IEnumerable<BuyerEntity> Items, int TotalCount)>> SearchAsync(
             int page,
-            int pageSize)
+            int pageSize,
+            CancellationToken cancellationToken = default)
         {
             var normalizedPage = page < 1 ? 1 : page;
             var normalizedPageSize = pageSize < 1 ? 1 : pageSize;
 
             var query = _context.Buyers.AsNoTracking().AsQueryable();
 
-            var totalCount = await query.CountAsync();
+            var totalCount = await query.CountAsync(cancellationToken);
             var items = await query
                 .OrderBy(b => b.Id.Value)
                 .Skip((normalizedPage - 1) * normalizedPageSize)
                 .Take(normalizedPageSize)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return Result.Success((items.AsEnumerable(), totalCount));
         }
@@ -89,14 +91,14 @@ namespace Infrastructure.Repositories
             return Result.Success();
         }
 
-        public async Task<bool> ExistsAsync(BuyerId id)
+        public async Task<bool> ExistsAsync(BuyerId id, CancellationToken cancellationToken = default)
         {
-            return await _context.Buyers.AsNoTracking().AnyAsync(b => b.Id == id);
+            return await _context.Buyers.AsNoTracking().AnyAsync(b => b.Id == id, cancellationToken);
         }
 
-        public async Task<bool> ExistsByClientIdAsync(ClientId clientId)
+        public async Task<bool> ExistsByClientIdAsync(ClientId clientId, CancellationToken cancellationToken = default)
         {
-            return await _context.Buyers.AsNoTracking().AnyAsync(b => b.ClientId == clientId);
+            return await _context.Buyers.AsNoTracking().AnyAsync(b => b.ClientId == clientId, cancellationToken);
         }
     }
 }

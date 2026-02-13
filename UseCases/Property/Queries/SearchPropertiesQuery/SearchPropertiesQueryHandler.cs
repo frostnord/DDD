@@ -1,4 +1,6 @@
 using CSharpFunctionalExtensions;
+using System.Threading;
+using System.Threading.Tasks;
 using UseCases.Interfaces.Queries;
 using UseCases.Interfaces.Services;
 using UseCases.Property.Queries.GetPropertyById;
@@ -15,9 +17,9 @@ public class SearchPropertiesQueryHandler : IQueryHandler<SearchPropertiesQuery,
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<SearchPropertiesQueryResponse>> HandleAsync(SearchPropertiesQuery query)
+    public async Task<Result<SearchPropertiesQueryResponse>> HandleAsync(SearchPropertiesQuery query, CancellationToken cancellationToken = default)
     {
-        var searchResult = await _unitOfWork.Properties.SearchAsync(query);
+        var searchResult = await _unitOfWork.Properties.SearchAsync(query, cancellationToken);
         if (searchResult.IsFailure)
             return Result.Failure<SearchPropertiesQueryResponse>(searchResult.Error);
 

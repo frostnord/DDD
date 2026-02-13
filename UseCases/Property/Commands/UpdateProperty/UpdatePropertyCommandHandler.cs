@@ -3,6 +3,8 @@ using Domain.Customers.Client.VO;
 using Domain.Property;
 using Domain.Property.VO;
 using Domain.ValueObjects;
+using System.Threading;
+using System.Threading.Tasks;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Services;
 
@@ -17,13 +19,13 @@ public class UpdatePropertyCommandHandler : ICommandHandler<UpdatePropertyComman
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result> HandleAsync(UpdatePropertyCommand command)
+    public async Task<Result> HandleAsync(UpdatePropertyCommand command, CancellationToken cancellationToken = default)
     {
         var propertyIdVO = PropertyId.Create(command.PropertyId);
         if (propertyIdVO.IsFailure)
             return Result.Failure(propertyIdVO.Error);
 
-        var propertyResult = await _unitOfWork.Properties.GetByIdAsync(propertyIdVO.Value);
+        var propertyResult = await _unitOfWork.Properties.GetByIdAsync(propertyIdVO.Value, cancellationToken);
         if (propertyResult.IsFailure)
         {
             return Result.Failure(propertyResult.Error);
@@ -82,7 +84,7 @@ public class UpdatePropertyCommandHandler : ICommandHandler<UpdatePropertyComman
             return Result.Failure(updateResult.Error);
         }
 
-        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

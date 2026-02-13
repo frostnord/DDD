@@ -92,11 +92,11 @@ namespace Test.Controllers
 
             var createdDealId = Guid.NewGuid();
             var result = Result.Success(createdDealId);
-            _mockCreateDealHandler.Setup(x => x.HandleAsync(command))
+            _mockCreateDealHandler.Setup(x => x.HandleAsync(command, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(result);
 
             // Act
-            var actionResult = await _controller.CreateDeal(request);
+            var actionResult = await _controller.CreateDeal(request, CancellationToken.None);
             var envelope = Assert.IsType<Envelope>(actionResult);
 
             // Assert
@@ -120,11 +120,11 @@ namespace Test.Controllers
             _mockMapper.Setup(m => m.Map<CreateDealCommand>(request)).Returns(command);
 
             var errorResult = Result.Failure<Guid>("Validation error");
-            _mockCreateDealHandler.Setup(x => x.HandleAsync(command))
+            _mockCreateDealHandler.Setup(x => x.HandleAsync(command, It.IsAny<CancellationToken>()))
                 .ReturnsAsync(errorResult);
 
             // Act
-            var actionResult = await _controller.CreateDeal(request);
+            var actionResult = await _controller.CreateDeal(request, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(actionResult);
@@ -162,12 +162,12 @@ namespace Test.Controllers
                 useCasesDto.UpdatedAt);
 
             _mockGetDealByIdHandler
-                .Setup(x => x.HandleAsync(It.Is<GetDealByIdQuery>(q => q.DealId == dealIdGuid)))
+                .Setup(x => x.HandleAsync(It.Is<GetDealByIdQuery>(q => q.DealId == dealIdGuid), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result.Success(useCasesDto));
             _mockMapper.Setup(m => m.Map<DealResponse>(useCasesDto)).Returns(presenterDto);
 
             // Act
-            var actionResult = await _controller.GetDeal(dealIdGuid);
+            var actionResult = await _controller.GetDeal(dealIdGuid, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(actionResult);
@@ -186,11 +186,11 @@ namespace Test.Controllers
 
             var errorResult = Result.Failure<UseCasesDealDto>("Deal not found");
             _mockGetDealByIdHandler
-                .Setup(x => x.HandleAsync(It.Is<GetDealByIdQuery>(q => q.DealId == dealId)))
+                .Setup(x => x.HandleAsync(It.Is<GetDealByIdQuery>(q => q.DealId == dealId), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(errorResult);
 
             // Act
-            var actionResult = await _controller.GetDeal(dealId);
+            var actionResult = await _controller.GetDeal(dealId, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(actionResult);
@@ -231,7 +231,7 @@ namespace Test.Controllers
                 d.UpdatedAt));
 
             _mockSearchDealsHandler
-                .Setup(x => x.HandleAsync(It.Is<SearchDealsQuery>(q => q.ClientId == clientId && q.PropertyId == null)))
+                .Setup(x => x.HandleAsync(It.Is<SearchDealsQuery>(q => q.ClientId == clientId && q.PropertyId == null), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result.Success(new SearchDealsQueryResponse(useCasesDtos, 1, 10, 1)));
 
             _mockMapper
@@ -239,7 +239,7 @@ namespace Test.Controllers
                 .Returns(presenterDtos);
 
             // Act
-            var actionResult = await _controller.GetDeals(query);
+            var actionResult = await _controller.GetDeals(query, CancellationToken.None);
             var envelope = Assert.IsType<Envelope>(actionResult);
 
             // Assert
@@ -287,7 +287,7 @@ namespace Test.Controllers
                 d.UpdatedAt));
 
             _mockSearchDealsHandler
-                .Setup(x => x.HandleAsync(It.Is<SearchDealsQuery>(q => q.ClientId == null && q.PropertyId == propertyId)))
+                .Setup(x => x.HandleAsync(It.Is<SearchDealsQuery>(q => q.ClientId == null && q.PropertyId == propertyId), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result.Success(new SearchDealsQueryResponse(useCasesDtos, 1, 10, 1)));
 
             _mockMapper
@@ -295,7 +295,7 @@ namespace Test.Controllers
                 .Returns(presenterDtos);
 
             // Act
-            var actionResult = await _controller.GetDeals(query);
+            var actionResult = await _controller.GetDeals(query, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(actionResult);
@@ -317,11 +317,11 @@ namespace Test.Controllers
             var query = new SearchDealsQuery(null, null);
 
             _mockSearchDealsHandler
-                .Setup(x => x.HandleAsync(It.Is<SearchDealsQuery>(q => q.ClientId == null && q.PropertyId == null)))
+                .Setup(x => x.HandleAsync(It.Is<SearchDealsQuery>(q => q.ClientId == null && q.PropertyId == null), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result.Failure<SearchDealsQueryResponse>("Нужен id клиента или недвижимости"));
 
             // Act
-            var actionResult = await _controller.GetDeals(query);
+            var actionResult = await _controller.GetDeals(query, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(actionResult);
@@ -336,11 +336,11 @@ namespace Test.Controllers
             var dealId = Guid.NewGuid();
 
             var result = Result.Success();
-            _mockConfirmDealHandler.Setup(x => x.HandleAsync(It.IsAny<ConfirmDealCommand>()))
+            _mockConfirmDealHandler.Setup(x => x.HandleAsync(It.IsAny<ConfirmDealCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(result);
 
             // Act
-            var actionResult = await _controller.ConfirmDeal(dealId);
+            var actionResult = await _controller.ConfirmDeal(dealId, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(actionResult);
@@ -354,11 +354,11 @@ namespace Test.Controllers
             var dealId = Guid.NewGuid();
 
             var errorResult = Result.Failure("Validation error");
-            _mockConfirmDealHandler.Setup(x => x.HandleAsync(It.IsAny<ConfirmDealCommand>()))
+            _mockConfirmDealHandler.Setup(x => x.HandleAsync(It.IsAny<ConfirmDealCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(errorResult);
 
             // Act
-            var actionResult = await _controller.ConfirmDeal(dealId);
+            var actionResult = await _controller.ConfirmDeal(dealId, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(actionResult);
@@ -373,11 +373,11 @@ namespace Test.Controllers
             var dealId = Guid.NewGuid();
 
             var result = Result.Success();
-            _mockCompleteDealHandler.Setup(x => x.HandleAsync(It.IsAny<CompleteDealCommand>()))
+            _mockCompleteDealHandler.Setup(x => x.HandleAsync(It.IsAny<CompleteDealCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(result);
 
             // Act
-            var actionResult = await _controller.CompleteDeal(dealId);
+            var actionResult = await _controller.CompleteDeal(dealId, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(actionResult);
@@ -391,11 +391,11 @@ namespace Test.Controllers
             var dealId = Guid.NewGuid();
 
             var errorResult = Result.Failure("Validation error");
-            _mockCompleteDealHandler.Setup(x => x.HandleAsync(It.IsAny<CompleteDealCommand>()))
+            _mockCompleteDealHandler.Setup(x => x.HandleAsync(It.IsAny<CompleteDealCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(errorResult);
 
             // Act
-            var actionResult = await _controller.CompleteDeal(dealId);
+            var actionResult = await _controller.CompleteDeal(dealId, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(actionResult);
@@ -410,11 +410,11 @@ namespace Test.Controllers
             var dealId = Guid.NewGuid();
 
             var result = Result.Success();
-            _mockCancelDealHandler.Setup(x => x.HandleAsync(It.IsAny<CancelDealCommand>()))
+            _mockCancelDealHandler.Setup(x => x.HandleAsync(It.IsAny<CancelDealCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(result);
 
             // Act
-            var actionResult = await _controller.CancelDeal(dealId);
+            var actionResult = await _controller.CancelDeal(dealId, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(actionResult);
@@ -428,11 +428,11 @@ namespace Test.Controllers
             var dealId = Guid.NewGuid();
 
             var errorResult = Result.Failure("Validation error");
-            _mockCancelDealHandler.Setup(x => x.HandleAsync(It.IsAny<CancelDealCommand>()))
+            _mockCancelDealHandler.Setup(x => x.HandleAsync(It.IsAny<CancelDealCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(errorResult);
 
             // Act
-            var actionResult = await _controller.CancelDeal(dealId);
+            var actionResult = await _controller.CancelDeal(dealId, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(actionResult);

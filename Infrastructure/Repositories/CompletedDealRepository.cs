@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
@@ -20,33 +21,33 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Result<CompletedDealEntity>> GetByIdAsync(CompletedDealId id)
+        public async Task<Result<CompletedDealEntity>> GetByIdAsync(CompletedDealId id, CancellationToken cancellationToken = default)
         {
             var deal = await _context.CompletedDeals
                 .AsNoTracking()
-                .FirstOrDefaultAsync(d => d.Id == id);
+                .FirstOrDefaultAsync(d => d.Id == id, cancellationToken);
 
             return deal != null
                 ? Result.Success(deal)
                 : Result.Failure<CompletedDealEntity>($"Completed deal with ID {id.Value} not found");
         }
 
-        public async Task<Result<IEnumerable<CompletedDealEntity>>> GetByClientIdAsync(ClientId clientId)
+        public async Task<Result<IEnumerable<CompletedDealEntity>>> GetByClientIdAsync(ClientId clientId, CancellationToken cancellationToken = default)
         {
             var deals = await _context.CompletedDeals
                 .AsNoTracking()
                 .Where(d => d.BuyerClientId == clientId || d.SellerClientId == clientId)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return Result.Success<IEnumerable<CompletedDealEntity>>(deals);
         }
 
-        public async Task<Result<IEnumerable<CompletedDealEntity>>> GetByPropertyIdAsync(PropertyId propertyId)
+        public async Task<Result<IEnumerable<CompletedDealEntity>>> GetByPropertyIdAsync(PropertyId propertyId, CancellationToken cancellationToken = default)
         {
             var deals = await _context.CompletedDeals
                 .AsNoTracking()
                 .Where(d => d.PropertyId == propertyId)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return Result.Success<IEnumerable<CompletedDealEntity>>(deals);
         }
@@ -75,14 +76,14 @@ namespace Infrastructure.Repositories
             return Result.Success();
         }
 
-        public async Task<bool> ExistsAsync(CompletedDealId id)
+        public async Task<bool> ExistsAsync(CompletedDealId id, CancellationToken cancellationToken = default)
         {
-            return await _context.CompletedDeals.AsNoTracking().AnyAsync(d => d.Id == id);
+            return await _context.CompletedDeals.AsNoTracking().AnyAsync(d => d.Id == id, cancellationToken);
         }
 
-        public async Task<Result<IEnumerable<CompletedDealEntity>>> GetAllAsync()
+        public async Task<Result<IEnumerable<CompletedDealEntity>>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            var deals = await _context.CompletedDeals.AsNoTracking().ToListAsync();
+            var deals = await _context.CompletedDeals.AsNoTracking().ToListAsync(cancellationToken);
             return Result.Success<IEnumerable<CompletedDealEntity>>(deals);
         }
     }

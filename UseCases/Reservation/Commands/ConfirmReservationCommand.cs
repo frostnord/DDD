@@ -1,6 +1,9 @@
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
 using Domain.Property.VO;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Services;
 
@@ -17,7 +20,7 @@ public class ConfirmReservationCommandHandler : ICommandHandler<ConfirmReservati
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result> HandleAsync(ConfirmReservationCommand command)
+    public async Task<Result> HandleAsync(ConfirmReservationCommand command, CancellationToken cancellationToken = default)
     {
         var propertyIdResult = PropertyId.Create(command.PropertyId);
         if (propertyIdResult.IsFailure)
@@ -31,9 +34,9 @@ public class ConfirmReservationCommandHandler : ICommandHandler<ConfirmReservati
             return Result.Failure($"Invalid client ID: {clientIdResult.Error}");
         }
 
-        return await _unitOfWork.ExecuteInTransactionAsync(async _ =>
+        return await _unitOfWork.ExecuteInTransactionAsync(async (innerCancellationToken) =>
         {
-            var propertyResult = await _unitOfWork.Properties.GetByIdForUpdateAsync(propertyIdResult.Value);
+            var propertyResult = await _unitOfWork.Properties.GetByIdForUpdateAsync(propertyIdResult.Value, innerCancellationToken);
             if (propertyResult.IsFailure)
             {
                 return Result.Failure(propertyResult.Error);
@@ -54,6 +57,6 @@ public class ConfirmReservationCommandHandler : ICommandHandler<ConfirmReservati
             }
 
             return Result.Success();
-        });
+        }, cancellationToken);
     }
 }

@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client;
@@ -17,7 +18,7 @@ public class CreateClientCommandHandler : ICommandHandler<CreateClientCommand, C
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<ClientEntity>> HandleAsync(CreateClientCommand command)
+    public async Task<Result<ClientEntity>> HandleAsync(CreateClientCommand command, CancellationToken cancellationToken = default)
     {
         var firstNameResult = Name.Create(command.FirstName);
         if (firstNameResult.IsFailure)
@@ -66,7 +67,7 @@ public class CreateClientCommandHandler : ICommandHandler<CreateClientCommand, C
             return Result.Failure<ClientEntity>(saveResult.Error);
         }
 
-        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success(clientResult.Value);
     }

@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
@@ -20,7 +21,7 @@ public class GetCompletedDealsByClientIdQueryHandler
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<IEnumerable<CompletedDealDto>>> HandleAsync(GetCompletedDealsByClientIdQuery query)
+    public async Task<Result<IEnumerable<CompletedDealDto>>> HandleAsync(GetCompletedDealsByClientIdQuery query, CancellationToken cancellationToken = default)
     {
         var clientIdResult = ClientId.Create(query.ClientId);
         if (clientIdResult.IsFailure)
@@ -28,7 +29,7 @@ public class GetCompletedDealsByClientIdQueryHandler
             return Result.Failure<IEnumerable<CompletedDealDto>>(clientIdResult.Error);
         }
 
-        var dealsResult = await _unitOfWork.CompletedDeals.GetByClientIdAsync(clientIdResult.Value);
+        var dealsResult = await _unitOfWork.CompletedDeals.GetByClientIdAsync(clientIdResult.Value, cancellationToken);
         if (dealsResult.IsFailure)
         {
             return Result.Failure<IEnumerable<CompletedDealDto>>(dealsResult.Error);

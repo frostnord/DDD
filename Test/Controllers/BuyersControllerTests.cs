@@ -104,11 +104,11 @@ namespace Test.Controllers
 
             _mockMapper.Setup(m => m.Map<CreateBuyerCommand>(request)).Returns(command);
             _mockCreateBuyerHandler
-                .Setup(h => h.HandleAsync(It.Is<CreateBuyerCommand>(c => c == command)))
+                .Setup(h => h.HandleAsync(It.Is<CreateBuyerCommand>(c => c == command), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result.Success(newBuyerId));
 
             // Act
-            var result = await _controller.CreateBuyer(request);
+            var result = await _controller.CreateBuyer(request, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(result);
@@ -134,11 +134,11 @@ namespace Test.Controllers
 
             _mockMapper.Setup(m => m.Map<CreateBuyerCommand>(request)).Returns(command);
             _mockCreateBuyerHandler
-                .Setup(h => h.HandleAsync(It.Is<CreateBuyerCommand>(c => c == command)))
+                .Setup(h => h.HandleAsync(It.Is<CreateBuyerCommand>(c => c == command), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result.Failure<Guid>(error));
 
             // Act
-            var result = await _controller.CreateBuyer(request);
+            var result = await _controller.CreateBuyer(request, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(result);
@@ -153,11 +153,11 @@ namespace Test.Controllers
             var buyerId = Guid.NewGuid();
             var buyerDto = CreateTestBuyerDto(buyerId);
 
-            _mockGetBuyerByIdHandler.Setup(h => h.HandleAsync(It.Is<GetBuyerByIdQuery>(q => q.BuyerId == buyerId)))
+            _mockGetBuyerByIdHandler.Setup(h => h.HandleAsync(It.Is<GetBuyerByIdQuery>(q => q.BuyerId == buyerId), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result.Success(buyerDto));
 
             // Act
-            var result = await _controller.GetBuyer(buyerId);
+            var result = await _controller.GetBuyer(buyerId, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(result);
@@ -172,11 +172,11 @@ namespace Test.Controllers
             var buyerId = Guid.NewGuid();
             var error = "Buyer not found";
 
-            _mockGetBuyerByIdHandler.Setup(h => h.HandleAsync(It.Is<GetBuyerByIdQuery>(q => q.BuyerId == buyerId)))
+            _mockGetBuyerByIdHandler.Setup(h => h.HandleAsync(It.Is<GetBuyerByIdQuery>(q => q.BuyerId == buyerId), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result.Failure<BuyerDto>(error));
 
             // Act
-            var result = await _controller.GetBuyer(buyerId);
+            var result = await _controller.GetBuyer(buyerId, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(result);
@@ -204,10 +204,12 @@ namespace Test.Controllers
             _mockMapper
                 .Setup(m => m.Map<UpdateBuyerCommand>(request, It.IsAny<Action<IMappingOperationOptions>>()))
                 .Returns(command);
-            _mockUpdateBuyerHandler.Setup(h => h.HandleAsync(command)).ReturnsAsync(Result.Success());
+            _mockUpdateBuyerHandler
+                .Setup(h => h.HandleAsync(command, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result.Success());
 
             // Act
-            var result = await _controller.UpdateBuyer(buyerId, request);
+            var result = await _controller.UpdateBuyer(buyerId, request, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(result);
@@ -222,10 +224,12 @@ namespace Test.Controllers
             var buyerDto = CreateTestBuyerDto(Guid.NewGuid());
             var searchResult = new SearchBuyersQueryResponse(new List<BuyerDto> { buyerDto }, 1, 10, 1);
 
-            _mockSearchBuyersHandler.Setup(h => h.HandleAsync(query)).ReturnsAsync(Result.Success(searchResult));
+            _mockSearchBuyersHandler
+                .Setup(h => h.HandleAsync(query, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result.Success(searchResult));
 
             // Act
-            var result = await _controller.GetBuyers(query);
+            var result = await _controller.GetBuyers(query, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(result);
@@ -241,10 +245,12 @@ namespace Test.Controllers
             var buyerId = Guid.NewGuid();
             var command = new DeleteBuyerCommand(buyerId);
 
-            _mockDeleteBuyerHandler.Setup(h => h.HandleAsync(command)).ReturnsAsync(Result.Success());
+            _mockDeleteBuyerHandler
+                .Setup(h => h.HandleAsync(command, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result.Success());
 
             // Act
-            var result = await _controller.DeleteBuyer(buyerId);
+            var result = await _controller.DeleteBuyer(buyerId, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(result);
@@ -259,10 +265,12 @@ namespace Test.Controllers
             var command = new DeleteBuyerCommand(buyerId);
             var error = "Buyer not found";
 
-            _mockDeleteBuyerHandler.Setup(h => h.HandleAsync(command)).ReturnsAsync(Result.Failure(error));
+            _mockDeleteBuyerHandler
+                .Setup(h => h.HandleAsync(command, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result.Failure(error));
 
             // Act
-            var result = await _controller.DeleteBuyer(buyerId);
+            var result = await _controller.DeleteBuyer(buyerId, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(result);

@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Buyer.VO;
@@ -19,13 +20,13 @@ public class UpdateBuyerCommandHandler : ICommandHandler<UpdateBuyerCommand>
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result> HandleAsync(UpdateBuyerCommand command)
+    public async Task<Result> HandleAsync(UpdateBuyerCommand command, CancellationToken cancellationToken = default)
     {
         var clientIdResult = ClientId.Create(command.ClientId);
         if (clientIdResult.IsFailure)
             return Result.Failure(clientIdResult.Error);
 
-        var clientExists = await _unitOfWork.Clients.ExistsAsync(clientIdResult.Value);
+        var clientExists = await _unitOfWork.Clients.ExistsAsync(clientIdResult.Value, cancellationToken);
         if (!clientExists)
         {
             return Result.Failure($"Client with ID {command.ClientId} does not exist");
@@ -35,7 +36,7 @@ public class UpdateBuyerCommandHandler : ICommandHandler<UpdateBuyerCommand>
         if (buyerIdResult.IsFailure)
             return Result.Failure(buyerIdResult.Error);
 
-        var buyerResult = await _unitOfWork.Buyers.GetByIdAsync(buyerIdResult.Value);
+        var buyerResult = await _unitOfWork.Buyers.GetByIdAsync(buyerIdResult.Value, cancellationToken);
         if (buyerResult.IsFailure)
         {
             return Result.Failure($"Buyer with ID {command.BuyerId} does not exist");
@@ -90,7 +91,7 @@ public class UpdateBuyerCommandHandler : ICommandHandler<UpdateBuyerCommand>
             return updateResult;
         }
 
-        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

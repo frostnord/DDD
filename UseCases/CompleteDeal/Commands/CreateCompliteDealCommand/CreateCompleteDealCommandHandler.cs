@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
@@ -21,7 +22,7 @@ public class CreateCompleteDealCommandHandler : ICommandHandler<CreateCompleteDe
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<CompletedDealEntity>> HandleAsync(CreateCompleteDealCommand command)
+    public async Task<Result<CompletedDealEntity>> HandleAsync(CreateCompleteDealCommand command, CancellationToken cancellationToken = default)
     {
         var buyerIdResult = ClientId.Create(command.BuyerClientId);
         if (buyerIdResult.IsFailure)
@@ -57,27 +58,27 @@ public class CreateCompleteDealCommandHandler : ICommandHandler<CreateCompleteDe
             return Result.Failure<CompletedDealEntity>($"Тип сделки '{command.DealType}' не поддерживается.");
         }
 
-        return await _unitOfWork.ExecuteInTransactionAsync(async _ =>
+        return await _unitOfWork.ExecuteInTransactionAsync(async innerCancellationToken =>
         {
-            var buyerExistsResult = await _unitOfWork.Clients.GetByIdAsync(buyerIdResult.Value);
+            var buyerExistsResult = await _unitOfWork.Clients.GetByIdAsync(buyerIdResult.Value, innerCancellationToken);
             if (buyerExistsResult.IsFailure)
             {
                 return Result.Failure<CompletedDealEntity>($"Client with ID {command.BuyerClientId} does not exist");
             }
 
-            var buyerRoleResult = await _unitOfWork.Buyers.GetByClientIdAsync(buyerIdResult.Value);
+            var buyerRoleResult = await _unitOfWork.Buyers.GetByClientIdAsync(buyerIdResult.Value, innerCancellationToken);
             if (buyerRoleResult.IsFailure)
             {
                 return Result.Failure<CompletedDealEntity>($"Client with ID {command.BuyerClientId} is not registered as buyer");
             }
 
-            var sellerExistsResult = await _unitOfWork.Clients.GetByIdAsync(sellerIdResult.Value);
+            var sellerExistsResult = await _unitOfWork.Clients.GetByIdAsync(sellerIdResult.Value, innerCancellationToken);
             if (sellerExistsResult.IsFailure)
             {
                 return Result.Failure<CompletedDealEntity>($"Client with ID {command.SellerClientId} does not exist");
             }
 
-            var sellerRoleResult = await _unitOfWork.Sellers.GetByClientIdAsync(sellerIdResult.Value);
+            var sellerRoleResult = await _unitOfWork.Sellers.GetByClientIdAsync(sellerIdResult.Value, innerCancellationToken);
             if (sellerRoleResult.IsFailure)
             {
                 return Result.Failure<CompletedDealEntity>($"Client with ID {command.SellerClientId} is not registered as seller");
@@ -88,7 +89,7 @@ public class CreateCompleteDealCommandHandler : ICommandHandler<CreateCompleteDe
                 return Result.Failure<CompletedDealEntity>("Покупатель и продавец не могут совпадать");
             }
 
-            var propertyExistsResult = await _unitOfWork.Properties.GetByIdForUpdateAsync(propertyIdResult.Value);
+            var propertyExistsResult = await _unitOfWork.Properties.GetByIdForUpdateAsync(propertyIdResult.Value, innerCancellationToken);
             if (propertyExistsResult.IsFailure)
             {
                 return Result.Failure<CompletedDealEntity>($"Property with ID {command.PropertyId} does not exist");
@@ -121,6 +122,6 @@ public class CreateCompleteDealCommandHandler : ICommandHandler<CreateCompleteDe
             }
 
             return Result.Success(completedDealResult.Value);
-        });
+        }, cancellationToken);
     }
 }

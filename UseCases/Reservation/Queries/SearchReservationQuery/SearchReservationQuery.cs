@@ -1,6 +1,11 @@
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
 using Domain.Property.VO;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using UseCases.Interfaces.Queries;
 using UseCases.Interfaces.Services;
 using UseCases.UseCases.DTO.Booking;
@@ -21,7 +26,7 @@ public class SearchReservationQueryHandler : IQueryHandler<SearchReservationQuer
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<SearchBookingsQueryResponse>> HandleAsync(SearchReservationQuery query)
+    public async Task<Result<SearchBookingsQueryResponse>> HandleAsync(SearchReservationQuery query, CancellationToken cancellationToken = default)
     {
         if (query.ClientId == null && query.PropertyId == null)
         {
@@ -38,7 +43,7 @@ public class SearchReservationQueryHandler : IQueryHandler<SearchReservationQuer
                 return Result.Failure<SearchBookingsQueryResponse>(clientIdResult.Error);
             }
 
-            var holdsResult = await _unitOfWork.Properties.GetActiveReservationByClientIdAsync(clientIdResult.Value, nowUtc);
+            var holdsResult = await _unitOfWork.Properties.GetActiveReservationByClientIdAsync(clientIdResult.Value, nowUtc, cancellationToken);
             if (holdsResult.IsFailure)
             {
                 return Result.Failure<SearchBookingsQueryResponse>(holdsResult.Error);
@@ -70,7 +75,7 @@ public class SearchReservationQueryHandler : IQueryHandler<SearchReservationQuer
             return Result.Failure<SearchBookingsQueryResponse>(propertyIdResult.Error);
         }
 
-        var holdResult = await _unitOfWork.Properties.GetActiveReservationByPropertyIdAsync(propertyIdResult.Value, nowUtc);
+        var holdResult = await _unitOfWork.Properties.GetActiveReservationByPropertyIdAsync(propertyIdResult.Value, nowUtc, cancellationToken);
         if (holdResult.IsFailure)
         {
             return Result.Failure<SearchBookingsQueryResponse>(holdResult.Error);

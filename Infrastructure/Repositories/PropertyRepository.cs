@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
@@ -24,22 +25,54 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Result<PropertyEntity>> GetByIdAsync(PropertyId id)
+        public async Task<Result<PropertyEntity?>> GetActiveReservationByPropertyIdAsync(PropertyId propertyId,
+            DateTime nowUtc,
+            CancellationToken cancellationToken = default)
         {
             var property = await _context.Properties
                 .AsNoTracking()
-                .FirstOrDefaultAsync(p => p.Id == id);
+                .FirstOrDefaultAsync(p =>
+                        p.Id == propertyId &&
+                        p.Status == PropertyStatus.Reserved &&
+                        p.ReservedUntil != null &&
+                        p.ReservedUntil > nowUtc,
+                    cancellationToken);
+
+            return Result.Success(property);
+        }
+
+        public async Task<Result<IEnumerable<PropertyEntity>>> GetActiveReservationByClientIdAsync(ClientId clientId,
+            DateTime nowUtc,
+            CancellationToken cancellationToken = default)
+        {
+            var properties = await _context.Properties
+                .AsNoTracking()
+                .Where(p =>
+                    p.ReservedByClientId == clientId &&
+                    p.Status == PropertyStatus.Reserved &&
+                    p.ReservedUntil != null &&
+                    p.ReservedUntil > nowUtc)
+                .ToListAsync(cancellationToken);
+
+            return Result.Success<IEnumerable<PropertyEntity>>(properties);
+        }
+
+        public async Task<Result<PropertyEntity>> GetByIdAsync(PropertyId id, CancellationToken cancellationToken = default)
+        {
+            var property = await _context.Properties
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 
             return property != null
                 ? Result.Success(property)
                 : Result.Failure<PropertyEntity>($"Property with ID {id.Value} not found");
         }
 
-        public async Task<Result<PropertyEntity>> GetByIdForUpdateAsync(PropertyId id)
+        public async Task<Result<PropertyEntity>> GetByIdForUpdateAsync(PropertyId id, CancellationToken cancellationToken = default)
         {
             var property = await _context.Properties
                 .FromSqlInterpolated($@"SELECT * FROM property WHERE id = {id.Value} FOR UPDATE")
-                .FirstOrDefaultAsync(p => p.Id == id);
+                .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
 
             return property != null
                 ? Result.Success(property)
@@ -47,14 +80,15 @@ namespace Infrastructure.Repositories
         }
 
 
-        public async Task<Result<IEnumerable<PropertyEntity>>> GetAllAsync()
+        public async Task<Result<IEnumerable<PropertyEntity>>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            var properties = await _context.Properties.AsNoTracking().ToListAsync();
+            var properties = await _context.Properties.AsNoTracking().ToListAsync(cancellationToken);
             return Result.Success<IEnumerable<PropertyEntity>>(properties);
         }
 
         public async Task<Result<(IEnumerable<PropertyEntity> Items, int TotalCount)>> SearchAsync(
-            SearchPropertiesQuery query)
+            SearchPropertiesQuery query,
+            CancellationToken cancellationToken = default)
         {
             IQueryable<PropertyEntity> properties = _context.Properties.AsNoTracking();
 
@@ -154,40 +188,16 @@ namespace Infrastructure.Repositories
                 properties = properties.OrderBy(p => p.CreatedAt);
             }
 
-            var totalCount = await properties.CountAsync();
+            var totalCount = await properties.CountAsync(cancellationToken);
             var page = query.Page < 1 ? 1 : query.Page;
             var pageSize = query.PageSize < 1 ? 1 : query.PageSize;
 
             var items = await properties
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return Result.Success((items.AsEnumerable(), totalCount));
-        }
-
-        public async Task<Result<PropertyEntity?>> GetActiveReservationByPropertyIdAsync(PropertyId propertyId, DateTime nowUtc)
-        {
-            var property = await _context.Properties
-                .AsNoTracking()
-                .Where(p => p.Id == propertyId
-                            && p.ReservedUntil != null
-                            && p.ReservedUntil > nowUtc)
-                .FirstOrDefaultAsync();
-
-            return Result.Success(property);
-        }
-
-        public async Task<Result<IEnumerable<PropertyEntity>>> GetActiveReservationByClientIdAsync(ClientId clientId, DateTime nowUtc)
-        {
-            var properties = await _context.Properties
-                .AsNoTracking()
-                .Where(p => p.ReservedByClientId == clientId
-                            && p.ReservedUntil != null
-                            && p.ReservedUntil > nowUtc)
-                .ToListAsync();
-
-            return Result.Success<IEnumerable<PropertyEntity>>(properties);
         }
 
         public Result<PropertyEntity> Add(PropertyEntity propertyEntity)
@@ -214,9 +224,9 @@ namespace Infrastructure.Repositories
             return Result.Success();
         }
 
-        public async Task<bool> ExistsAsync(PropertyId id)
+        public async Task<bool> ExistsAsync(PropertyId id, CancellationToken cancellationToken = default)
         {
-            return await _context.Properties.AsNoTracking().AnyAsync(p => p.Id == id);
+            return await _context.Properties.AsNoTracking().AnyAsync(p => p.Id == id, cancellationToken);
         }
     }
 }

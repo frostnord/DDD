@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Seller.VO;
@@ -16,7 +17,7 @@ public class GetSellerByIdQueryHandler : IQueryHandler<GetSellerByIdQuery, Resul
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<SellerDto>> HandleAsync(GetSellerByIdQuery query)
+    public async Task<Result<SellerDto>> HandleAsync(GetSellerByIdQuery query, CancellationToken cancellationToken = default)
     {
         var sellerIdResult = SellerId.Create(query.SellerId);
         if (sellerIdResult.IsFailure)
@@ -24,7 +25,7 @@ public class GetSellerByIdQueryHandler : IQueryHandler<GetSellerByIdQuery, Resul
             return Result.Failure<SellerDto>(sellerIdResult.Error);
         }
 
-        var sellerResult = await _unitOfWork.Sellers.GetByIdAsync(sellerIdResult.Value);
+        var sellerResult = await _unitOfWork.Sellers.GetByIdAsync(sellerIdResult.Value, cancellationToken);
         if (sellerResult.IsFailure)
         {
             return Result.Failure<SellerDto>(sellerResult.Error);

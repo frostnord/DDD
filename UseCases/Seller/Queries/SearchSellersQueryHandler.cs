@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using UseCases.Interfaces.Queries;
@@ -18,9 +19,9 @@ public class SearchSellersQueryHandler : IQueryHandler<SearchSellersQuery, Resul
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<SearchSellersQueryResponse>> HandleAsync(SearchSellersQuery query)
+    public async Task<Result<SearchSellersQueryResponse>> HandleAsync(SearchSellersQuery query, CancellationToken cancellationToken = default)
     {
-        var sellersResult = await _unitOfWork.Sellers.GetAllAsync();
+        var sellersResult = await _unitOfWork.Sellers.GetAllAsync(cancellationToken);
         if (sellersResult.IsFailure)
         {
             return Result.Failure<SearchSellersQueryResponse>(sellersResult.Error);

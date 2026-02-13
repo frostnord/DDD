@@ -1,6 +1,7 @@
 using System;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using Presenter.DTOs;
@@ -58,9 +59,10 @@ namespace Presenter.Controllers
         /// Создание нового клиента
         /// </summary>
         /// <param name="request">Данные для создания клиента</param>
+        /// <param name="cancellationToken">Токен отмены операции</param>
         /// <returns>Созданный клиент</returns>
         [HttpPost]
-        public async Task<Envelope> CreateClient([FromBody] CreateClientRequest request)
+        public async Task<Envelope> CreateClient([FromBody] CreateClientRequest request, CancellationToken cancellationToken)
         {
             var command = new CreateClientCommand(
                 request.FirstName,
@@ -68,7 +70,7 @@ namespace Presenter.Controllers
                 request.Email,
                 request.PhoneNumber);
 
-            var result = await _createClientCommandHandler.HandleAsync(command);
+            var result = await _createClientCommandHandler.HandleAsync(command, cancellationToken);
 
             if (result.IsFailure)
             {
@@ -82,13 +84,14 @@ namespace Presenter.Controllers
         /// Получение клиента по ID
         /// </summary>
         /// <param name="id">Идентификатор клиента</param>
+        /// <param name="cancellationToken">Токен отмены операции</param>
         /// <returns>Клиент</returns>
         [HttpGet("{id}")]
-        public async Task<Envelope> GetClient(Guid id)
+        public async Task<Envelope> GetClient(Guid id, CancellationToken cancellationToken)
         {
             var query = new GetClientByIdQuery(id);
-            var result = await _getClientByIdQueryHandler.HandleAsync(query);
-            
+            var result = await _getClientByIdQueryHandler.HandleAsync(query, cancellationToken);
+
             if (result.IsFailure)
             {
                 return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
@@ -100,13 +103,14 @@ namespace Presenter.Controllers
         /// <summary>
         /// Получение списка всех клиентов
         /// </summary>
+        /// <param name="cancellationToken">Токен отмены операции</param>
         /// <returns>Список клиентов</returns>
         [HttpGet]
-        public async Task<Envelope> GetClients()
+        public async Task<Envelope> GetClients(CancellationToken cancellationToken)
         {
             var query = new GetAllClientsQuery();
-            var result = await _getAllClientsQueryHandler.HandleAsync(query);
-            
+            var result = await _getAllClientsQueryHandler.HandleAsync(query, cancellationToken);
+
             if (result.IsFailure)
             {
                 return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
@@ -120,9 +124,10 @@ namespace Presenter.Controllers
         /// </summary>
         /// <param name="id">Идентификатор клиента</param>
         /// <param name="clientRequest">Данные для обновления клиента</param>
+        /// <param name="cancellationToken">Токен отмены операции</param>
         /// <returns>Обновленный клиент</returns>
         [HttpPut("{id}")]
-        public async Task<Envelope> UpdateClient(Guid id, [FromBody] UpdateClientRequest clientRequest)
+        public async Task<Envelope> UpdateClient(Guid id, [FromBody] UpdateClientRequest clientRequest, CancellationToken cancellationToken)
         {
             var command = new UpdateClientCommand(
                 id,
@@ -131,7 +136,7 @@ namespace Presenter.Controllers
                 clientRequest.Email,
                 clientRequest.PhoneNumber);
 
-            var result = await _updateClientCommandHandler.HandleAsync(command);
+            var result = await _updateClientCommandHandler.HandleAsync(command, cancellationToken);
 
             if (result.IsFailure)
             {
@@ -145,13 +150,14 @@ namespace Presenter.Controllers
         /// Удаление клиента
         /// </summary>
         /// <param name="id">Идентификатор клиента</param>
+        /// <param name="cancellationToken">Токен отмены операции</param>
         /// <returns>Удаленный клиент</returns>
         [HttpDelete("{id}")]
-        public async Task<Envelope> DeleteClient(Guid id)
+        public async Task<Envelope> DeleteClient(Guid id, CancellationToken cancellationToken)
         {
             var command = new DeleteClientCommand(id);
-            var result = await _deleteClientCommandHandler.HandleAsync(command);
-            
+            var result = await _deleteClientCommandHandler.HandleAsync(command, cancellationToken);
+
             if (result.IsFailure)
             {
                 return new Envelope(HttpStatusCode.BadRequest, error: result.Error);

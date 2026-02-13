@@ -2,6 +2,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
 using AutoMapper;
 using CSharpFunctionalExtensions;
 using Domain.Deal;
@@ -59,16 +61,17 @@ namespace Presenter.Controllers
         /// Создает новую завершенную сделку
         /// </summary>
         /// <param name="request">Данные для создания завершенной сделки</param>
+        /// <param name="cancellationToken">Токен отмены операции</param>
         /// <returns>Созданная завершенная сделка</returns>
         /// <response code="201">Завершенная сделка успешно создана</response>
         /// <response code="400">Ошибка валидации данных</response>
 
         [HttpPost]
-        public async Task<Envelope> CreateCompletedDeal([FromBody] CreateCompletedDealRequest request)
+        public async Task<Envelope> CreateCompletedDeal([FromBody] CreateCompletedDealRequest request, CancellationToken cancellationToken)
         {
             var command = _mapper.Map<CreateCompleteDealCommand>(request);
 
-            var result = await _createCompleteDealHandler.HandleAsync(command);
+            var result = await _createCompleteDealHandler.HandleAsync(command, cancellationToken);
 
             if (result.IsFailure)
             {
@@ -83,14 +86,15 @@ namespace Presenter.Controllers
         /// Получает завершенную сделку по ID
         /// </summary>
         /// <param name="id">Идентификатор завершенной сделки</param>
+        /// <param name="cancellationToken">Токен отмены операции</param>
         /// <returns>Завершенная сделка</returns>
         /// <response code="200">Завершенная сделка найдена</response>
         /// <response code="404">Завершенная сделка не найдена</response>
         [HttpGet("{id}")]
-        public async Task<Envelope> GetCompletedDeal(Guid id)
+        public async Task<Envelope> GetCompletedDeal(Guid id, CancellationToken cancellationToken)
         {
             var query = new GetCompletedDealByIdQuery(id);
-            var result = await _getCompletedDealByIdHandler.HandleAsync(query);
+            var result = await _getCompletedDealByIdHandler.HandleAsync(query, cancellationToken);
             if (result.IsFailure)
             {
                 return new Envelope(HttpStatusCode.NotFound, error: result.Error);
@@ -103,13 +107,14 @@ namespace Presenter.Controllers
         /// <summary>
         /// Получает все завершенные сделки
         /// </summary>
+        /// <param name="cancellationToken">Токен отмены операции</param>
         /// <returns>Список всех завершенных сделок</returns>
         /// <response code="200">Список завершенных сделок успешно получен</response>
         /// <response code="400">Ошибка получения списка</response>
         [HttpGet]
-        public async Task<Envelope> GetAllCompletedDeals()
+        public async Task<Envelope> GetAllCompletedDeals(CancellationToken cancellationToken)
         {
-            var result = await _getAllCompletedDealsHandler.HandleAsync(new GetAllCompletedDealsQuery());
+            var result = await _getAllCompletedDealsHandler.HandleAsync(new GetAllCompletedDealsQuery(), cancellationToken);
             if (result.IsFailure)
             {
                 return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
@@ -123,14 +128,15 @@ namespace Presenter.Controllers
         /// Получает завершенные сделки по ID клиента
         /// </summary>
         /// <param name="clientId">Идентификатор клиента</param>
+        /// <param name="cancellationToken">Токен отмены операции</param>
         /// <returns>Список завершенных сделок клиента</returns>
         /// <response code="200">Список завершенных сделок клиента успешно получен</response>
         /// <response code="400">Ошибка получения списка</response>
         [HttpGet("by-client/{clientId}")]
-        public async Task<Envelope> GetCompletedDealsByClient(Guid clientId)
+        public async Task<Envelope> GetCompletedDealsByClient(Guid clientId, CancellationToken cancellationToken)
         {
             var query = new GetCompletedDealsByClientIdQuery(clientId);
-            var result = await _getCompletedDealsByClientIdHandler.HandleAsync(query);
+            var result = await _getCompletedDealsByClientIdHandler.HandleAsync(query, cancellationToken);
             if (result.IsFailure)
             {
                 return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
@@ -144,14 +150,15 @@ namespace Presenter.Controllers
         /// Получает завершенные сделки по ID объекта недвижимости
         /// </summary>
         /// <param name="propertyId">Идентификатор объекта недвижимости</param>
+        /// <param name="cancellationToken">Токен отмены операции</param>
         /// <returns>Список завершенных сделок по объекту недвижимости</returns>
         /// <response code="200">Список завершенных сделок успешно получен</response>
         /// <response code="400">Ошибка получения списка</response>
         [HttpGet("by-property/{propertyId}")]
-        public async Task<Envelope> GetCompletedDealsByProperty(Guid propertyId)
+        public async Task<Envelope> GetCompletedDealsByProperty(Guid propertyId, CancellationToken cancellationToken)
         {
             var query = new GetCompletedDealsByPropertyIdQuery(propertyId);
-            var result = await _getCompletedDealsByPropertyIdHandler.HandleAsync(query);
+            var result = await _getCompletedDealsByPropertyIdHandler.HandleAsync(query, cancellationToken);
             if (result.IsFailure)
             {
                 return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
@@ -165,14 +172,15 @@ namespace Presenter.Controllers
         /// Удаляет завершенную сделку по ID
         /// </summary>
         /// <param name="id">Идентификатор завершенной сделки</param>
+        /// <param name="cancellationToken">Токен отмены операции</param>
         /// <returns></returns>
         /// <response code="204">Завершенная сделка успешно удалена</response>
         /// <response code="404">Завершенная сделка не найдена</response>
         [HttpDelete("{id}")]
-        public async Task<Envelope> DeleteCompletedDeal(Guid id)
+        public async Task<Envelope> DeleteCompletedDeal(Guid id, CancellationToken cancellationToken)
         {
             var command = new DeleteCompletedDealCommand(id);
-            var result = await _deleteCompletedDealHandler.HandleAsync(command);
+            var result = await _deleteCompletedDealHandler.HandleAsync(command, cancellationToken);
             if (result.IsFailure)
             {
                 return new Envelope(HttpStatusCode.NotFound, error: result.Error);

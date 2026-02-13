@@ -76,11 +76,12 @@ namespace Test.Controllers
                     It.Is<CreateClientCommand>(cmd => cmd.FirstName == request.FirstName &&
                                                      cmd.LastName == request.LastName &&
                                                      cmd.Email == request.Email &&
-                                                     cmd.PhoneNumber == request.PhoneNumber)))
+                                                     cmd.PhoneNumber == request.PhoneNumber),
+                    It.IsAny<CancellationToken>()))
                 .ReturnsAsync(result);
 
             // Act
-            var actionResult = await _controller.CreateClient(request);
+            var actionResult = await _controller.CreateClient(request, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(actionResult);
@@ -108,11 +109,12 @@ namespace Test.Controllers
                     It.Is<CreateClientCommand>(cmd => cmd.FirstName == request.FirstName &&
                                                      cmd.LastName == request.LastName &&
                                                      cmd.Email == request.Email &&
-                                                     cmd.PhoneNumber == request.PhoneNumber)))
+                                                     cmd.PhoneNumber == request.PhoneNumber),
+                    It.IsAny<CancellationToken>()))
                 .ReturnsAsync(errorResult);
 
             // Act
-            var actionResult = await _controller.CreateClient(request);
+            var actionResult = await _controller.CreateClient(request, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(actionResult);
@@ -136,11 +138,12 @@ namespace Test.Controllers
 
             var result = Result.Success(client);
             _mockGetClientByIdQueryHandler.Setup(x => x.HandleAsync(
-                    It.Is<GetClientByIdQuery>(q => q.ClientId.Equals(clientId))))
+                    It.Is<GetClientByIdQuery>(q => q.ClientId.Equals(clientId)),
+                    It.IsAny<CancellationToken>()))
                 .ReturnsAsync(result);
 
             // Act
-            var actionResult = await _controller.GetClient(clientId);
+            var actionResult = await _controller.GetClient(clientId, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(actionResult);
@@ -158,11 +161,12 @@ namespace Test.Controllers
             var clientId = Guid.NewGuid();
             var errorResult = Result.Failure<ClientEntity>("Client not found");
             _mockGetClientByIdQueryHandler.Setup(x => x.HandleAsync(
-                    It.Is<GetClientByIdQuery>(q => q.ClientId.Equals(clientId))))
+                    It.Is<GetClientByIdQuery>(q => q.ClientId.Equals(clientId)),
+                    It.IsAny<CancellationToken>()))
                 .ReturnsAsync(errorResult);
 
             // Act
-            var actionResult = await _controller.GetClient(clientId);
+            var actionResult = await _controller.GetClient(clientId, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(actionResult);
@@ -197,11 +201,12 @@ namespace Test.Controllers
                                                      cmd.FirstName == request.FirstName &&
                                                      cmd.LastName == request.LastName &&
                                                      cmd.Email == request.Email &&
-                                                     cmd.PhoneNumber == request.PhoneNumber)))
+                                                     cmd.PhoneNumber == request.PhoneNumber),
+                    It.IsAny<CancellationToken>()))
                 .ReturnsAsync(result);
 
             // Act
-            var actionResult = await _controller.UpdateClient(clientId, request);
+            var actionResult = await _controller.UpdateClient(clientId, request, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(actionResult);
@@ -226,12 +231,14 @@ namespace Test.Controllers
                     PhoneNumber.Create("+79991234567").Value).Value
             ).Value;
 
-            _mockDeleteClientCommandHandler.Setup(x => x.HandleAsync(
-                    It.Is<DeleteClientCommand>(cmd => cmd.ClientId == clientId)))
+            _mockDeleteClientCommandHandler
+                .Setup(x => x.HandleAsync(
+                    It.Is<DeleteClientCommand>(cmd => cmd.ClientId == clientId),
+                    It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result.Success(client));
 
             // Act
-            var actionResult = await _controller.DeleteClient(clientId);
+            var actionResult = await _controller.DeleteClient(clientId, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(actionResult);

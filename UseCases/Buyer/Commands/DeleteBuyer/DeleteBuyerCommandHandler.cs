@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Buyer.VO;
@@ -15,13 +16,13 @@ public class DeleteBuyerCommandHandler : ICommandHandler<DeleteBuyerCommand>
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result> HandleAsync(DeleteBuyerCommand command)
+    public async Task<Result> HandleAsync(DeleteBuyerCommand command, CancellationToken cancellationToken = default)
     {
         var buyerId = BuyerId.Create(command.BuyerId);
         if (buyerId.IsFailure)
             return Result.Failure(buyerId.Error);
 
-        var buyerResult = await _unitOfWork.Buyers.GetByIdAsync(buyerId.Value);
+        var buyerResult = await _unitOfWork.Buyers.GetByIdAsync(buyerId.Value, cancellationToken);
         if (buyerResult.IsFailure)
         {
             return Result.Failure($"Buyer with ID {command.BuyerId} does not exist");
@@ -33,7 +34,7 @@ public class DeleteBuyerCommandHandler : ICommandHandler<DeleteBuyerCommand>
             return deleteResult;
         }
 
-        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

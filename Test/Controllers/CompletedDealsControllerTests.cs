@@ -133,7 +133,7 @@ namespace Test.Controllers
                 DealType.Purchase);
 
             var result = Result.Success(completedDeal);
-            _mockCreateCompleteDealHandler.Setup(x => x.HandleAsync(It.IsAny<CreateCompleteDealCommand>()))
+            _mockCreateCompleteDealHandler.Setup(x => x.HandleAsync(It.IsAny<CreateCompleteDealCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(result);
             _mockMapper.Setup(m => m.Map<CreateCompleteDealCommand>(request))
                 .Returns(new CreateCompleteDealCommand(
@@ -156,7 +156,7 @@ namespace Test.Controllers
                     completedDeal.UpdatedAt));
 
             // Act
-            var envelope = await _controller.CreateCompletedDeal(request);
+            var envelope = await _controller.CreateCompletedDeal(request, CancellationToken.None);
 
             // Assert
             Assert.Equal(201, envelope.Status); // Created
@@ -185,7 +185,7 @@ namespace Test.Controllers
             };
 
             var errorResult = Result.Failure<CompletedDealEntity>("Validation error");
-            _mockCreateCompleteDealHandler.Setup(x => x.HandleAsync(It.IsAny<CreateCompleteDealCommand>()))
+            _mockCreateCompleteDealHandler.Setup(x => x.HandleAsync(It.IsAny<CreateCompleteDealCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(errorResult);
             _mockMapper.Setup(m => m.Map<CreateCompleteDealCommand>(request))
                 .Returns(new CreateCompleteDealCommand(
@@ -197,7 +197,7 @@ namespace Test.Controllers
                     request.DealType));
 
             // Act
-            var envelope = await _controller.CreateCompletedDeal(request);
+            var envelope = await _controller.CreateCompletedDeal(request, CancellationToken.None);
 
             // Assert
             Assert.Equal(400, envelope.Status); // BadRequest
@@ -223,12 +223,12 @@ namespace Test.Controllers
                 completedDeal.UpdatedAt);
 
             var result = Result.Success(useCasesDto);
-            _mockGetCompletedDealByIdHandler.Setup(x => x.HandleAsync(It.Is<GetCompletedDealByIdQuery>(q => q.CompletedDealId == dealIdGuid)))
+            _mockGetCompletedDealByIdHandler.Setup(x => x.HandleAsync(It.Is<GetCompletedDealByIdQuery>(q => q.CompletedDealId == dealIdGuid), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(result);
             _mockMapper.Setup(m => m.Map<CompletedDealDto>(useCasesDto)).Returns(responseDto);
 
             // Act
-            var envelope = await _controller.GetCompletedDeal(dealIdGuid);
+            var envelope = await _controller.GetCompletedDeal(dealIdGuid, CancellationToken.None);
 
             // Assert
             Assert.Equal(200, envelope.Status); // OK
@@ -240,7 +240,7 @@ namespace Test.Controllers
             Assert.Equal(completedDeal.DealDate, dealDto.DealDate);
             Assert.Equal(completedDeal.DealAmount.Value, dealDto.DealAmount);
             Assert.Equal(completedDeal.DealType.Name, dealDto.DealType);
-            _mockGetCompletedDealByIdHandler.Verify(x => x.HandleAsync(It.Is<GetCompletedDealByIdQuery>(q => q.CompletedDealId == dealIdGuid)), Times.Once);
+            _mockGetCompletedDealByIdHandler.Verify(x => x.HandleAsync(It.Is<GetCompletedDealByIdQuery>(q => q.CompletedDealId == dealIdGuid), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -250,11 +250,11 @@ namespace Test.Controllers
             var dealId = Guid.NewGuid();
 
             var errorResult = Result.Failure<UseCasesCompletedDealDto>("Completed deal not found");
-            _mockGetCompletedDealByIdHandler.Setup(x => x.HandleAsync(It.Is<GetCompletedDealByIdQuery>(q => q.CompletedDealId == dealId)))
+            _mockGetCompletedDealByIdHandler.Setup(x => x.HandleAsync(It.Is<GetCompletedDealByIdQuery>(q => q.CompletedDealId == dealId), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(errorResult);
 
             // Act
-            var envelope = await _controller.GetCompletedDeal(dealId);
+            var envelope = await _controller.GetCompletedDeal(dealId, CancellationToken.None);
 
             // Assert
             Assert.Equal(404, envelope.Status); // NotFound
@@ -283,12 +283,12 @@ namespace Test.Controllers
             };
 
             var result = Result.Success<IEnumerable<UseCasesCompletedDealDto>>(completedDealsList);
-            _mockGetAllCompletedDealsHandler.Setup(x => x.HandleAsync(It.IsAny<GetAllCompletedDealsQuery>()))
+            _mockGetAllCompletedDealsHandler.Setup(x => x.HandleAsync(It.IsAny<GetAllCompletedDealsQuery>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(result);
             _mockMapper.Setup(m => m.Map<IEnumerable<CompletedDealDto>>(completedDealsList)).Returns(mapped);
 
             // Act
-            var envelope = await _controller.GetAllCompletedDeals();
+            var envelope = await _controller.GetAllCompletedDeals(CancellationToken.None);
 
             // Assert
             Assert.Equal(200, envelope.Status); // OK
@@ -311,12 +311,12 @@ namespace Test.Controllers
             var mapped = new List<CompletedDealDto>();
 
             var result = Result.Success<IEnumerable<UseCasesCompletedDealDto>>(completedDealsList);
-            _mockGetAllCompletedDealsHandler.Setup(x => x.HandleAsync(It.IsAny<GetAllCompletedDealsQuery>()))
+            _mockGetAllCompletedDealsHandler.Setup(x => x.HandleAsync(It.IsAny<GetAllCompletedDealsQuery>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(result);
             _mockMapper.Setup(m => m.Map<IEnumerable<CompletedDealDto>>(completedDealsList)).Returns(mapped);
 
             // Act
-            var envelope = await _controller.GetAllCompletedDeals();
+            var envelope = await _controller.GetAllCompletedDeals(CancellationToken.None);
 
             // Assert
             Assert.Equal(200, envelope.Status); // OK
@@ -329,11 +329,11 @@ namespace Test.Controllers
         {
             // Arrange
             var errorResult = Result.Failure<IEnumerable<UseCasesCompletedDealDto>>("Service error");
-            _mockGetAllCompletedDealsHandler.Setup(x => x.HandleAsync(It.IsAny<GetAllCompletedDealsQuery>()))
+            _mockGetAllCompletedDealsHandler.Setup(x => x.HandleAsync(It.IsAny<GetAllCompletedDealsQuery>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(errorResult);
 
             // Act
-            var envelope = await _controller.GetAllCompletedDeals();
+            var envelope = await _controller.GetAllCompletedDeals(CancellationToken.None);
 
             // Assert
             Assert.Equal(400, envelope.Status); // BadRequest
@@ -363,12 +363,12 @@ namespace Test.Controllers
             };
 
             var result = Result.Success<IEnumerable<UseCasesCompletedDealDto>>(completedDealsList);
-            _mockGetCompletedDealsByClientIdHandler.Setup(x => x.HandleAsync(It.Is<GetCompletedDealsByClientIdQuery>(q => q.ClientId == clientId)))
+            _mockGetCompletedDealsByClientIdHandler.Setup(x => x.HandleAsync(It.Is<GetCompletedDealsByClientIdQuery>(q => q.ClientId == clientId), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(result);
             _mockMapper.Setup(m => m.Map<IEnumerable<CompletedDealDto>>(completedDealsList)).Returns(mapped);
 
             // Act
-            var envelope = await _controller.GetCompletedDealsByClient(clientId);
+            var envelope = await _controller.GetCompletedDealsByClient(clientId, CancellationToken.None);
 
             // Assert
             Assert.Equal(200, envelope.Status); // OK
@@ -389,11 +389,11 @@ namespace Test.Controllers
             // Arrange
             var clientId = Guid.NewGuid();
             var errorResult = Result.Failure<IEnumerable<UseCasesCompletedDealDto>>("Service error");
-            _mockGetCompletedDealsByClientIdHandler.Setup(x => x.HandleAsync(It.Is<GetCompletedDealsByClientIdQuery>(q => q.ClientId == clientId)))
+            _mockGetCompletedDealsByClientIdHandler.Setup(x => x.HandleAsync(It.Is<GetCompletedDealsByClientIdQuery>(q => q.ClientId == clientId), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(errorResult);
 
             // Act
-            var envelope = await _controller.GetCompletedDealsByClient(clientId);
+            var envelope = await _controller.GetCompletedDealsByClient(clientId, CancellationToken.None);
 
             // Assert
             Assert.Equal(400, envelope.Status); // BadRequest
@@ -423,12 +423,12 @@ namespace Test.Controllers
             };
 
             var result = Result.Success<IEnumerable<UseCasesCompletedDealDto>>(completedDealsList);
-            _mockGetCompletedDealsByPropertyIdHandler.Setup(x => x.HandleAsync(It.Is<GetCompletedDealsByPropertyIdQuery>(q => q.PropertyId == propertyId)))
+            _mockGetCompletedDealsByPropertyIdHandler.Setup(x => x.HandleAsync(It.Is<GetCompletedDealsByPropertyIdQuery>(q => q.PropertyId == propertyId), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(result);
             _mockMapper.Setup(m => m.Map<IEnumerable<CompletedDealDto>>(completedDealsList)).Returns(mapped);
 
             // Act
-            var envelope = await _controller.GetCompletedDealsByProperty(propertyId);
+            var envelope = await _controller.GetCompletedDealsByProperty(propertyId, CancellationToken.None);
 
             // Assert
             Assert.Equal(200, envelope.Status); // OK
@@ -449,11 +449,11 @@ namespace Test.Controllers
             // Arrange
             var propertyId = Guid.NewGuid();
             var errorResult = Result.Failure<IEnumerable<UseCasesCompletedDealDto>>("Service error");
-            _mockGetCompletedDealsByPropertyIdHandler.Setup(x => x.HandleAsync(It.Is<GetCompletedDealsByPropertyIdQuery>(q => q.PropertyId == propertyId)))
+            _mockGetCompletedDealsByPropertyIdHandler.Setup(x => x.HandleAsync(It.Is<GetCompletedDealsByPropertyIdQuery>(q => q.PropertyId == propertyId), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(errorResult);
 
             // Act
-            var envelope = await _controller.GetCompletedDealsByProperty(propertyId);
+            var envelope = await _controller.GetCompletedDealsByProperty(propertyId, CancellationToken.None);
 
             // Assert
             Assert.Equal(400, envelope.Status); // BadRequest
@@ -467,15 +467,15 @@ namespace Test.Controllers
             var dealId = Guid.NewGuid();
 
             var result = Result.Success();
-            _mockDeleteCompletedDealHandler.Setup(x => x.HandleAsync(It.Is<DeleteCompletedDealCommand>(c => c.CompletedDealId == dealId)))
+            _mockDeleteCompletedDealHandler.Setup(x => x.HandleAsync(It.Is<DeleteCompletedDealCommand>(c => c.CompletedDealId == dealId), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(result);
 
             // Act
-            var envelope = await _controller.DeleteCompletedDeal(dealId);
+            var envelope = await _controller.DeleteCompletedDeal(dealId, CancellationToken.None);
 
             // Assert
             Assert.Equal(204, envelope.Status); // NoContent
-            _mockDeleteCompletedDealHandler.Verify(x => x.HandleAsync(It.Is<DeleteCompletedDealCommand>(c => c.CompletedDealId == dealId)), Times.Once);
+            _mockDeleteCompletedDealHandler.Verify(x => x.HandleAsync(It.Is<DeleteCompletedDealCommand>(c => c.CompletedDealId == dealId), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -485,11 +485,11 @@ namespace Test.Controllers
             var dealId = Guid.NewGuid();
 
             var errorResult = Result.Failure("Completed deal not found");
-            _mockDeleteCompletedDealHandler.Setup(x => x.HandleAsync(It.Is<DeleteCompletedDealCommand>(c => c.CompletedDealId == dealId)))
+            _mockDeleteCompletedDealHandler.Setup(x => x.HandleAsync(It.Is<DeleteCompletedDealCommand>(c => c.CompletedDealId == dealId), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(errorResult);
 
             // Act
-            var envelope = await _controller.DeleteCompletedDeal(dealId);
+            var envelope = await _controller.DeleteCompletedDeal(dealId, CancellationToken.None);
 
             // Assert
             Assert.Equal(404, envelope.Status); // NotFound

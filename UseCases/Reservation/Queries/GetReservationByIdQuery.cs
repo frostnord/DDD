@@ -1,5 +1,7 @@
 using CSharpFunctionalExtensions;
 using Domain.Property.VO;
+using System.Threading;
+using System.Threading.Tasks;
 using UseCases.Interfaces.Queries;
 using UseCases.Interfaces.Services;
 using UseCases.UseCases.DTO.Booking;
@@ -17,7 +19,7 @@ public class GetReservationByIdQueryHandler : IQueryHandler<GetReservationByIdQu
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<ReservationDto>> HandleAsync(GetReservationByIdQuery query)
+    public async Task<Result<ReservationDto>> HandleAsync(GetReservationByIdQuery query, CancellationToken cancellationToken = default)
     {
         var propertyIdResult = PropertyId.Create(query.BookingId);
         if (propertyIdResult.IsFailure)
@@ -25,7 +27,7 @@ public class GetReservationByIdQueryHandler : IQueryHandler<GetReservationByIdQu
             return Result.Failure<ReservationDto>(propertyIdResult.Error);
         }
 
-        var propertyResult = await _unitOfWork.Properties.GetByIdAsync(propertyIdResult.Value);
+        var propertyResult = await _unitOfWork.Properties.GetByIdAsync(propertyIdResult.Value, cancellationToken);
         if (propertyResult.IsFailure)
         {
             return Result.Failure<ReservationDto>(propertyResult.Error);

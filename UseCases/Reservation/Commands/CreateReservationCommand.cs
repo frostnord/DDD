@@ -1,6 +1,9 @@
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
 using Domain.Property.VO;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Services;
 
@@ -21,7 +24,7 @@ public class CreateReservationCommandHandler : ICommandHandler<CreateReservation
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<Guid>> HandleAsync(CreateReservationCommand command)
+    public async Task<Result<Guid>> HandleAsync(CreateReservationCommand command, CancellationToken cancellationToken = default)
     {
         // Создаем идентификатор клиента
         var clientIdResult = ClientId.Create(command.ClientId);
@@ -37,10 +40,10 @@ public class CreateReservationCommandHandler : ICommandHandler<CreateReservation
             return Result.Failure<Guid>($"Invalid property ID: {propertyIdResult.Error}");
         }
 
-        return await _unitOfWork.ExecuteInTransactionAsync(async _ =>
+        return await _unitOfWork.ExecuteInTransactionAsync(async innerCancellationToken =>
         {
             // Проверяем, существует ли клиент
-            var clientResult = await _unitOfWork.Clients.GetByIdAsync(clientIdResult.Value);
+            var clientResult = await _unitOfWork.Clients.GetByIdAsync(clientIdResult.Value, innerCancellationToken);
             if (clientResult.IsFailure)
             {
                 return Result.Failure<Guid>(
@@ -48,7 +51,7 @@ public class CreateReservationCommandHandler : ICommandHandler<CreateReservation
             }
 
             // Проверяем, существует ли недвижимость
-            var propertyResult = await _unitOfWork.Properties.GetByIdForUpdateAsync(propertyIdResult.Value);
+            var propertyResult = await _unitOfWork.Properties.GetByIdForUpdateAsync(propertyIdResult.Value, innerCancellationToken);
             if (propertyResult.IsFailure)
             {
                 return Result.Failure<Guid>(
@@ -75,6 +78,6 @@ public class CreateReservationCommandHandler : ICommandHandler<CreateReservation
             }
 
             return Result.Success(property.Id.Value);
-        });
+        }, cancellationToken);
     }
 }

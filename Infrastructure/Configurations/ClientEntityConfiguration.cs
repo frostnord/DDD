@@ -4,7 +4,7 @@ using Domain.ValueObjects;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
 
-namespace Infrastructure.Configurations.Customers;
+namespace Infrastructure.Configurations;
 
 public sealed class ClientEntityConfiguration : IEntityTypeConfiguration<ClientEntity>
 {

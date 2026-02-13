@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using UseCases.UseCases.DTO.Buyer;
@@ -19,9 +20,9 @@ public class SearchBuyersQueryHandler : IQueryHandler<SearchBuyersQuery, Result<
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<SearchBuyersQueryResponse>> HandleAsync(SearchBuyersQuery query)
+    public async Task<Result<SearchBuyersQueryResponse>> HandleAsync(SearchBuyersQuery query, CancellationToken cancellationToken = default)
     {
-        var buyersResult = await _unitOfWork.Buyers.SearchAsync(query.Page, query.PageSize);
+        var buyersResult = await _unitOfWork.Buyers.SearchAsync(query.Page, query.PageSize, cancellationToken);
         if (buyersResult.IsFailure)
         {
             return Result.Failure<SearchBuyersQueryResponse>(buyersResult.Error);

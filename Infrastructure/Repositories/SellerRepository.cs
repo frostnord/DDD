@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
@@ -18,31 +19,31 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Result<SellerEntity>> GetByIdAsync(SellerId id)
+        public async Task<Result<SellerEntity>> GetByIdAsync(SellerId id, CancellationToken cancellationToken = default)
         {
             var seller = await _context.Sellers
                 .AsNoTracking()
-                .FirstOrDefaultAsync(s => s.Id == id);
+                .FirstOrDefaultAsync(s => s.Id == id, cancellationToken);
 
             return seller != null
                 ? Result.Success(seller)
                 : Result.Failure<SellerEntity>($"Seller with ID {id.Value} not found");
         }
 
-        public async Task<Result<SellerEntity>> GetByClientIdAsync(ClientId clientId)
+        public async Task<Result<SellerEntity>> GetByClientIdAsync(ClientId clientId, CancellationToken cancellationToken = default)
         {
             var seller = await _context.Sellers
                 .AsNoTracking()
-                .FirstOrDefaultAsync(s => s.ClientId == clientId);
+                .FirstOrDefaultAsync(s => s.ClientId == clientId, cancellationToken);
 
             return seller != null
                 ? Result.Success(seller)
                 : Result.Failure<SellerEntity>($"Seller for ClientId {clientId.Value} not found");
         }
 
-        public async Task<Result<IEnumerable<SellerEntity>>> GetAllAsync()
+        public async Task<Result<IEnumerable<SellerEntity>>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            var sellers = await _context.Sellers.AsNoTracking().ToListAsync();
+            var sellers = await _context.Sellers.AsNoTracking().ToListAsync(cancellationToken);
             return Result.Success<IEnumerable<SellerEntity>>(sellers);
         }
 
@@ -70,14 +71,14 @@ namespace Infrastructure.Repositories
             return Result.Success();
         }
 
-        public async Task<bool> ExistsAsync(SellerId id)
+        public async Task<bool> ExistsAsync(SellerId id, CancellationToken cancellationToken = default)
         {
-            return await _context.Sellers.AsNoTracking().AnyAsync(s => s.Id == id);
+            return await _context.Sellers.AsNoTracking().AnyAsync(s => s.Id == id, cancellationToken);
         }
 
-        public async Task<bool> ExistsByClientIdAsync(ClientId clientId)
+        public async Task<bool> ExistsByClientIdAsync(ClientId clientId, CancellationToken cancellationToken = default)
         {
-            return await _context.Sellers.AsNoTracking().AnyAsync(s => s.ClientId == clientId);
+            return await _context.Sellers.AsNoTracking().AnyAsync(s => s.ClientId == clientId, cancellationToken);
         }
     }
 }
