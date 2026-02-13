@@ -55,7 +55,6 @@ public class SearchReservationQueryHandler : IQueryHandler<SearchReservationQuer
                     p.RefreshHoldState(nowUtc);
 
                     return new ReservationDto(
-                        p.Id.Value,
                         p.ReservedByClientId!.Value,
                         p.Id.Value,
                         p.ReservedAt ?? nowUtc,
@@ -90,7 +89,6 @@ public class SearchReservationQueryHandler : IQueryHandler<SearchReservationQuer
             if (p.ReservedByClientId != null && p.ReservedUntil != null && p.ReservedUntil.Value > nowUtc)
             {
                 items.Add(new ReservationDto(
-                    p.Id.Value,
                     p.ReservedByClientId.Value,
                     p.Id.Value,
                     p.ReservedAt ?? nowUtc,

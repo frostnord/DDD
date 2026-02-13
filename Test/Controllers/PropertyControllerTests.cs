@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using CSharpFunctionalExtensions;
@@ -17,8 +18,11 @@ using UseCases.Interfaces.Queries;
 using UseCases.Property.Commands.CreateProperty;
 using UseCases.Property.Commands.DeleteProperty;
 using UseCases.Property.Commands.UpdateProperty;
+using UseCases.Property.Queries;
 using UseCases.Property.Queries.GetPropertyById;
 using UseCases.Property.Queries.SearchPropertiesQuery;
+using UseCases.Reservation.Queries;
+using UseCases.UseCases.DTO.Booking;
 using UseCases.UseCases.DTO.Property;
 using Xunit;
 using AddressDto = Presenter.DTOs.PropertyDTO.AddressDto;
@@ -34,6 +38,7 @@ namespace Test.Controllers
         private readonly Mock<ICommandHandler<DeletePropertyCommand>> _mockDeletePropertyHandler;
         private readonly Mock<IQueryHandler<GetPropertyByIdQuery, Result<PropertyDto>>> _mockGetPropertyByIdHandler;
         private readonly Mock<IQueryHandler<SearchPropertiesQuery, Result<SearchPropertiesQueryResponse>>> _mockSearchPropertiesHandler;
+        private readonly Mock<IQueryHandler<GetPropertyReservationQuery, Result<ReservationDto>>> _mockGetPropertyReservationHandler;
         private readonly Mock<IMapper> _mockMapper;
         private readonly PropertyController _controller;
 
@@ -44,6 +49,7 @@ namespace Test.Controllers
             _mockDeletePropertyHandler = new Mock<ICommandHandler<DeletePropertyCommand>>();
             _mockGetPropertyByIdHandler = new Mock<IQueryHandler<GetPropertyByIdQuery, Result<PropertyDto>>>();
             _mockSearchPropertiesHandler = new Mock<IQueryHandler<SearchPropertiesQuery, Result<SearchPropertiesQueryResponse>>>();
+            _mockGetPropertyReservationHandler = new Mock<IQueryHandler<GetPropertyReservationQuery, Result<ReservationDto>>>();
             _mockMapper = new Mock<IMapper>();
             _controller = new PropertyController(
                 _mockCreatePropertyHandler.Object,
@@ -51,6 +57,7 @@ namespace Test.Controllers
                 _mockDeletePropertyHandler.Object,
                 _mockGetPropertyByIdHandler.Object,
                 _mockSearchPropertiesHandler.Object,
+                _mockGetPropertyReservationHandler.Object,
                 _mockMapper.Object);
         }
 
@@ -210,7 +217,9 @@ namespace Test.Controllers
                 new UseCases.UseCases.DTO.Property.PropertyDetailsDto(100000m, "Desc", 2, 1, 1, 50m, "Apartment", "Central", "Good", true),
                 new UseCases.UseCases.DTO.Property.OwnershipDto(Guid.NewGuid(), DateTime.UtcNow));
 
-            _mockMapper.Setup(m => m.Map<UpdatePropertyCommand>(It.IsAny<object>())).Returns(command);
+            _mockMapper
+                .Setup(m => m.Map<UpdatePropertyCommand>(It.IsAny<UpdatePropertyRequest>(), It.IsAny<Action<IMappingOperationOptions>>()))
+                .Returns(command);
             _mockUpdatePropertyHandler.Setup(x => x.HandleAsync(command, It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success());
 
             // Act

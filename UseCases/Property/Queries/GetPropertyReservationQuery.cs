@@ -1,27 +1,29 @@
 using CSharpFunctionalExtensions;
 using Domain.Property.VO;
-using System.Threading;
-using System.Threading.Tasks;
 using UseCases.Interfaces.Queries;
 using UseCases.Interfaces.Services;
 using UseCases.UseCases.DTO.Booking;
 
-namespace UseCases.Reservation.Queries;
+namespace UseCases.Property.Queries;
 
-public sealed record GetReservationByIdQuery(Guid BookingId) : IQuery<Result<ReservationDto>>;
+public sealed record GetPropertyReservationQuery(Guid PropertyReservationId) : IQuery<Result<ReservationDto>>;
 
-public class GetReservationByIdQueryHandler : IQueryHandler<GetReservationByIdQuery, Result<ReservationDto>>
+
+/// <summary>
+/// Получает резервацию объекта недвижимости по его уникальному идентификатору.
+/// </summary>
+public class GetPropertyReservationQueryHandler : IQueryHandler<GetPropertyReservationQuery, Result<ReservationDto>>
 {
     private readonly IUnitOfWork _unitOfWork;
 
-    public GetReservationByIdQueryHandler(IUnitOfWork unitOfWork)
+    public GetPropertyReservationQueryHandler(IUnitOfWork unitOfWork)
     {
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<ReservationDto>> HandleAsync(GetReservationByIdQuery query, CancellationToken cancellationToken = default)
+    public async Task<Result<ReservationDto>> HandleAsync(GetPropertyReservationQuery query, CancellationToken cancellationToken = default)
     {
-        var propertyIdResult = PropertyId.Create(query.BookingId);
+        var propertyIdResult = PropertyId.Create(query.PropertyReservationId);
         if (propertyIdResult.IsFailure)
         {
             return Result.Failure<ReservationDto>(propertyIdResult.Error);
@@ -48,7 +50,6 @@ public class GetReservationByIdQueryHandler : IQueryHandler<GetReservationByIdQu
         }
 
         var dto = new ReservationDto(
-            property.Id.Value,
             property.ReservedByClientId.Value,
             property.Id.Value,
             property.ReservedAt ?? nowUtc,

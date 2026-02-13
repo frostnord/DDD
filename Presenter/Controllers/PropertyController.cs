@@ -14,8 +14,11 @@ using UseCases.Interfaces.Queries;
 using UseCases.Property.Commands.CreateProperty;
 using UseCases.Property.Commands.DeleteProperty;
 using UseCases.Property.Commands.UpdateProperty;
+using UseCases.Property.Queries;
 using UseCases.Property.Queries.GetPropertyById;
 using UseCases.Property.Queries.SearchPropertiesQuery;
+using UseCases.Reservation.Queries;
+using UseCases.UseCases.DTO.Booking;
 using UseCases.UseCases.DTO.Property;
 
 namespace Presenter.Controllers
@@ -33,6 +36,7 @@ namespace Presenter.Controllers
         private readonly ICommandHandler<DeletePropertyCommand> _deletePropertyHandler;
         private readonly IQueryHandler<GetPropertyByIdQuery, Result<PropertyDto>> _getPropertyByIdHandler;
         private readonly IQueryHandler<SearchPropertiesQuery, Result<SearchPropertiesQueryResponse>> _searchPropertiesHandler;
+        private readonly IQueryHandler<GetPropertyReservationQuery, Result<ReservationDto>> _getPropertyReservationHandler;
         private readonly IMapper _mapper;
 
         /// <summary>
@@ -44,6 +48,7 @@ namespace Presenter.Controllers
             ICommandHandler<DeletePropertyCommand> deletePropertyHandler,
             IQueryHandler<GetPropertyByIdQuery, Result<PropertyDto>> getPropertyByIdHandler,
             IQueryHandler<SearchPropertiesQuery, Result<SearchPropertiesQueryResponse>> searchPropertiesHandler,
+            IQueryHandler<GetPropertyReservationQuery, Result<ReservationDto>> getPropertyReservationHandler,
             IMapper mapper)
         {
             _createPropertyHandler = createPropertyHandler;
@@ -51,6 +56,7 @@ namespace Presenter.Controllers
             _deletePropertyHandler = deletePropertyHandler;
             _getPropertyByIdHandler = getPropertyByIdHandler;
             _searchPropertiesHandler = searchPropertiesHandler;
+            _getPropertyReservationHandler = getPropertyReservationHandler;
             _mapper = mapper;
         }
 
@@ -92,6 +98,19 @@ namespace Presenter.Controllers
 
             var response = _mapper.Map<PropertyResponse>(result.Value);
             return new Envelope(response);
+        }
+
+        [HttpGet("{id}/reservation")]
+        public async Task<Envelope> GetPropertyReservation(Guid id, CancellationToken cancellationToken)
+        {
+            var query = new GetPropertyReservationQuery(id);
+            var result = await _getPropertyReservationHandler.HandleAsync(query, cancellationToken);
+            if (result.IsFailure)
+            {
+                return new Envelope(HttpStatusCode.NotFound, error: result.Error);
+            }
+
+            return new Envelope(result.Value);
         }
 
         /// <summary>

@@ -52,12 +52,6 @@ public class CancelReservationCommandHandler : ICommandHandler<CancelReservation
                 return Result.Failure(cancelResult.Error);
             }
 
-            var updateResult = _unitOfWork.Properties.Update(property);
-            if (updateResult.IsFailure)
-            {
-                return Result.Failure(updateResult.Error);
-            }
-
             return Result.Success();
         }, cancellationToken);
     }

@@ -80,14 +80,14 @@ namespace Presenter
             services.AddScoped<ICommandHandler<UpdateClientCommand, Domain.Customers.Client.ClientEntity>, UpdateClientCommandHandler>();
             services.AddScoped<ICommandHandler<DeleteClientCommand, Domain.Customers.Client.ClientEntity>, DeleteClientCommandHandler>();
 
-            // Регистрация Query Handlers
-            services.AddScoped<IQueryHandler<GetPropertyByIdQuery, Result<PropertyDto>>, GetPropertyByIdQueryHandler>();
-            services.AddScoped<IQueryHandler<SearchPropertiesQuery, Result<SearchPropertiesQueryResponse>>, SearchPropertiesQueryHandler>();
-            services.AddScoped<IQueryHandler<GetReservationByIdQuery, Result<UseCases.UseCases.DTO.Booking.ReservationDto>>, GetReservationByIdQueryHandler>();
-            services.AddScoped<IQueryHandler<SearchReservationQuery, Result<SearchBookingsQueryResponse>>, SearchReservationQueryHandler>();
-            services.AddScoped<IQueryHandler<GetDealByIdQuery, Result<UseCases.UseCases.DTO.Deal.DealDto>>, GetDealByIdQueryHandler>();
-            services.AddScoped<IQueryHandler<SearchDealsQuery, Result<SearchDealsQueryResponse>>, SearchDealsQueryHandler>();
-            services.AddScoped<IQueryHandler<GetCompletedDealByIdQuery, Result<UseCases.UseCases.DTO.CompletedDeal.CompletedDealDto>>, GetCompletedDealByIdQueryHandler>();
+            			// Регистрация Query Handlers
+			services.AddScoped<IQueryHandler<GetPropertyByIdQuery, Result<PropertyDto>>, GetPropertyByIdQueryHandler>();
+			services.AddScoped<IQueryHandler<SearchPropertiesQuery, Result<SearchPropertiesQueryResponse>>, SearchPropertiesQueryHandler>();
+			services.AddScoped<IQueryHandler<GetPropertyReservationQuery, Result<UseCases.UseCases.DTO.Booking.ReservationDto>>, GetPropertyReservationQueryHandler>();
+			services.AddScoped<IQueryHandler<SearchReservationQuery, Result<SearchBookingsQueryResponse>>, SearchReservationQueryHandler>();
+			services.AddScoped<IQueryHandler<GetDealByIdQuery, Result<UseCases.UseCases.DTO.Deal.DealDto>>, GetDealByIdQueryHandler>();
+			services.AddScoped<IQueryHandler<SearchDealsQuery, Result<SearchDealsQueryResponse>>, SearchDealsQueryHandler>();
+			services.AddScoped<IQueryHandler<GetCompletedDealByIdQuery, Result<UseCases.UseCases.DTO.CompletedDeal.CompletedDealDto>>, GetCompletedDealByIdQueryHandler>();
             services.AddScoped<IQueryHandler<GetAllCompletedDealsQuery, Result<IEnumerable<UseCases.UseCases.DTO.CompletedDeal.CompletedDealDto>>>, GetAllCompletedDealsQueryHandler>();
             services.AddScoped<IQueryHandler<GetCompletedDealsByClientIdQuery, Result<IEnumerable<UseCases.UseCases.DTO.CompletedDeal.CompletedDealDto>>>, GetCompletedDealsByClientIdQueryHandler>();
             services.AddScoped<IQueryHandler<GetCompletedDealsByPropertyIdQuery, Result<IEnumerable<UseCases.UseCases.DTO.CompletedDeal.CompletedDealDto>>>, GetCompletedDealsByPropertyIdQueryHandler>();

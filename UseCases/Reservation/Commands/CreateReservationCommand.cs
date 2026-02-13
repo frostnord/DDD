@@ -71,12 +71,6 @@ public class CreateReservationCommandHandler : ICommandHandler<CreateReservation
                 return Result.Failure<Guid>(holdResult.Error);
             }
 
-            var updateResult = _unitOfWork.Properties.Update(property);
-            if (updateResult.IsFailure)
-            {
-                return Result.Failure<Guid>(updateResult.Error);
-            }
-
             return Result.Success(property.Id.Value);
         }, cancellationToken);
     }

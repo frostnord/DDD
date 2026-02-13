@@ -228,7 +228,7 @@ public class PropertyEntity : Entity<PropertyId>
             return Result.Failure("Hold duration must be positive");
         }
 
-        NormalizeHold(nowUtc);
+        RefreshHoldState(nowUtc);
 
         if (Status == PropertyStatus.Sold)
         {
@@ -256,7 +256,7 @@ public class PropertyEntity : Entity<PropertyId>
             return Result.Failure("ClientId is required");
         }
 
-        NormalizeHold(nowUtc);
+        RefreshHoldState(nowUtc);
 
         if (ReservedUntil == null)
         {
@@ -279,7 +279,7 @@ public class PropertyEntity : Entity<PropertyId>
 
     public Result ForceReleaseHold(DateTime nowUtc)
     {
-        NormalizeHold(nowUtc);
+        RefreshHoldState(nowUtc);
 
         if (ReservedUntil == null)
         {
@@ -296,11 +296,6 @@ public class PropertyEntity : Entity<PropertyId>
     }
 
     public void RefreshHoldState(DateTime nowUtc)
-    {
-        NormalizeHold(nowUtc);
-    }
-
-    private void NormalizeHold(DateTime nowUtc)
     {
         if (!ReservedUntil.HasValue)
         {
