@@ -1,22 +1,23 @@
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Seller.VO;
 using UseCases.Interfaces.Queries;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 using UseCases.DTO.Seller;
 
 namespace UseCases.Seller.Queries;
 
 public class GetSellerByIdQueryHandler : IQueryHandler<GetSellerByIdQuery, Result<SellerDto>>
 {
-    private readonly ISellerRepository _sellerRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public GetSellerByIdQueryHandler(ISellerRepository sellerRepository)
+    public GetSellerByIdQueryHandler(IUnitOfWork unitOfWork)
     {
-        _sellerRepository = sellerRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<SellerDto>> HandleAsync(GetSellerByIdQuery query)
+    public async Task<Result<SellerDto>> HandleAsync(GetSellerByIdQuery query, CancellationToken cancellationToken = default)
     {
         var sellerIdResult = SellerId.Create(query.SellerId);
         if (sellerIdResult.IsFailure)
@@ -24,7 +25,7 @@ public class GetSellerByIdQueryHandler : IQueryHandler<GetSellerByIdQuery, Resul
             return Result.Failure<SellerDto>(sellerIdResult.Error);
         }
 
-        var sellerResult = await _sellerRepository.GetByIdAsync(sellerIdResult.Value);
+        var sellerResult = await _unitOfWork.Sellers.GetByIdAsync(sellerIdResult.Value, cancellationToken);
         if (sellerResult.IsFailure)
         {
             return Result.Failure<SellerDto>(sellerResult.Error);

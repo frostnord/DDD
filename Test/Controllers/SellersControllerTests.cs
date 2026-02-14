@@ -51,11 +51,11 @@ namespace Test.Controllers
             var newSellerId = Guid.NewGuid();
 
             _mockCreateSellerHandler
-                .Setup(h => h.HandleAsync(It.IsAny<CreateSellerCommand>()))
+                .Setup(h => h.HandleAsync(It.IsAny<CreateSellerCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result.Success(newSellerId));
 
             // Act
-            var result = await _controller.CreateSeller(request);
+            var result = await _controller.CreateSeller(request, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(result);
@@ -71,11 +71,11 @@ namespace Test.Controllers
             var error = "Invalid client ID";
 
             _mockCreateSellerHandler
-                .Setup(h => h.HandleAsync(It.IsAny<CreateSellerCommand>()))
+                .Setup(h => h.HandleAsync(It.IsAny<CreateSellerCommand>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result.Failure<Guid>(error));
 
             // Act
-            var result = await _controller.CreateSeller(request);
+            var result = await _controller.CreateSeller(request, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(result);
@@ -91,11 +91,11 @@ namespace Test.Controllers
             var sellerDto = new SellerDto(sellerId, Guid.NewGuid(), DateTime.UtcNow);
 
             _mockGetSellerByIdHandler
-                .Setup(h => h.HandleAsync(It.Is<GetSellerByIdQuery>(q => q.SellerId == sellerId)))
+                .Setup(h => h.HandleAsync(It.Is<GetSellerByIdQuery>(q => q.SellerId == sellerId), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result.Success(sellerDto));
 
             // Act
-            var result = await _controller.GetSeller(sellerId);
+            var result = await _controller.GetSeller(sellerId, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(result);
@@ -112,11 +112,11 @@ namespace Test.Controllers
             var error = "Seller not found";
 
             _mockGetSellerByIdHandler
-                .Setup(h => h.HandleAsync(It.Is<GetSellerByIdQuery>(q => q.SellerId == sellerId)))
+                .Setup(h => h.HandleAsync(It.Is<GetSellerByIdQuery>(q => q.SellerId == sellerId), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result.Failure<SellerDto>(error));
 
             // Act
-            var result = await _controller.GetSeller(sellerId);
+            var result = await _controller.GetSeller(sellerId, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(result);
@@ -133,11 +133,11 @@ namespace Test.Controllers
             var request = new UpdateSellerRequest { ClientId = clientId };
 
             _mockUpdateSellerHandler
-                .Setup(h => h.HandleAsync(It.Is<UpdateSellerCommand>(c => c.SellerId == sellerId)))
+                .Setup(h => h.HandleAsync(It.Is<UpdateSellerCommand>(c => c.SellerId == sellerId), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result.Success());
 
             // Act
-            var result = await _controller.UpdateSeller(sellerId, request);
+            var result = await _controller.UpdateSeller(sellerId, request, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(result);
@@ -151,11 +151,11 @@ namespace Test.Controllers
             var sellerId = Guid.NewGuid();
 
             _mockDeleteSellerHandler
-                .Setup(h => h.HandleAsync(It.Is<DeleteSellerCommand>(c => c.SellerId == sellerId)))
+                .Setup(h => h.HandleAsync(It.Is<DeleteSellerCommand>(c => c.SellerId == sellerId), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result.Success());
 
             // Act
-            var result = await _controller.DeleteSeller(sellerId);
+            var result = await _controller.DeleteSeller(sellerId, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(result);

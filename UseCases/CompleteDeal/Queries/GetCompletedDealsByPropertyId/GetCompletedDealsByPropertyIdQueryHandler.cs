@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Deal;
 using Domain.Property.VO;
 using UseCases.Interfaces.Queries;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 using UseCases.UseCases.DTO.CompletedDeal;
 
 namespace UseCases.CompleteDeal.Queries.GetCompletedDealsByPropertyId;
@@ -13,14 +14,14 @@ namespace UseCases.CompleteDeal.Queries.GetCompletedDealsByPropertyId;
 public class GetCompletedDealsByPropertyIdQueryHandler
     : IQueryHandler<GetCompletedDealsByPropertyIdQuery, Result<IEnumerable<CompletedDealDto>>>
 {
-    private readonly ICompletedDealRepository _completedDealRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public GetCompletedDealsByPropertyIdQueryHandler(ICompletedDealRepository completedDealRepository)
+    public GetCompletedDealsByPropertyIdQueryHandler(IUnitOfWork unitOfWork)
     {
-        _completedDealRepository = completedDealRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<IEnumerable<CompletedDealDto>>> HandleAsync(GetCompletedDealsByPropertyIdQuery query)
+    public async Task<Result<IEnumerable<CompletedDealDto>>> HandleAsync(GetCompletedDealsByPropertyIdQuery query, CancellationToken cancellationToken = default)
     {
         var propertyIdResult = PropertyId.Create(query.PropertyId);
         if (propertyIdResult.IsFailure)
@@ -28,7 +29,7 @@ public class GetCompletedDealsByPropertyIdQueryHandler
             return Result.Failure<IEnumerable<CompletedDealDto>>(propertyIdResult.Error);
         }
 
-        var dealsResult = await _completedDealRepository.GetByPropertyIdAsync(propertyIdResult.Value);
+        var dealsResult = await _unitOfWork.CompletedDeals.GetByPropertyIdAsync(propertyIdResult.Value, cancellationToken);
         if (dealsResult.IsFailure)
         {
             return Result.Failure<IEnumerable<CompletedDealDto>>(dealsResult.Error);

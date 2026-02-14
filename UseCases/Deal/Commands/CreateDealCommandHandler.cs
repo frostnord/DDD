@@ -1,97 +1,119 @@
+using System;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
-using Domain.Booking.VO;
 using Domain.Customers.Client.VO;
 using Domain.Deal;
 using Domain.Property.VO;
+using Domain.ValueObjects;
 using UseCases.Interfaces.Commands;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 
 namespace UseCases.Deal.Commands;
 
 public class CreateDealCommandHandler : ICommandHandler<CreateDealCommand, Guid>
 {
-    private readonly IDealRepository _dealRepository;
-    private readonly IPropertyRepository _propertyRepository;
-    private readonly IClientRepository _clientRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
     public CreateDealCommandHandler(
-        IDealRepository dealRepository,
-        IPropertyRepository propertyRepository,
-        IClientRepository clientRepository)
+        IUnitOfWork unitOfWork)
     {
-        _dealRepository = dealRepository;
-        _propertyRepository = propertyRepository;
-        _clientRepository = clientRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<Guid>> HandleAsync(CreateDealCommand command)
+    public async Task<Result<Guid>> HandleAsync(CreateDealCommand command, CancellationToken cancellationToken = default)
     {
-        // Создаем ValueObject из простых типов данных
+        // Создаем идентификатор клиента
         var clientIdResult = ClientId.Create(command.ClientId);
         if (clientIdResult.IsFailure)
         {
             return Result.Failure<Guid>($"Invalid client ID: {command.ClientId}");
         }
-
+        // Создаем идентификатор недвижимости
         var propertyIdResult = PropertyId.Create(command.PropertyId);
         if (propertyIdResult.IsFailure)
         {
             return Result.Failure<Guid>($"Invalid property ID: {command.PropertyId}");
         }
 
-        BookingId? bookingId = null;
-        if (command.BookingId.HasValue)
+        return await _unitOfWork.ExecuteInTransactionAsync(async innerCancellationToken =>
         {
-            var bookingIdResult = BookingId.Create(command.BookingId.Value);
-            if (bookingIdResult.IsFailure)
+            // Проверяем, существует ли клиент
+            var clientResult = await _unitOfWork.Clients.GetByIdAsync(clientIdResult.Value, innerCancellationToken);
+            if (clientResult.IsFailure)
             {
-                return Result.Failure<Guid>($"Invalid booking ID: {command.BookingId.Value}");
+                return Result.Failure<Guid>($"Client with ID {command.ClientId} does not exist");
             }
-            bookingId = bookingIdResult.Value;
-        }
 
-        // Проверяем, существует ли клиент
-        var clientResult = await _clientRepository.GetByIdAsync(clientIdResult.Value);
-        if (clientResult.IsFailure)
-        {
-            return Result.Failure<Guid>($"Client with ID {command.ClientId} does not exist");
-        }
+            // Проверяем, существует ли недвижимость
+            var propertyResult = await _unitOfWork.Properties.GetByIdForUpdateAsync(propertyIdResult.Value, innerCancellationToken);
+            if (propertyResult.IsFailure)
+            {
+                return Result.Failure<Guid>($"Property with ID {command.PropertyId} does not exist");
+            }
 
-        // Проверяем, существует ли недвижимость
-        var propertyResult = await _propertyRepository.GetByIdAsync(propertyIdResult.Value);
-        if (propertyResult.IsFailure)
-        {
-            return Result.Failure<Guid>($"Property with ID {command.PropertyId} does not exist");
-        }
+            var property = propertyResult.Value;
+            var nowUtc = DateTime.UtcNow;
 
-        // Проверяем статус недвижимости
-        var property = propertyResult.Value;
-        if (property.Status != PropertyStatus.ForSale)
-        {
-            return Result.Failure<Guid>($"Property with ID {command.PropertyId} is not available for sale");
-        }
+            property.RefreshHoldState(nowUtc);
 
-        // Создаем сделку
-        var dealResult = DealEntity.Create(
-            clientIdResult.Value,
-            propertyIdResult.Value,
-            bookingId,
-            command.Details
-        );
+            if (property.Status == PropertyStatus.Sold)
+            {
+                return Result.Failure<Guid>($"Property with ID {command.PropertyId} is already sold");
+            }
 
-        if (dealResult.IsFailure)
-        {
-            return Result.Failure<Guid>(dealResult.Error);
-        }
+            if (property.Status == PropertyStatus.Reserved)
+            {
+                if (property.ReservedUntil == null)
+                {
+                    return Result.Failure<Guid>($"Property with ID {command.PropertyId} is reserved");
+                }
 
-        // Сохраняем сделку
-        var saveResult = await _dealRepository.AddAsync(dealResult.Value);
-        if (saveResult.IsFailure)
-        {
-            return Result.Failure<Guid>(saveResult.Error);
-        }
+                if (property.ReservedByClientId != clientIdResult.Value)
+                {
+                    return Result.Failure<Guid>($"Property with ID {command.PropertyId} is reserved by another client until {property.ReservedUntil.Value:o}");
+                }
+            }
 
-        return Result.Success(dealResult.Value.Id.Value);
+            if (property.Status == PropertyStatus.ForSale)
+            {
+                var holdResult = property.PlaceHold(
+                    clientIdResult.Value,
+                    nowUtc,
+                    TimeSpan.FromMinutes(5));
+
+                if (holdResult.IsFailure)
+                {
+                    return Result.Failure<Guid>(holdResult.Error);
+                }
+
+                var updateResult = _unitOfWork.Properties.Update(property);
+                if (updateResult.IsFailure)
+                {
+                    return Result.Failure<Guid>(updateResult.Error);
+                }
+            }
+
+            // Создаем сделку
+            var dealResult = DealEntity.Create(
+                clientIdResult.Value,
+                propertyIdResult.Value,
+                command.Details
+            );
+
+            if (dealResult.IsFailure)
+            {
+                return Result.Failure<Guid>(dealResult.Error);
+            }
+
+            // Сохраняем сделку
+            var saveResult = _unitOfWork.Deals.Add(dealResult.Value);
+            if (saveResult.IsFailure)
+            {
+                return Result.Failure<Guid>(saveResult.Error);
+            }
+
+            return Result.Success(dealResult.Value.Id.Value);
+        }, cancellationToken);
     }
 }

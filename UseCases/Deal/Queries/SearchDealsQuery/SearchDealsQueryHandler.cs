@@ -1,27 +1,28 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
 using Domain.Deal;
 using Domain.Property.VO;
 using UseCases.Interfaces.Queries;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 using UseCases.UseCases.DTO.Deal;
 
 namespace UseCases.Deal.Queries.SearchDealsQuery;
 
 public class SearchDealsQueryHandler : IQueryHandler<SearchDealsQuery, Result<SearchDealsQueryResponse>>
 {
-    private readonly IDealRepository _dealRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public SearchDealsQueryHandler(IDealRepository dealRepository)
+    public SearchDealsQueryHandler(IUnitOfWork unitOfWork)
     {
-        _dealRepository = dealRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<SearchDealsQueryResponse>> HandleAsync(SearchDealsQuery query)
+    public async Task<Result<SearchDealsQueryResponse>> HandleAsync(SearchDealsQuery query, CancellationToken cancellationToken = default)
     {
         if (query.ClientId == null && query.PropertyId == null)
         {
@@ -38,7 +39,7 @@ public class SearchDealsQueryHandler : IQueryHandler<SearchDealsQuery, Result<Se
                 return Result.Failure<SearchDealsQueryResponse>(clientIdResult.Error);
             }
 
-            dealsResult = await _dealRepository.GetByClientIdAsync(clientIdResult.Value);
+            dealsResult = await _unitOfWork.Deals.GetByClientIdAsync(clientIdResult.Value, cancellationToken);
         }
         else
         {
@@ -48,7 +49,7 @@ public class SearchDealsQueryHandler : IQueryHandler<SearchDealsQuery, Result<Se
                 return Result.Failure<SearchDealsQueryResponse>(propertyIdResult.Error);
             }
 
-            dealsResult = await _dealRepository.GetByPropertyIdAsync(propertyIdResult.Value);
+            dealsResult = await _unitOfWork.Deals.GetByPropertyIdAsync(propertyIdResult.Value, cancellationToken);
         }
 
         if (dealsResult.IsFailure)
@@ -68,7 +69,6 @@ public class SearchDealsQueryHandler : IQueryHandler<SearchDealsQuery, Result<Se
             d.Id.Value,
             d.ClientId.Value,
             d.PropertyId.Value,
-            d.BookingId?.Value,
             d.Details,
             d.Status.Name,
             d.CreatedAt,

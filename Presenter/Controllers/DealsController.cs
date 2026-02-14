@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
+using System.Threading.Tasks;
 using AutoMapper;
 using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Mvc;
@@ -63,15 +65,16 @@ namespace Presenter.Controllers
         /// Создает новую сделку
         /// </summary>
         /// <param name="request">Данные для создания сделки</param>
+        /// <param name="cancellationToken">Токен отмены операции</param>
         /// <returns>Созданная сделка</returns>
         /// <response code="201">Возвращает созданную сделку</response>
         /// <response code="400">Если данные для создания сделки некорректны</response>
         [HttpPost]
-        public async Task<Envelope> CreateDeal([FromBody] CreateDealRequest request)
+        public async Task<Envelope> CreateDeal([FromBody] CreateDealRequest request, CancellationToken cancellationToken)
         {
             var command = _mapper.Map<CreateDealCommand>(request);
 
-            var result = await _createDealHandler.HandleAsync(command);
+            var result = await _createDealHandler.HandleAsync(command, cancellationToken);
 
             if (result.IsFailure)
             {
@@ -85,15 +88,17 @@ namespace Presenter.Controllers
         /// Возвращает сделку по её идентификатору
         /// </summary>
         /// <param name="id">Идентификатор сделки</param>
+        /// <param name="cancellationToken">Токен отмены операции</param>
         /// <returns>Информация о сделке</returns>
         /// <response code="200">Возвращает информацию о сделке</response>
         /// <response code="400">Если идентификатор сделки некорректен</response>
         /// <response code="404">Если сделка не найдена</response>
         [HttpGet("{id}")]
-        public async Task<Envelope> GetDeal(Guid id)
+        public async Task<Envelope> GetDeal(Guid id, CancellationToken cancellationToken)
         {
             var query = new GetDealByIdQuery(id);
-            var dealResult = await _getDealByIdHandler.HandleAsync(query);
+            var dealResult = await _getDealByIdHandler.HandleAsync(query, cancellationToken);
+
             if (dealResult.IsFailure)
             {
                 return new Envelope(HttpStatusCode.NotFound, error: dealResult.Error);
@@ -107,14 +112,16 @@ namespace Presenter.Controllers
         /// Возвращает список сделок с возможностью фильтрации по клиенту или недвижимости
         /// </summary>
         /// <param name="query">Параметры поиска сделок</param>
+        /// <param name="cancellationToken">Токен отмены операции</param>
         /// <returns>Список сделок</returns>
         /// <response code="200">Возвращает список сделок</response>
         /// <response code="400">Если параметры запроса некорректны</response>
         
         [HttpGet]
-        public async Task<Envelope> GetDeals([FromQuery] SearchDealsQuery query)
+        public async Task<Envelope> GetDeals([FromQuery] SearchDealsQuery query, CancellationToken cancellationToken)
         {
-            var result = await _searchDealsHandler.HandleAsync(query);
+            var result = await _searchDealsHandler.HandleAsync(query, cancellationToken);
+
             if (result.IsFailure)
             {
                 return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
@@ -136,14 +143,15 @@ namespace Presenter.Controllers
         /// Подтверждает сделку
         /// </summary>
         /// <param name="id">Идентификатор сделки</param>
+        /// <param name="cancellationToken">Токен отмены операции</param>
         /// <returns>Результат подтверждения сделки</returns>
         /// <response code="204">Если сделка успешно подтверждена</response>
         /// <response code="400">Если идентификатор сделки некорректен или произошла ошибка при подтверждении</response>
         [HttpPut("{id}/confirm")]
-        public async Task<Envelope> ConfirmDeal(Guid id)
+        public async Task<Envelope> ConfirmDeal(Guid id, CancellationToken cancellationToken)
         {
             var command = new ConfirmDealCommand(id);
-            var result = await _confirmDealHandler.HandleAsync(command);
+            var result = await _confirmDealHandler.HandleAsync(command, cancellationToken);
 
             if (result.IsFailure)
             {
@@ -157,14 +165,15 @@ namespace Presenter.Controllers
         /// Завершает сделку
         /// </summary>
         /// <param name="id">Идентификатор сделки</param>
+        /// <param name="cancellationToken">Токен отмены операции</param>
         /// <returns>Результат завершения сделки</returns>
         /// <response code="204">Если сделка успешно завершена</response>
         /// <response code="400">Если идентификатор сделки некорректен или произошла ошибка при завершении</response>
         [HttpPut("{id}/complete")]
-        public async Task<Envelope> CompleteDeal(Guid id)
+        public async Task<Envelope> CompleteDeal(Guid id, CancellationToken cancellationToken)
         {
             var command = new CompleteDealCommand(id);
-            var result = await _completeDealHandler.HandleAsync(command);
+            var result = await _completeDealHandler.HandleAsync(command, cancellationToken);
 
             if (result.IsFailure)
             {
@@ -178,14 +187,15 @@ namespace Presenter.Controllers
         /// Отменяет сделку
         /// </summary>
         /// <param name="id">Идентификатор сделки</param>
+        /// <param name="cancellationToken">Токен отмены операции</param>
         /// <returns>Результат отмены сделки</returns>
         /// <response code="204">Если сделка успешно отменена</response>
         /// <response code="400">Если идентификатор сделки некорректен или произошла ошибка при отмене</response>
         [HttpPut("{id}/cancel")]
-        public async Task<Envelope> CancelDeal(Guid id)
+        public async Task<Envelope> CancelDeal(Guid id, CancellationToken cancellationToken)
         {
             var command = new CancelDealCommand(id);
-            var result = await _cancelDealHandler.HandleAsync(command);
+            var result = await _cancelDealHandler.HandleAsync(command, cancellationToken);
 
             if (result.IsFailure)
             {

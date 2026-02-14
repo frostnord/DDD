@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using Domain.Deal;
+using Domain.Deal.VO;
 
 namespace Presenter.DTOs.DealDTO
 {
@@ -20,11 +21,6 @@ namespace Presenter.DTOs.DealDTO
         /// </summary>
         [Required(ErrorMessage = "Идентификатор объекта недвижимости обязателен")]
         public Guid PropertyId { get; init; }
-
-        /// <summary>
-        /// Идентификатор бронирования, связанного со сделкой (опционально)
-        /// </summary>
-        public Guid? BookingId { get; init; }
 
         /// <summary>
         /// Детали сделки

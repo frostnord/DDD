@@ -1,8 +1,10 @@
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Deal;
+using Domain.Deal.VO;
 using UseCases.Interfaces.Queries;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 using UseCases.UseCases.DTO.CompletedDeal;
 
 namespace UseCases.CompleteDeal.Queries.GetCompletedDealById;
@@ -10,14 +12,14 @@ namespace UseCases.CompleteDeal.Queries.GetCompletedDealById;
 public class GetCompletedDealByIdQueryHandler
     : IQueryHandler<GetCompletedDealByIdQuery, Result<CompletedDealDto>>
 {
-    private readonly ICompletedDealRepository _completedDealRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public GetCompletedDealByIdQueryHandler(ICompletedDealRepository completedDealRepository)
+    public GetCompletedDealByIdQueryHandler(IUnitOfWork unitOfWork)
     {
-        _completedDealRepository = completedDealRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<CompletedDealDto>> HandleAsync(GetCompletedDealByIdQuery query)
+    public async Task<Result<CompletedDealDto>> HandleAsync(GetCompletedDealByIdQuery query, CancellationToken cancellationToken = default)
     {
         var idResult = CompletedDealId.Create(query.CompletedDealId);
         if (idResult.IsFailure)
@@ -25,7 +27,7 @@ public class GetCompletedDealByIdQueryHandler
             return Result.Failure<CompletedDealDto>(idResult.Error);
         }
 
-        var dealResult = await _completedDealRepository.GetByIdAsync(idResult.Value);
+        var dealResult = await _unitOfWork.CompletedDeals.GetByIdAsync(idResult.Value, cancellationToken);
         if (dealResult.IsFailure)
         {
             return Result.Failure<CompletedDealDto>(dealResult.Error);

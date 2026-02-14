@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Buyer.VO;
@@ -5,30 +6,27 @@ using Domain.Customers.Client.VO;
 using Domain.Property.VO; // Добавляем using для SmartPropertyType, HeatingType, PropertyCondition
 using Domain.ValueObjects; // Добавляем using для NumberOfRooms, Floor, TotalFloors
 using UseCases.Interfaces.Commands;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 
 namespace UseCases.Buyer.Commands.UpdateBuyer;
 
 public class UpdateBuyerCommandHandler : ICommandHandler<UpdateBuyerCommand>
 {
-    private readonly IBuyerRepository _buyerRepository;
-    private readonly IClientRepository _clientRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
     public UpdateBuyerCommandHandler(
-        IBuyerRepository buyerRepository,
-        IClientRepository clientRepository)
+        IUnitOfWork unitOfWork)
     {
-        _buyerRepository = buyerRepository;
-        _clientRepository = clientRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result> HandleAsync(UpdateBuyerCommand command)
+    public async Task<Result> HandleAsync(UpdateBuyerCommand command, CancellationToken cancellationToken = default)
     {
         var clientIdResult = ClientId.Create(command.ClientId);
         if (clientIdResult.IsFailure)
             return Result.Failure(clientIdResult.Error);
 
-        var clientExists = await _clientRepository.ExistsAsync(clientIdResult.Value);
+        var clientExists = await _unitOfWork.Clients.ExistsAsync(clientIdResult.Value, cancellationToken);
         if (!clientExists)
         {
             return Result.Failure($"Client with ID {command.ClientId} does not exist");
@@ -38,7 +36,7 @@ public class UpdateBuyerCommandHandler : ICommandHandler<UpdateBuyerCommand>
         if (buyerIdResult.IsFailure)
             return Result.Failure(buyerIdResult.Error);
 
-        var buyerResult = await _buyerRepository.GetByIdAsync(buyerIdResult.Value);
+        var buyerResult = await _unitOfWork.Buyers.GetByIdAsync(buyerIdResult.Value, cancellationToken);
         if (buyerResult.IsFailure)
         {
             return Result.Failure($"Buyer with ID {command.BuyerId} does not exist");
@@ -87,6 +85,14 @@ public class UpdateBuyerCommandHandler : ICommandHandler<UpdateBuyerCommand>
         var buyer = buyerResult.Value;
         buyer.UpdateSearchCriteria(searchCriteriaResult.Value);
 
-        return await _buyerRepository.UpdateAsync(buyer);
+        var updateResult = _unitOfWork.Buyers.Update(buyer);
+        if (updateResult.IsFailure)
+        {
+            return updateResult;
+        }
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return Result.Success();
     }
 }

@@ -1,67 +1,45 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
 using Domain.Deal;
+using Domain.Deal.VO;
 using Domain.Property.VO;
 using Domain.ValueObjects;
 using UseCases.Interfaces.Commands;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 
-namespace UseCases.CompleteDeal;
+namespace UseCases.CompleteDeal.Commands.CreateCompliteDealCommand;
 
 public class CreateCompleteDealCommandHandler : ICommandHandler<CreateCompleteDealCommand, CompletedDealEntity>
 {
-    private readonly ICompletedDealRepository _completedDealRepository;
-    private readonly IClientRepository _clientRepository;
-    private readonly IPropertyRepository _propertyRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
     public CreateCompleteDealCommandHandler(
-        ICompletedDealRepository completedDealRepository,
-        IClientRepository clientRepository,
-        IPropertyRepository propertyRepository)
+        IUnitOfWork unitOfWork)
     {
-        _completedDealRepository = completedDealRepository;
-        _clientRepository = clientRepository;
-        _propertyRepository = propertyRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<CompletedDealEntity>> HandleAsync(CreateCompleteDealCommand command)
+    public async Task<Result<CompletedDealEntity>> HandleAsync(CreateCompleteDealCommand command, CancellationToken cancellationToken = default)
     {
         var buyerIdResult = ClientId.Create(command.BuyerClientId);
         if (buyerIdResult.IsFailure)
         {
             return Result.Failure<CompletedDealEntity>(buyerIdResult.Error);
         }
-
+        
         var sellerIdResult = ClientId.Create(command.SellerClientId);
         if (sellerIdResult.IsFailure)
         {
             return Result.Failure<CompletedDealEntity>(sellerIdResult.Error);
         }
 
-        var buyerExistsResult = await _clientRepository.GetByIdAsync(buyerIdResult.Value);
-        if (buyerExistsResult.IsFailure)
-        {
-            return Result.Failure<CompletedDealEntity>($"Client with ID {command.BuyerClientId} does not exist");
-        }
-
-        var sellerExistsResult = await _clientRepository.GetByIdAsync(sellerIdResult.Value);
-        if (sellerExistsResult.IsFailure)
-        {
-            return Result.Failure<CompletedDealEntity>($"Client with ID {command.SellerClientId} does not exist");
-        }
-
         var propertyIdResult = PropertyId.Create(command.PropertyId);
         if (propertyIdResult.IsFailure)
         {
             return Result.Failure<CompletedDealEntity>(propertyIdResult.Error);
-        }
-
-        var propertyExistsResult = await _propertyRepository.GetByIdAsync(propertyIdResult.Value);
-        if (propertyExistsResult.IsFailure)
-        {
-            return Result.Failure<CompletedDealEntity>($"Property with ID {command.PropertyId} does not exist");
         }
 
         var priceResult = Price.Create(command.DealAmount);
@@ -80,19 +58,70 @@ public class CreateCompleteDealCommandHandler : ICommandHandler<CreateCompleteDe
             return Result.Failure<CompletedDealEntity>($"Тип сделки '{command.DealType}' не поддерживается.");
         }
 
-        var completedDealResult = CompletedDealEntity.Create(
-            buyerIdResult.Value,
-            sellerIdResult.Value,
-            propertyIdResult.Value,
-            command.DealDate,
-            priceResult.Value,
-            dealTypeValue);
-
-        if (completedDealResult.IsFailure)
+        return await _unitOfWork.ExecuteInTransactionAsync(async innerCancellationToken =>
         {
-            return Result.Failure<CompletedDealEntity>(completedDealResult.Error);
-        }
+            var buyerExistsResult = await _unitOfWork.Clients.GetByIdAsync(buyerIdResult.Value, innerCancellationToken);
+            if (buyerExistsResult.IsFailure)
+            {
+                return Result.Failure<CompletedDealEntity>($"Client with ID {command.BuyerClientId} does not exist");
+            }
 
-        return await _completedDealRepository.AddAsync(completedDealResult.Value);
+            var buyerRoleResult = await _unitOfWork.Buyers.GetByClientIdAsync(buyerIdResult.Value, innerCancellationToken);
+            if (buyerRoleResult.IsFailure)
+            {
+                return Result.Failure<CompletedDealEntity>($"Client with ID {command.BuyerClientId} is not registered as buyer");
+            }
+
+            var sellerExistsResult = await _unitOfWork.Clients.GetByIdAsync(sellerIdResult.Value, innerCancellationToken);
+            if (sellerExistsResult.IsFailure)
+            {
+                return Result.Failure<CompletedDealEntity>($"Client with ID {command.SellerClientId} does not exist");
+            }
+
+            var sellerRoleResult = await _unitOfWork.Sellers.GetByClientIdAsync(sellerIdResult.Value, innerCancellationToken);
+            if (sellerRoleResult.IsFailure)
+            {
+                return Result.Failure<CompletedDealEntity>($"Client with ID {command.SellerClientId} is not registered as seller");
+            }
+
+            if (buyerRoleResult.Value.ClientId == sellerRoleResult.Value.ClientId)
+            {
+                return Result.Failure<CompletedDealEntity>("Покупатель и продавец не могут совпадать");
+            }
+
+            var propertyExistsResult = await _unitOfWork.Properties.GetByIdForUpdateAsync(propertyIdResult.Value, innerCancellationToken);
+            if (propertyExistsResult.IsFailure)
+            {
+                return Result.Failure<CompletedDealEntity>($"Property with ID {command.PropertyId} does not exist");
+            }
+
+            if (propertyExistsResult.Value.Status == PropertyStatus.Sold)
+            {
+                return Result.Failure<CompletedDealEntity>($"Property with ID {command.PropertyId} is already sold");
+            }
+
+            var completedDealResult = CompletedDealEntity.Create(
+                buyerRoleResult.Value.Id,
+                sellerRoleResult.Value.Id,
+                buyerIdResult.Value,
+                sellerIdResult.Value,
+                propertyIdResult.Value,
+                command.DealDate,
+                priceResult.Value,
+                dealTypeValue);
+
+            if (completedDealResult.IsFailure)
+            {
+                return Result.Failure<CompletedDealEntity>(completedDealResult.Error);
+            }
+
+            var saveResult = _unitOfWork.CompletedDeals.Add(completedDealResult.Value);
+            if (saveResult.IsFailure)
+            {
+                return Result.Failure<CompletedDealEntity>(saveResult.Error);
+            }
+
+            return Result.Success(completedDealResult.Value);
+        }, cancellationToken);
     }
 }

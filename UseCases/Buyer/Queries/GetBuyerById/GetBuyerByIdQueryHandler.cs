@@ -1,29 +1,30 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Buyer.VO;
 using UseCases.UseCases.DTO.Buyer;
 using UseCases.Interfaces.Queries;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 
 namespace UseCases.Buyer.Queries.GetBuyerById;
 
 public class GetBuyerByIdQueryHandler : IQueryHandler<GetBuyerByIdQuery, Result<BuyerDto>>
 {
-    private readonly IBuyerRepository _buyerRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public GetBuyerByIdQueryHandler(IBuyerRepository buyerRepository)
+    public GetBuyerByIdQueryHandler(IUnitOfWork unitOfWork)
     {
-        _buyerRepository = buyerRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<BuyerDto>> HandleAsync(GetBuyerByIdQuery query)
+    public async Task<Result<BuyerDto>> HandleAsync(GetBuyerByIdQuery query, CancellationToken cancellationToken = default)
     {
         var buyerId = BuyerId.Create(query.BuyerId);
         if (buyerId.IsFailure)
             return Result.Failure<BuyerDto>(buyerId.Error);
 
-        var buyerResult = await _buyerRepository.GetByIdAsync(buyerId.Value);
+        var buyerResult = await _unitOfWork.Buyers.GetByIdAsync(buyerId.Value, cancellationToken);
         if (buyerResult.IsFailure)
         {
             return Result.Failure<BuyerDto>(buyerResult.Error);

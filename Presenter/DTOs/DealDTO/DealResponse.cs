@@ -1,5 +1,6 @@
 using System;
 using Domain.Deal;
+using Domain.Deal.VO;
 
 namespace Presenter.DTOs.DealDTO
 {
@@ -10,7 +11,6 @@ namespace Presenter.DTOs.DealDTO
         Guid Id,
         Guid ClientId,
         Guid PropertyId,
-        Guid? BookingId,
         DealDetails Details,
         string Status,
         DateTime CreatedAt,

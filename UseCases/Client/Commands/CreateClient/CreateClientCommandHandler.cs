@@ -1,23 +1,24 @@
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client;
 using Domain.Customers.Client.VO;
 using Domain.ValueObjects;
 using UseCases.Interfaces.Commands;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 
 namespace UseCases.Client.Commands.CreateClient;
 
 public class CreateClientCommandHandler : ICommandHandler<CreateClientCommand, ClientEntity>
 {
-    private readonly IClientRepository _clientRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public CreateClientCommandHandler(IClientRepository clientRepository)
+    public CreateClientCommandHandler(IUnitOfWork unitOfWork)
     {
-        _clientRepository = clientRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<ClientEntity>> HandleAsync(CreateClientCommand command)
+    public async Task<Result<ClientEntity>> HandleAsync(CreateClientCommand command, CancellationToken cancellationToken = default)
     {
         var firstNameResult = Name.Create(command.FirstName);
         if (firstNameResult.IsFailure)
@@ -60,11 +61,13 @@ public class CreateClientCommandHandler : ICommandHandler<CreateClientCommand, C
             return Result.Failure<ClientEntity>(clientResult.Error);
         }
 
-        var saveResult = await _clientRepository.AddAsync(clientResult.Value);
+        var saveResult = _unitOfWork.Clients.Add(clientResult.Value);
         if (saveResult.IsFailure)
         {
             return Result.Failure<ClientEntity>(saveResult.Error);
         }
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success(clientResult.Value);
     }

@@ -4,22 +4,23 @@ using Domain.Property;
 using Domain.Property.VO;
 using Domain.ValueObjects;
 using UseCases.Interfaces.Commands;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace UseCases.Property.Commands.CreateProperty;
 
 public class CreatePropertyCommandHandler : ICommandHandler<CreatePropertyCommand, Guid>
 {
-    private readonly IPropertyRepository _propertyRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public CreatePropertyCommandHandler(IPropertyRepository propertyRepository)
+    public CreatePropertyCommandHandler(IUnitOfWork unitOfWork)
     {
-        _propertyRepository = propertyRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<Guid>> HandleAsync(CreatePropertyCommand command)
+    public async Task<Result<Guid>> HandleAsync(CreatePropertyCommand command, CancellationToken cancellationToken = default)
     {
         var (Street, City, HomeNumber, ZipCode, Country) = command.AddressDto;
         
@@ -94,12 +95,15 @@ public class CreatePropertyCommandHandler : ICommandHandler<CreatePropertyComman
         var property = propertyResult.Value;
         property.SetFirstOwner(ownerRecordVO.Value);
 
-        var saveResult = await _propertyRepository.AddAsync(property);
+        var saveResult = _unitOfWork.Properties.Add(property);
         if (saveResult.IsFailure)
         {
             return Result.Failure<Guid>(saveResult.Error);
         }
 
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
         return Result.Success(property.Id.Value);
     }
 }
+

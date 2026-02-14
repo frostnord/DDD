@@ -1,10 +1,8 @@
-using System;
-using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using CSharpFunctionalExtensions;
 using Domain.ValueObjects;
-using System.Text.Json.Serialization;
 
-namespace Domain.Deal
+namespace Domain.Deal.VO
 {
     /// <summary>
     /// Объект значения, представляющий детали сделки

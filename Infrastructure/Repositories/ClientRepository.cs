@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client;
@@ -17,52 +18,50 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Result<ClientEntity>> GetByIdAsync(ClientId id)
+        public async Task<Result<ClientEntity>> GetByIdAsync(ClientId id, CancellationToken cancellationToken = default)
         {
             var client = await _context.Clients
-                .FirstOrDefaultAsync(c => c.Id == id);
+                .AsNoTracking()
+                .FirstOrDefaultAsync(c => c.Id == id, cancellationToken);
 
             return client != null
                 ? Result.Success(client)
                 : Result.Failure<ClientEntity>($"Client with ID {id.Value} not found");
         }
 
-        public async Task<Result<IEnumerable<ClientEntity>>> GetAllAsync()
+        public async Task<Result<IEnumerable<ClientEntity>>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            var clients = await _context.Clients.ToListAsync();
+            var clients = await _context.Clients.AsNoTracking().ToListAsync(cancellationToken);
             return Result.Success<IEnumerable<ClientEntity>>(clients);
         }
 
-        public async Task<Result<ClientEntity>> AddAsync(ClientEntity clientEntity)
+        public Result<ClientEntity> Add(ClientEntity clientEntity)
         {
-            await _context.Clients.AddAsync(clientEntity);
-            await _context.SaveChangesAsync();
+            _context.Clients.Add(clientEntity);
             return Result.Success(clientEntity);
         }
 
-        public async Task<Result> UpdateAsync(ClientEntity clientEntity)
+        public Result Update(ClientEntity clientEntity)
         {
             _context.Clients.Update(clientEntity);
-            await _context.SaveChangesAsync();
             return Result.Success();
         }
 
-        public async Task<Result> DeleteAsync(ClientId id)
+        public Result Delete(ClientId id)
         {
-            var client = await _context.Clients.FirstOrDefaultAsync(c => c.Id == id);
+            var client = _context.Clients.FirstOrDefault(c => c.Id == id);
             if (client == null)
             {
                 return Result.Failure($"Client with ID {id.Value} not found");
             }
 
             _context.Clients.Remove(client);
-            await _context.SaveChangesAsync();
             return Result.Success();
         }
 
-        public async Task<bool> ExistsAsync(ClientId id)
+        public async Task<bool> ExistsAsync(ClientId id, CancellationToken cancellationToken = default)
         {
-            return await _context.Clients.AnyAsync(c => c.Id == id);
+            return await _context.Clients.AsNoTracking().AnyAsync(c => c.Id == id, cancellationToken);
         }
     }
 }

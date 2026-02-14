@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using AutoMapper;
 using CSharpFunctionalExtensions;
@@ -14,11 +15,14 @@ using Presenter.DTOs.PropertyDTO.Response;
 using Presenter.Utilities;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Queries;
+using UseCases.Property.Commands;
 using UseCases.Property.Commands.CreateProperty;
 using UseCases.Property.Commands.DeleteProperty;
-using UseCases.Property.Commands.UpdateProperty;
+using UseCases.Property.Queries;
 using UseCases.Property.Queries.GetPropertyById;
 using UseCases.Property.Queries.SearchPropertiesQuery;
+using UseCases.Reservation.Queries;
+using UseCases.UseCases.DTO.Booking;
 using UseCases.UseCases.DTO.Property;
 using Xunit;
 using AddressDto = Presenter.DTOs.PropertyDTO.AddressDto;
@@ -34,6 +38,7 @@ namespace Test.Controllers
         private readonly Mock<ICommandHandler<DeletePropertyCommand>> _mockDeletePropertyHandler;
         private readonly Mock<IQueryHandler<GetPropertyByIdQuery, Result<PropertyDto>>> _mockGetPropertyByIdHandler;
         private readonly Mock<IQueryHandler<SearchPropertiesQuery, Result<SearchPropertiesQueryResponse>>> _mockSearchPropertiesHandler;
+        private readonly Mock<IQueryHandler<GetPropertyReservationQuery, Result<ReservationDto>>> _mockGetPropertyReservationHandler;
         private readonly Mock<IMapper> _mockMapper;
         private readonly PropertyController _controller;
 
@@ -44,6 +49,7 @@ namespace Test.Controllers
             _mockDeletePropertyHandler = new Mock<ICommandHandler<DeletePropertyCommand>>();
             _mockGetPropertyByIdHandler = new Mock<IQueryHandler<GetPropertyByIdQuery, Result<PropertyDto>>>();
             _mockSearchPropertiesHandler = new Mock<IQueryHandler<SearchPropertiesQuery, Result<SearchPropertiesQueryResponse>>>();
+            _mockGetPropertyReservationHandler = new Mock<IQueryHandler<GetPropertyReservationQuery, Result<ReservationDto>>>();
             _mockMapper = new Mock<IMapper>();
             _controller = new PropertyController(
                 _mockCreatePropertyHandler.Object,
@@ -51,6 +57,7 @@ namespace Test.Controllers
                 _mockDeletePropertyHandler.Object,
                 _mockGetPropertyByIdHandler.Object,
                 _mockSearchPropertiesHandler.Object,
+                _mockGetPropertyReservationHandler.Object,
                 _mockMapper.Object);
         }
 
@@ -96,10 +103,11 @@ namespace Test.Controllers
             var createdId = Guid.NewGuid();
 
             _mockMapper.Setup(m => m.Map<CreatePropertyCommand>(request)).Returns(command);
-            _mockCreatePropertyHandler.Setup(x => x.HandleAsync(command)).ReturnsAsync(Result.Success(createdId));
+            _mockCreatePropertyHandler.Setup(x => x.HandleAsync(command, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result.Success(createdId));
 
             // Act
-            var result = await _controller.CreateProperty(request);
+            var result = await _controller.CreateProperty(request, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(result);
@@ -119,10 +127,11 @@ namespace Test.Controllers
             var error = "Handler failure";
 
             _mockMapper.Setup(m => m.Map<CreatePropertyCommand>(request)).Returns(command);
-            _mockCreatePropertyHandler.Setup(x => x.HandleAsync(command)).ReturnsAsync(Result.Failure<Guid>(error));
+            _mockCreatePropertyHandler.Setup(x => x.HandleAsync(command, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result.Failure<Guid>(error));
 
             // Act
-            var result = await _controller.CreateProperty(request);
+            var result = await _controller.CreateProperty(request, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(result);
@@ -165,12 +174,12 @@ namespace Test.Controllers
                     StartDate = propertyDto.OwnershipDto.StartDate
                 }
             );
-            _mockGetPropertyByIdHandler.Setup(x => x.HandleAsync(It.Is<GetPropertyByIdQuery>(q => q.PropertyId == propertyId)))
+            _mockGetPropertyByIdHandler.Setup(x => x.HandleAsync(It.Is<GetPropertyByIdQuery>(q => q.PropertyId == propertyId), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result.Success(propertyDto));
             _mockMapper.Setup(m => m.Map<PropertyResponse>(propertyDto)).Returns(expectedResponse);
 
             // Act
-            var result = await _controller.GetProperty(propertyId);
+            var result = await _controller.GetProperty(propertyId, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(result);
@@ -184,11 +193,11 @@ namespace Test.Controllers
             // Arrange
             var propertyId = Guid.NewGuid();
             var error = "Property not found";
-            _mockGetPropertyByIdHandler.Setup(x => x.HandleAsync(It.Is<GetPropertyByIdQuery>(q => q.PropertyId == propertyId)))
+            _mockGetPropertyByIdHandler.Setup(x => x.HandleAsync(It.Is<GetPropertyByIdQuery>(q => q.PropertyId == propertyId), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result.Failure<PropertyDto>(error));
 
             // Act
-            var result = await _controller.GetProperty(propertyId);
+            var result = await _controller.GetProperty(propertyId, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(result);
@@ -208,11 +217,13 @@ namespace Test.Controllers
                 new UseCases.UseCases.DTO.Property.PropertyDetailsDto(100000m, "Desc", 2, 1, 1, 50m, "Apartment", "Central", "Good", true),
                 new UseCases.UseCases.DTO.Property.OwnershipDto(Guid.NewGuid(), DateTime.UtcNow));
 
-            _mockMapper.Setup(m => m.Map<UpdatePropertyCommand>(It.IsAny<object>())).Returns(command);
-            _mockUpdatePropertyHandler.Setup(x => x.HandleAsync(command)).ReturnsAsync(Result.Success());
+            _mockMapper
+                .Setup(m => m.Map<UpdatePropertyCommand>(It.IsAny<UpdatePropertyRequest>(), It.IsAny<Action<IMappingOperationOptions>>()))
+                .Returns(command);
+            _mockUpdatePropertyHandler.Setup(x => x.HandleAsync(command, It.IsAny<CancellationToken>())).ReturnsAsync(Result.Success());
 
             // Act
-            var result = await _controller.UpdateProperty(propertyId, request);
+            var result = await _controller.UpdateProperty(propertyId, request, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(result);
@@ -260,11 +271,13 @@ namespace Test.Controllers
                 )
             };
 
-            _mockSearchPropertiesHandler.Setup(x => x.HandleAsync(query)).ReturnsAsync(Result.Success(searchResult));
+            _mockSearchPropertiesHandler
+                .Setup(x => x.HandleAsync(query, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result.Success(searchResult));
             _mockMapper.Setup(m => m.Map<IEnumerable<PropertyResponse>>(searchResult.Items)).Returns(mappedItems);
 
             // Act
-            var result = await _controller.GetProperties(query);
+            var result = await _controller.GetProperties(query, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(result);
@@ -285,10 +298,12 @@ namespace Test.Controllers
             var propertyId = Guid.NewGuid();
             var command = new DeletePropertyCommand(propertyId);
 
-            _mockDeletePropertyHandler.Setup(x => x.HandleAsync(command)).ReturnsAsync(Result.Success());
+            _mockDeletePropertyHandler
+                .Setup(x => x.HandleAsync(command, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result.Success());
 
             // Act
-            var result = await _controller.DeleteProperty(propertyId);
+            var result = await _controller.DeleteProperty(propertyId, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(result);
@@ -303,10 +318,12 @@ namespace Test.Controllers
             var command = new DeletePropertyCommand(propertyId);
             var error = "Property not found";
 
-            _mockDeletePropertyHandler.Setup(x => x.HandleAsync(command)).ReturnsAsync(Result.Failure(error));
+            _mockDeletePropertyHandler
+                .Setup(x => x.HandleAsync(command, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result.Failure(error));
 
             // Act
-            var result = await _controller.DeleteProperty(propertyId);
+            var result = await _controller.DeleteProperty(propertyId, CancellationToken.None);
 
             // Assert
             var envelope = Assert.IsType<Envelope>(result);

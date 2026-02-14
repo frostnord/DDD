@@ -1,22 +1,23 @@
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client;
 using Domain.Customers.Client.VO;
 using UseCases.Interfaces.Commands;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 
 namespace UseCases.Client.Commands.DeleteClient;
 
 public class DeleteClientCommandHandler : ICommandHandler<DeleteClientCommand, ClientEntity>
 {
-    private readonly IClientRepository _clientRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public DeleteClientCommandHandler(IClientRepository clientRepository)
+    public DeleteClientCommandHandler(IUnitOfWork unitOfWork)
     {
-        _clientRepository = clientRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<ClientEntity>> HandleAsync(DeleteClientCommand command)
+    public async Task<Result<ClientEntity>> HandleAsync(DeleteClientCommand command, CancellationToken cancellationToken = default)
     {
         var clientId = ClientId.Create(command.ClientId);
         if (clientId.IsFailure)
@@ -24,17 +25,19 @@ public class DeleteClientCommandHandler : ICommandHandler<DeleteClientCommand, C
             return Result.Failure<ClientEntity>($"Invalid client ID: {clientId.Error}");
         }
 
-        var clientResult = await _clientRepository.GetByIdAsync(clientId.Value);
+        var clientResult = await _unitOfWork.Clients.GetByIdAsync(clientId.Value, cancellationToken);
         if (clientResult.IsFailure)
         {
             return Result.Failure<ClientEntity>($"Client with ID {command.ClientId} does not exist");
         }
 
-        var deleteResult = await _clientRepository.DeleteAsync(clientId.Value);
+        var deleteResult = _unitOfWork.Clients.Delete(clientId.Value);
         if (deleteResult.IsFailure)
         {
             return Result.Failure<ClientEntity>(deleteResult.Error);
         }
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success(clientResult.Value);
     }

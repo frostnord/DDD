@@ -1,30 +1,31 @@
-﻿using System;
+using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Property.VO;
 using UseCases.Interfaces.Queries;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 using UseCases.UseCases.DTO.Property;
 
 namespace UseCases.Property.Queries.GetPropertyById;
 
 public class GetPropertyByIdQueryHandler : IQueryHandler<GetPropertyByIdQuery, Result<PropertyDto>>
 {
-    private readonly IPropertyRepository _propertyRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public GetPropertyByIdQueryHandler(IPropertyRepository propertyRepository)
+    public GetPropertyByIdQueryHandler(IUnitOfWork unitOfWork)
     {
-        _propertyRepository = propertyRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<PropertyDto>> HandleAsync(GetPropertyByIdQuery query)
+    public async Task<Result<PropertyDto>> HandleAsync(GetPropertyByIdQuery query, CancellationToken cancellationToken = default)
     {
         var propertyIdResult = PropertyId.Create(query.PropertyId);
         if (propertyIdResult.IsFailure)
             return Result.Failure<PropertyDto>(propertyIdResult.Error);
 
-        var propertyResult = await _propertyRepository.GetByIdAsync(propertyIdResult.Value);
+        var propertyResult = await _unitOfWork.Properties.GetByIdAsync(propertyIdResult.Value, cancellationToken);
         if (propertyResult.IsFailure)
             return Result.Failure<PropertyDto>(propertyResult.Error);
 

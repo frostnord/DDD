@@ -1,78 +1,61 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using UseCases.Interfaces.Queries;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 using UseCases.DTO.Seller;
 
 namespace UseCases.Seller.Queries;
 
 public class SearchSellersQueryHandler : IQueryHandler<SearchSellersQuery, Result<SearchSellersQueryResponse>>
 {
-    private readonly ISellerRepository _sellerRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public SearchSellersQueryHandler(ISellerRepository sellerRepository)
+    public SearchSellersQueryHandler(IUnitOfWork unitOfWork)
     {
-        _sellerRepository = sellerRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<SearchSellersQueryResponse>> HandleAsync(SearchSellersQuery query)
+    public async Task<Result<SearchSellersQueryResponse>> HandleAsync(SearchSellersQuery query, CancellationToken cancellationToken = default)
     {
-        var sellersResult = await _sellerRepository.GetAllAsync();
+        var normalizedPage = query.Page < 1 ? 1 : query.Page;
+        var normalizedPageSize = query.PageSize < 1 ? 1 : query.PageSize;
+
+        var sortBy = string.IsNullOrWhiteSpace(query.SortBy) ? "Id" : query.SortBy;
+        var sortOrder = string.IsNullOrWhiteSpace(query.SortOrder) ? "asc" : query.SortOrder;
+
+        var sellersResult = await _unitOfWork.Sellers.SearchAsync(
+            normalizedPage,
+            normalizedPageSize,
+            sortBy,
+            sortOrder,
+            cancellationToken);
+
         if (sellersResult.IsFailure)
         {
             return Result.Failure<SearchSellersQueryResponse>(sellersResult.Error);
         }
 
-        var sellers = sellersResult.Value.ToList();
-        var totalCount = sellers.Count;
+        var (items, totalCount) = sellersResult.Value;
 
-        // Применение сортировки
-        var sortedSellers = ApplySorting(sellers, query.SortBy, query.SortOrder);
-
-        // Применение пагинации
-        var pagedSellers = sortedSellers
-            .Skip((query.Page - 1) * query.PageSize)
-            .Take(query.PageSize)
+        var sellerDtos = items.Select(seller => new SellerDto(
+                seller.Id.Value,
+                seller.ClientId.Value,
+                seller.RegisteredAt))
             .ToList();
 
-        var sellerDtos = pagedSellers.Select(seller => new SellerDto(
-            seller.Id.Value,
-            seller.ClientId.Value,
-            seller.RegisteredAt
-        )).ToList();
-
-        var totalPages = (int)Math.Ceiling((double)totalCount / query.PageSize);
+        var totalPages = (int)Math.Ceiling((double)totalCount / normalizedPageSize);
 
         var response = new SearchSellersQueryResponse(
             sellerDtos,
             totalCount,
-            query.PageSize,
+            normalizedPageSize,
             totalPages,
-            query.Page
+            normalizedPage
         );
 
         return Result.Success(response);
-    }
-
-    private List<Domain.Customers.Seller.SellerEntity> ApplySorting(
-        List<Domain.Customers.Seller.SellerEntity> sellers,
-        string sortBy,
-        string sortOrder)
-    {
-        var sortedSellers = sortBy.ToLower() switch
-        {
-            "id" => sortOrder.ToLower() == "desc" 
-                ? sellers.OrderByDescending(s => s.Id.Value).ToList()
-                : sellers.OrderBy(s => s.Id.Value).ToList(),
-            "clientid" => sortOrder.ToLower() == "desc"
-                ? sellers.OrderByDescending(s => s.ClientId.Value).ToList()
-                : sellers.OrderBy(s => s.ClientId.Value).ToList(),
-            _ => sellers // по умолчанию сортировка по ID
-        };
-
-        return sortedSellers;
     }
 }

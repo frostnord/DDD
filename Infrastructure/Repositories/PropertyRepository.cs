@@ -1,7 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
+using Domain.Customers.Client.VO;
 using Domain.Property;
 using Domain.Property.VO;
 using Microsoft.EntityFrameworkCore;
@@ -23,10 +25,54 @@ namespace Infrastructure.Repositories
             _context = context;
         }
 
-        public async Task<Result<PropertyEntity>> GetByIdAsync(PropertyId id)
+        public async Task<Result<PropertyEntity?>> GetActiveReservationByPropertyIdAsync(PropertyId propertyId,
+            DateTime nowUtc,
+            CancellationToken cancellationToken = default)
         {
             var property = await _context.Properties
-                .FirstOrDefaultAsync(p => p.Id == id);
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p =>
+                        p.Id == propertyId &&
+                        p.Status == PropertyStatus.Reserved &&
+                        p.ReservedUntil != null &&
+                        p.ReservedUntil > nowUtc,
+                    cancellationToken);
+
+            return Result.Success(property);
+        }
+
+        public async Task<Result<IEnumerable<PropertyEntity>>> GetActiveReservationByClientIdAsync(ClientId clientId,
+            DateTime nowUtc,
+            CancellationToken cancellationToken = default)
+        {
+            var properties = await _context.Properties
+                .AsNoTracking()
+                .Where(p =>
+                    p.ReservedByClientId == clientId &&
+                    p.Status == PropertyStatus.Reserved &&
+                    p.ReservedUntil != null &&
+                    p.ReservedUntil > nowUtc)
+                .ToListAsync(cancellationToken);
+
+            return Result.Success<IEnumerable<PropertyEntity>>(properties);
+        }
+
+        public async Task<Result<PropertyEntity>> GetByIdAsync(PropertyId id, CancellationToken cancellationToken = default)
+        {
+            var property = await _context.Properties
+                .AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+
+            return property != null
+                ? Result.Success(property)
+                : Result.Failure<PropertyEntity>($"Property with ID {id.Value} not found");
+        }
+
+        public async Task<Result<PropertyEntity>> GetByIdForUpdateAsync(PropertyId id, CancellationToken cancellationToken = default)
+        {
+            var property = await _context.Properties
+                .FromSqlInterpolated($@"SELECT * FROM property WHERE id = {id.Value} FOR UPDATE")
+                .FirstOrDefaultAsync(cancellationToken);
 
             return property != null
                 ? Result.Success(property)
@@ -34,16 +80,17 @@ namespace Infrastructure.Repositories
         }
 
 
-        public async Task<Result<IEnumerable<PropertyEntity>>> GetAllAsync()
+        public async Task<Result<IEnumerable<PropertyEntity>>> GetAllAsync(CancellationToken cancellationToken = default)
         {
-            var properties = await _context.Properties.ToListAsync();
+            var properties = await _context.Properties.AsNoTracking().ToListAsync(cancellationToken);
             return Result.Success<IEnumerable<PropertyEntity>>(properties);
         }
 
         public async Task<Result<(IEnumerable<PropertyEntity> Items, int TotalCount)>> SearchAsync(
-            SearchPropertiesQuery query)
+            SearchPropertiesQuery query,
+            CancellationToken cancellationToken = default)
         {
-            IQueryable<PropertyEntity> properties = _context.Properties;
+            IQueryable<PropertyEntity> properties = _context.Properties.AsNoTracking();
 
             if (!string.IsNullOrEmpty(query.City))
             {
@@ -141,48 +188,45 @@ namespace Infrastructure.Repositories
                 properties = properties.OrderBy(p => p.CreatedAt);
             }
 
-            var totalCount = await properties.CountAsync();
+            var totalCount = await properties.CountAsync(cancellationToken);
             var page = query.Page < 1 ? 1 : query.Page;
             var pageSize = query.PageSize < 1 ? 1 : query.PageSize;
 
             var items = await properties
                 .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .ToListAsync();
+                .ToListAsync(cancellationToken);
 
             return Result.Success((items.AsEnumerable(), totalCount));
         }
 
-        public async Task<Result<PropertyEntity>> AddAsync(PropertyEntity propertyEntity)
+        public Result<PropertyEntity> Add(PropertyEntity propertyEntity)
         {
-            await _context.Properties.AddAsync(propertyEntity);
-            await _context.SaveChangesAsync();
+            _context.Properties.Add(propertyEntity);
             return Result.Success(propertyEntity);
         }
 
-        public async Task<Result> UpdateAsync(PropertyEntity propertyEntity)
+        public Result Update(PropertyEntity propertyEntity)
         {
             _context.Properties.Update(propertyEntity);
-            await _context.SaveChangesAsync();
             return Result.Success();
         }
 
-        public async Task<Result> DeleteAsync(PropertyId id)
+        public Result Delete(PropertyId id)
         {
-            var property = await _context.Properties.FirstOrDefaultAsync(p => p.Id == id);
+            var property = _context.Properties.FirstOrDefault(p => p.Id == id);
             if (property == null)
             {
                 return Result.Failure($"Property with ID {id.Value} not found");
             }
 
             _context.Properties.Remove(property);
-            await _context.SaveChangesAsync();
             return Result.Success();
         }
 
-        public async Task<bool> ExistsAsync(PropertyId id)
+        public async Task<bool> ExistsAsync(PropertyId id, CancellationToken cancellationToken = default)
         {
-            return await _context.Properties.AnyAsync(p => p.Id == id);
+            return await _context.Properties.AsNoTracking().AnyAsync(p => p.Id == id, cancellationToken);
         }
     }
 }

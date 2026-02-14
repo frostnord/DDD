@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Buyer;
@@ -6,30 +7,27 @@ using Domain.Customers.Client.VO;
 using Domain.Property.VO; // Добавляем using для SmartPropertyType, HeatingType, PropertyCondition
 using Domain.ValueObjects; // Добавляем using для NumberOfRooms, Floor, TotalFloors
 using UseCases.Interfaces.Commands;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 
 namespace UseCases.Buyer.Commands.CreateBuyer;
 
 public class CreateBuyerCommandHandler : ICommandHandler<CreateBuyerCommand, Guid>
 {
-    private readonly IBuyerRepository _buyerRepository;
-    private readonly IClientRepository _clientRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
     public CreateBuyerCommandHandler(
-        IBuyerRepository buyerRepository,
-        IClientRepository clientRepository)
+        IUnitOfWork unitOfWork)
     {
-        _buyerRepository = buyerRepository;
-        _clientRepository = clientRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<Guid>> HandleAsync(CreateBuyerCommand command)
+    public async Task<Result<Guid>> HandleAsync(CreateBuyerCommand command, CancellationToken cancellationToken = default)
     {
         var clientIdResult = ClientId.Create(command.ClientId);
         if (clientIdResult.IsFailure)
             return Result.Failure<Guid>(clientIdResult.Error);
 
-        var clientExists = await _clientRepository.ExistsAsync(clientIdResult.Value);
+        var clientExists = await _unitOfWork.Clients.ExistsAsync(clientIdResult.Value, cancellationToken);
         if (!clientExists)
         {
             return Result.Failure<Guid>($"Client with ID {command.ClientId} does not exist");
@@ -85,11 +83,13 @@ public class CreateBuyerCommandHandler : ICommandHandler<CreateBuyerCommand, Gui
             return Result.Failure<Guid>(buyerResult.Error);
         }
 
-        var saveResult = await _buyerRepository.AddAsync(buyerResult.Value);
+        var saveResult = _unitOfWork.Buyers.Add(buyerResult.Value);
         if (saveResult.IsFailure)
         {
             return Result.Failure<Guid>(saveResult.Error);
         }
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success(buyerResult.Value.Id.Value);
     }

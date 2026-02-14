@@ -1,4 +1,3 @@
-using Domain.Booking;
 using Domain.Customers.Buyer;
 using Domain.Customers.Client;
 using Domain.Customers.Seller;
@@ -18,7 +17,6 @@ public class AppDbContext : DbContext
     public DbSet<CompletedDealEntity> CompletedDeals => Set<CompletedDealEntity>();
     public DbSet<DealEntity> Deals => Set<DealEntity>();
     public DbSet<ClientEntity> Clients => Set<ClientEntity>();
-    public DbSet<BookingEntity> Bookings => Set<BookingEntity>();
     
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {

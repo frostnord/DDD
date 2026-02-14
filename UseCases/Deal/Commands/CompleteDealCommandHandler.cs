@@ -1,21 +1,23 @@
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Deal;
+using Domain.Deal.VO;
 using UseCases.Interfaces.Commands;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 
 namespace UseCases.Deal.Commands;
 
 public class CompleteDealCommandHandler : ICommandHandler<CompleteDealCommand>
 {
-    private readonly IDealRepository _dealRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public CompleteDealCommandHandler(IDealRepository dealRepository)
+    public CompleteDealCommandHandler(IUnitOfWork unitOfWork)
     {
-        _dealRepository = dealRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result> HandleAsync(CompleteDealCommand command)
+    public async Task<Result> HandleAsync(CompleteDealCommand command, CancellationToken cancellationToken = default)
     {
         var dealId = DealId.Create(command.DealId);
         if (dealId.IsFailure)
@@ -23,7 +25,7 @@ public class CompleteDealCommandHandler : ICommandHandler<CompleteDealCommand>
             return Result.Failure(dealId.Error);
         }
 
-        var dealResult = await _dealRepository.GetByIdAsync(dealId.Value);
+        var dealResult = await _unitOfWork.Deals.GetByIdAsync(dealId.Value, cancellationToken);
         if (dealResult.IsFailure)
         {
             return Result.Failure(dealResult.Error);
@@ -37,11 +39,13 @@ public class CompleteDealCommandHandler : ICommandHandler<CompleteDealCommand>
 
         deal.Complete();
 
-        var updateResult = await _dealRepository.UpdateAsync(deal);
+        var updateResult = _unitOfWork.Deals.Update(deal);
         if (updateResult.IsFailure)
         {
             return Result.Failure(updateResult.Error);
         }
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

@@ -1,27 +1,25 @@
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
 using Domain.Customers.Seller;
 using Domain.Customers.Seller.VO;
 using UseCases.Interfaces.Commands;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 
 namespace UseCases.Seller.Commands;
 
 public class UpdateSellerCommandHandler : ICommandHandler<UpdateSellerCommand>
 {
-    private readonly ISellerRepository _sellerRepository;
-    private readonly IClientRepository _clientRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
     public UpdateSellerCommandHandler(
-        ISellerRepository sellerRepository,
-        IClientRepository clientRepository)
+        IUnitOfWork unitOfWork)
     {
-        _sellerRepository = sellerRepository;
-        _clientRepository = clientRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result> HandleAsync(UpdateSellerCommand command)
+    public async Task<Result> HandleAsync(UpdateSellerCommand command, CancellationToken cancellationToken = default)
     {
         var sellerIdResult = SellerId.Create(command.SellerId);
         if (sellerIdResult.IsFailure)
@@ -35,13 +33,13 @@ public class UpdateSellerCommandHandler : ICommandHandler<UpdateSellerCommand>
             return Result.Failure(clientIdResult.Error);
         }
 
-        var sellerResult = await _sellerRepository.GetByIdAsync(sellerIdResult.Value);
+        var sellerResult = await _unitOfWork.Sellers.GetByIdAsync(sellerIdResult.Value, cancellationToken);
         if (sellerResult.IsFailure)
         {
             return Result.Failure(sellerResult.Error);
         }
 
-        var clientResult = await _clientRepository.GetByIdAsync(clientIdResult.Value);
+        var clientResult = await _unitOfWork.Clients.GetByIdAsync(clientIdResult.Value, cancellationToken);
         if (clientResult.IsFailure)
         {
             return Result.Failure($"Client with ID {command.ClientId} does not exist");
@@ -50,11 +48,13 @@ public class UpdateSellerCommandHandler : ICommandHandler<UpdateSellerCommand>
         SellerEntity seller = sellerResult.Value;
         seller.Update(clientIdResult.Value);
 
-        var updateResult = await _sellerRepository.UpdateAsync(seller);
+        var updateResult = _unitOfWork.Sellers.Update(seller);
         if (updateResult.IsFailure)
         {
             return Result.Failure(updateResult.Error);
         }
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return Result.Success();
     }

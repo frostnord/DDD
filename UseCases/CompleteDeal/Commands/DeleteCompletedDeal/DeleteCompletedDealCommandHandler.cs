@@ -1,21 +1,23 @@
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Domain.Deal;
+using Domain.Deal.VO;
 using UseCases.Interfaces.Commands;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 
 namespace UseCases.CompleteDeal.Commands.DeleteCompletedDeal;
 
 public class DeleteCompletedDealCommandHandler : ICommandHandler<DeleteCompletedDealCommand>
 {
-    private readonly ICompletedDealRepository _completedDealRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public DeleteCompletedDealCommandHandler(ICompletedDealRepository completedDealRepository)
+    public DeleteCompletedDealCommandHandler(IUnitOfWork unitOfWork)
     {
-        _completedDealRepository = completedDealRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result> HandleAsync(DeleteCompletedDealCommand command)
+    public async Task<Result> HandleAsync(DeleteCompletedDealCommand command, CancellationToken cancellationToken = default)
     {
         var idResult = CompletedDealId.Create(command.CompletedDealId);
         if (idResult.IsFailure)
@@ -23,6 +25,14 @@ public class DeleteCompletedDealCommandHandler : ICommandHandler<DeleteCompleted
             return Result.Failure(idResult.Error);
         }
 
-        return await _completedDealRepository.DeleteAsync(idResult.Value);
+        var deleteResult = _unitOfWork.CompletedDeals.Delete(idResult.Value);
+        if (deleteResult.IsFailure)
+        {
+            return deleteResult;
+        }
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+
+        return Result.Success();
     }
 }

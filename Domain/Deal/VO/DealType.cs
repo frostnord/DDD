@@ -1,6 +1,6 @@
 using Domain.Utilities;
 
-namespace Domain.Deal
+namespace Domain.Deal.VO
 {
     /// <summary>
     /// Smart Enum для типа сделки

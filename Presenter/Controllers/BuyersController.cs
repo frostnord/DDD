@@ -1,5 +1,6 @@
 using System;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Mvc;
@@ -56,13 +57,14 @@ namespace Presenter.Controllers
         /// Создает нового покупателя.
         /// </summary>
         /// <param name="request">Запрос, содержащий данные о покупателе</param>
+        /// <param name="cancellationToken">Токен отмены операции</param>
         /// <returns>ID созданного покупателя с HTTP 201 при успешном выполнении, иначе HTTP 400 с деталями ошибки</returns>
         [HttpPost]
-        public async Task<Envelope> CreateBuyer([FromBody] CreateBuyerRequest request)
+        public async Task<Envelope> CreateBuyer([FromBody] CreateBuyerRequest request, CancellationToken cancellationToken)
         {
             var command = _mapper.Map<CreateBuyerCommand>(request);
 
-            var result = await _createBuyerHandler.HandleAsync(command);
+            var result = await _createBuyerHandler.HandleAsync(command, cancellationToken);
 
             if (result.IsFailure)
             {
@@ -76,12 +78,13 @@ namespace Presenter.Controllers
         /// Получает покупателя по его уникальному идентификатору.
         /// </summary>
         /// <param name="id">Уникальный идентификатор покупателя</param>
+        /// <param name="cancellationToken">Токен отмены операции</param>
         /// <returns>Запрошенный покупатель с HTTP 200 если найден, иначе HTTP 404 с деталями ошибки</returns>
         [HttpGet("{id}")]
-        public async Task<Envelope> GetBuyer(Guid id)
+        public async Task<Envelope> GetBuyer(Guid id, CancellationToken cancellationToken)
         {
             var query = new GetBuyerByIdQuery(id);
-            var result = await _getBuyerByIdHandler.HandleAsync(query);
+            var result = await _getBuyerByIdHandler.HandleAsync(query, cancellationToken);
             if (result.IsFailure)
             {
                 return new Envelope(HttpStatusCode.NotFound, error: result.Error);
@@ -94,11 +97,12 @@ namespace Presenter.Controllers
         /// Получает всех покупателей с опциональной фильтрацией.
         /// </summary>
         /// <param name="query">Параметры запроса для фильтрации покупателей</param>
+        /// <param name="cancellationToken">Токен отмены операции</param>
         /// <returns>Список покупателей, соответствующих критериям фильтрации, с HTTP 200 при успешном выполнении, иначе HTTP 400 с деталями ошибки</returns>
         [HttpGet]
-        public async Task<Envelope> GetBuyers([FromQuery] SearchBuyersQuery query)
+        public async Task<Envelope> GetBuyers([FromQuery] SearchBuyersQuery query, CancellationToken cancellationToken)
         {
-            var result = await _searchBuyersHandler.HandleAsync(query);
+            var result = await _searchBuyersHandler.HandleAsync(query, cancellationToken);
             if (result.IsFailure)
             {
                 return new Envelope(HttpStatusCode.BadRequest, error: result.Error);
@@ -120,14 +124,15 @@ namespace Presenter.Controllers
         /// </summary>
         /// <param name="id">Уникальный идентификатор покупателя для обновления</param>
         /// <param name="request">Запрос, содержащий обновленные данные покупателя</param>
+        /// <param name="cancellationToken">Токен отмены операции</param>
         /// <returns>HTTP 204 при успешном выполнении, иначе HTTP 400 или 404 с деталями ошибки</returns>
         [HttpPut("{id}")]
-        public async Task<Envelope> UpdateBuyer(Guid id, [FromBody] UpdateBuyerRequest request)
+        public async Task<Envelope> UpdateBuyer(Guid id, [FromBody] UpdateBuyerRequest request, CancellationToken cancellationToken)
         {
             var command = _mapper.Map<UpdateBuyerCommand>(request, opt =>
                 opt.Items["Id"] = id);
 
-            var result = await _updateBuyerHandler.HandleAsync(command);
+            var result = await _updateBuyerHandler.HandleAsync(command, cancellationToken);
 
             if (result.IsFailure)
             {
@@ -141,12 +146,13 @@ namespace Presenter.Controllers
         /// Удаляет покупателя по его уникальному идентификатору.
         /// </summary>
         /// <param name="id">Уникальный идентификатор покупателя для удаления</param>
+        /// <param name="cancellationToken">Токен отмены операции</param>
         /// <returns>HTTP 204 при успешном удалении, иначе HTTP 404 с деталями ошибки</returns>
         [HttpDelete("{id}")]
-        public async Task<Envelope> DeleteBuyer(Guid id)
+        public async Task<Envelope> DeleteBuyer(Guid id, CancellationToken cancellationToken)
         {
             var command = new DeleteBuyerCommand(id);
-            var result = await _deleteBuyerHandler.HandleAsync(command);
+            var result = await _deleteBuyerHandler.HandleAsync(command, cancellationToken);
 
             if (result.IsFailure)
             {

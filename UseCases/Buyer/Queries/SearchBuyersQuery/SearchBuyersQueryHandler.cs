@@ -1,27 +1,28 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using UseCases.UseCases.DTO.Buyer;
 using UseCases.Interfaces.Queries;
 using UseCases.Buyer.Queries.SearchBuyersQuery;
-using UseCases.Interfaces.Repositories;
+using UseCases.Interfaces.Services;
 
 namespace UseCases.Buyer.Queries.SearchBuyersQuery;
 
 public class SearchBuyersQueryHandler : IQueryHandler<SearchBuyersQuery, Result<SearchBuyersQueryResponse>>
 {
-    private readonly IBuyerRepository _buyerRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public SearchBuyersQueryHandler(IBuyerRepository buyerRepository)
+    public SearchBuyersQueryHandler(IUnitOfWork unitOfWork)
     {
-        _buyerRepository = buyerRepository;
+        _unitOfWork = unitOfWork;
     }
 
-    public async Task<Result<SearchBuyersQueryResponse>> HandleAsync(SearchBuyersQuery query)
+    public async Task<Result<SearchBuyersQueryResponse>> HandleAsync(SearchBuyersQuery query, CancellationToken cancellationToken = default)
     {
-        var buyersResult = await _buyerRepository.SearchAsync(query.Page, query.PageSize);
+        var buyersResult = await _unitOfWork.Buyers.SearchAsync(query.Page, query.PageSize, cancellationToken);
         if (buyersResult.IsFailure)
         {
             return Result.Failure<SearchBuyersQueryResponse>(buyersResult.Error);

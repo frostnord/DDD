@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 
@@ -5,10 +6,10 @@ namespace UseCases.Interfaces.Commands;
 
 public interface ICommandHandler<in TCommand> where TCommand : ICommand
 {
-    Task<Result> HandleAsync(TCommand command);
+    Task<Result> HandleAsync(TCommand command, CancellationToken cancellationToken = default);
 }
 
 public interface ICommandHandler<in TCommand, TResponse> where TCommand : ICommand<TResponse>
 {
-    Task<Result<TResponse>> HandleAsync(TCommand command);
+    Task<Result<TResponse>> HandleAsync(TCommand command, CancellationToken cancellationToken = default);
 }
