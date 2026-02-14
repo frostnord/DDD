@@ -55,9 +55,7 @@ public class SearchReservationQueryHandler : IQueryHandler<SearchReservationQuer
                     p.Id.Value,
                     p.ReservedAt ?? nowUtc,
                     p.ReservedUntil!.Value,
-                    "Active",
-                    p.CreatedAt,
-                    p.UpdatedAt))
+                    "Active"))
                 .ToList();
 
             return Result.Success(new SearchBookingsQueryResponse(dtos));
@@ -88,9 +86,7 @@ public class SearchReservationQueryHandler : IQueryHandler<SearchReservationQuer
                     p.Id.Value,
                     p.ReservedAt ?? nowUtc,
                     p.ReservedUntil.Value,
-                    "Active",
-                    p.CreatedAt,
-                    p.UpdatedAt));
+                    "Active"));
             }
         }
 

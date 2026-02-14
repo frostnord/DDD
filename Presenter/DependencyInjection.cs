@@ -37,7 +37,6 @@ using UseCases.Property;
 using UseCases.Property.Commands;
 using UseCases.Property.Commands.CreateProperty;
 using UseCases.Property.Commands.DeleteProperty;
-using UseCases.Property.Commands.UpdateProperty;
 using UseCases.Property.Queries;
 using UseCases.Property.Queries.GetPropertyById;
 using UseCases.Property.Queries.SearchPropertiesQuery;

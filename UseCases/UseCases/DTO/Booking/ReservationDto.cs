@@ -7,6 +7,4 @@ public record ReservationDto(
     Guid PropertyId,
     DateTime ReservedAt,
     DateTime ReservedUntil,
-    string Status,
-    DateTime CreatedAt,
-    DateTime? UpdatedAt);
+    string Status);

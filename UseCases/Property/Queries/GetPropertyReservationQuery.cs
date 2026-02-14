@@ -53,9 +53,7 @@ public class GetPropertyReservationQueryHandler : IQueryHandler<GetPropertyReser
             property.Id.Value,
             property.ReservedAt ?? nowUtc,
             property.ReservedUntil.Value,
-            "Active",
-            property.CreatedAt,
-            property.UpdatedAt);
+            "Active");
 
         return Result.Success(dto);
     }

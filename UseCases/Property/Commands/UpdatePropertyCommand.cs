@@ -1,15 +1,24 @@
 using CSharpFunctionalExtensions;
 using Domain.Customers.Client.VO;
-using Domain.Property;
 using Domain.Property.VO;
 using Domain.ValueObjects;
-using System.Threading;
-using System.Threading.Tasks;
 using UseCases.Interfaces.Commands;
 using UseCases.Interfaces.Services;
+using UseCases.UseCases.DTO.Property;
 
-namespace UseCases.Property.Commands.UpdateProperty;
+namespace UseCases.Property.Commands;
 
+public record UpdatePropertyCommand(
+    Guid PropertyId,
+    AddressDto AddressDto,
+    PropertyDetailsDto PropertyDetailsDto,
+    OwnershipDto OwnershipDto
+) : ICommand;
+
+
+/// <summary>
+/// Обновляет объект недвижимости в базе данных.
+/// </summary>
 public class UpdatePropertyCommandHandler : ICommandHandler<UpdatePropertyCommand>
 {
     private readonly IUnitOfWork _unitOfWork;

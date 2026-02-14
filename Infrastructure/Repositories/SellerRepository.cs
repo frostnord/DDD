@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
@@ -45,6 +46,40 @@ namespace Infrastructure.Repositories
         {
             var sellers = await _context.Sellers.AsNoTracking().ToListAsync(cancellationToken);
             return Result.Success<IEnumerable<SellerEntity>>(sellers);
+        }
+
+        public async Task<Result<(IEnumerable<SellerEntity> Items, int TotalCount)>> SearchAsync(
+            int page,
+            int pageSize,
+            string sortBy,
+            string sortOrder,
+            CancellationToken cancellationToken = default)
+        {
+            var normalizedPage = page < 1 ? 1 : page;
+            var normalizedPageSize = pageSize < 1 ? 1 : pageSize;
+
+            var normalizedSortBy = string.IsNullOrWhiteSpace(sortBy) ? "id" : sortBy.Trim();
+            var normalizedSortOrder = string.IsNullOrWhiteSpace(sortOrder) ? "asc" : sortOrder.Trim();
+
+            var query = _context.Sellers.AsNoTracking().AsQueryable();
+
+            var isDesc = string.Equals(normalizedSortOrder, "desc", System.StringComparison.OrdinalIgnoreCase);
+
+            query = normalizedSortBy.ToLowerInvariant() switch
+            {
+                "id" => isDesc ? query.OrderByDescending(s => s.Id.Value) : query.OrderBy(s => s.Id.Value),
+                "clientid" => isDesc ? query.OrderByDescending(s => s.ClientId.Value) : query.OrderBy(s => s.ClientId.Value),
+                "registeredat" => isDesc ? query.OrderByDescending(s => s.RegisteredAt) : query.OrderBy(s => s.RegisteredAt),
+                _ => query.OrderBy(s => s.Id.Value)
+            };
+
+            var totalCount = await query.CountAsync(cancellationToken);
+            var items = await query
+                .Skip((normalizedPage - 1) * normalizedPageSize)
+                .Take(normalizedPageSize)
+                .ToListAsync(cancellationToken);
+
+            return Result.Success((items.AsEnumerable(), totalCount));
         }
 
         public Result<SellerEntity> Add(SellerEntity sellerEntity)

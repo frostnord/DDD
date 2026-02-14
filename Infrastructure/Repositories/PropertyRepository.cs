@@ -72,7 +72,7 @@ namespace Infrastructure.Repositories
         {
             var property = await _context.Properties
                 .FromSqlInterpolated($@"SELECT * FROM property WHERE id = {id.Value} FOR UPDATE")
-                .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+                .FirstOrDefaultAsync(cancellationToken);
 
             return property != null
                 ? Result.Success(property)
